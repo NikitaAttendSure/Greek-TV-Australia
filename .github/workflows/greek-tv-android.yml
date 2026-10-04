@@ -28,13 +28,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - run: gradle --no-daemon --stacktrace --info assembleDebug
+      - run: gradle --no-daemon --stacktrace --info assembleReskakisDebug assemblePappasDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: Greek-TV-debug
+          name: TV-debug-builds
           path: |
-            tv-app/app/build/outputs/apk/debug/app-debug.apk
-            tv-app/app/build/outputs/bundle/release/app-release.aab
+            tv-app/app/build/outputs/apk/reskakis/debug/app-reskakis-debug.apk
+            tv-app/app/build/outputs/apk/pappas/debug/app-pappas-debug.apk
       - name: Publish permanent RESKAKIS TV APK
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         working-directory: .
@@ -44,5 +44,11 @@ jobs:
           if ! gh release view reskakis-tv-latest >/dev/null 2>&1; then
             gh release create reskakis-tv-latest --title "RESKAKIS TV" --notes "Latest Sony / Google TV family build."
           fi
-          cp tv-app/app/build/outputs/apk/debug/app-debug.apk RESKAKIS-TV.apk
+          cp tv-app/app/build/outputs/apk/reskakis/debug/app-reskakis-debug.apk RESKAKIS-TV.apk
           gh release upload reskakis-tv-latest RESKAKIS-TV.apk --clobber
+
+          if ! gh release view pappas-tv-latest >/dev/null 2>&1; then
+            gh release create pappas-tv-latest --title "PAPPAS TV" --notes "Latest Sony / Google TV family build."
+          fi
+          cp tv-app/app/build/outputs/apk/pappas/debug/app-pappas-debug.apk PAPPAS-TV.apk
+          gh release upload pappas-tv-latest PAPPAS-TV.apk --clobber

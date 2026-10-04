@@ -297,9 +297,9 @@ class MainActivity:Activity(){
   channels.forEachIndexed{i,ch->
    val row=LinearLayout(this).apply{
     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
-    setPadding(18,0,16,0)
+    setPadding(16,0,14,0)
     background=panel(Color.rgb(10,31,50),12f)
-    layoutParams=LinearLayout.LayoutParams(-1,62).apply{setMargins(0,0,0,7)}
+    layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,0,0,8)}
    }
    val badge=TextView(this).apply{
     text=when{
@@ -312,10 +312,10 @@ class MainActivity:Activity(){
     textSize=13f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
     background=GradientDrawable().apply{setColor(Color.rgb(20,95,180));cornerRadius=10f}
    }
-   row.addView(badge,LinearLayout.LayoutParams(48,38).apply{setMargins(0,0,14,0)})
-   val info=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-   info.addView(TextView(this).apply{text=ch.name;textSize=18f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.WHITE);setSingleLine(true)})
-   info.addView(TextView(this).apply{text=if(ch.group.isBlank())"Live TV" else ch.group;textSize=11f;setTextColor(muted);setSingleLine(true)})
+   row.addView(badge,LinearLayout.LayoutParams(46,36).apply{setMargins(0,0,14,0)})
+   val info=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=52}
+   info.addView(TextView(this).apply{text=ch.name;textSize=17f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END;maxLines=1})
+   info.addView(TextView(this).apply{text=if(ch.group.isBlank())"LIVE TV" else ch.group.uppercase();textSize=10f;setTextColor(Color.rgb(145,177,205));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END;maxLines=1;setPadding(0,2,0,0)})
    row.addView(info,LinearLayout.LayoutParams(0,-2,1f))
    row.addView(TextView(this).apply{text=if(fav.has(ch.url))"★" else "›";textSize=20f;setTextColor(if(fav.has(ch.url))Color.rgb(255,203,62) else Color.LTGRAY);gravity=Gravity.CENTER})
    row.setOnClickListener{previewPlayer?.release();previewPlayer=null;play(i)}

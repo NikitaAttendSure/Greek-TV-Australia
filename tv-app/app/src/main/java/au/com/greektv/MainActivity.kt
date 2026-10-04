@@ -8,6 +8,7 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.util.Xml
 import android.view.*
 import android.widget.*
 import androidx.media3.common.*
@@ -16,8 +17,11 @@ import androidx.media3.ui.PlayerView
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+import org.json.JSONArray
+import org.json.JSONObject
+import org.xmlpull.v1.XmlPullParser
 
-data class Channel(val name:String,val url:String,val group:String)
+data class Channel(val name:String,val url:String,val group:String,val tvgId:String="")
 class MainActivity:Activity(){
  private val bg=Color.rgb(2,7,13);private val card=Color.rgb(12,25,40);private val focus=Color.rgb(27,105,190);private val muted=Color.rgb(158,180,201);private val accent=Color.rgb(64,151,255)
  private val isPappas get()=packageName=="au.com.pappastv"
@@ -26,11 +30,121 @@ class MainActivity:Activity(){
  private val placeUpper get()=placeName.uppercase()
  private val placeFilter get()=if(isPappas)"ΝΑΥΠΛΙΟ" else "ΧΙΟΣ"
  private var player:ExoPlayer?=null;private var previewPlayer:ExoPlayer?=null;private var channels=listOf<Channel>();private var current=0;private var overlay:TextView?=null;private var currentSection="LIVE TV"
+ private var remoteConfig=JSONObject()
+ private var remoteRefreshDone=false
+ private var epgLoading=false
+ private val epgNow=mutableMapOf<String,String>()
+ private val epgNext=mutableMapOf<String,String>()
  private lateinit var fav:Favourites
- override fun onCreate(b:Bundle?){super.onCreate(b);fav=Favourites(this);showHome()}
+ override fun onCreate(b:Bundle?){
+  super.onCreate(b)
+  fav=Favourites(this)
+  if(isPappas){try{remoteConfig=JSONObject(prefs.getString("papas_config","{}")?:"{}")}catch(_:Exception){}}
+  showHome()
+  if(isPappas)refreshRemoteConfig()
+ }
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
  override fun onStop(){super.onStop();player?.release();player=null;previewPlayer?.release();previewPlayer=null}
  private fun panel(c:Int,r:Float=22f)=GradientDrawable().apply{setColor(c);cornerRadius=r;setStroke(1,Color.argb(72,120,180,230))}
+ private fun cfgString(key:String,default:String)=if(isPappas)remoteConfig.optString(key,default).ifBlank{default}else default
+ private fun refreshRemoteConfig(){
+  if(!isPappas||remoteRefreshDone)return
+  remoteRefreshDone=true
+  Thread{try{
+   val raw=URL("https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json").openConnection().apply{connectTimeout=5000;readTimeout=7000}.getInputStream().bufferedReader().use{it.readText()}
+   val obj=JSONObject(raw)
+   val old=remoteConfig.toString()
+   remoteConfig=obj
+   prefs.edit().putString("papas_config",raw).apply()
+   if(old!=obj.toString())runOnUiThread{if(player==null&&previewPlayer==null)showHome()}
+  }catch(_:Exception){}}.start()
+ }
+ private fun currentVersionCode():Int=try{
+  val p=packageManager.getPackageInfo(packageName,0)
+  if(android.os.Build.VERSION.SDK_INT>=28)p.longVersionCode.toInt() else p.versionCode
+ }catch(_:Exception){0}
+ private fun showSettings(){
+  if(!isPappas){showMessage("Settings","$brandName • Family Edition");return}
+  val ver=try{packageManager.getPackageInfo(packageName,0).versionName}catch(_:Exception){"1.0"}
+  AlertDialog.Builder(this).setTitle("PAPAS TV Settings")
+   .setMessage("Live content refreshes automatically.\n\nApp version $ver")
+   .setPositiveButton("Check for update"){_,_->
+    val latest=remoteConfig.optInt("latestVersionCode",currentVersionCode())
+    if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage("PAPAS TV "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->openUri(cfgString("updateUrl","https://ptv.up.railway.app"))}.setNegativeButton("Later",null).show()
+    else Toast.makeText(this,"PAPAS TV is up to date.",Toast.LENGTH_SHORT).show()
+   }
+   .setNeutralButton("Refresh content"){_,_->remoteRefreshDone=false;refreshRemoteConfig();Toast.makeText(this,"Refreshing PAPAS TV content…",Toast.LENGTH_SHORT).show()}
+   .setNegativeButton("Close",null).show()
+ }
+ private fun recordRecent(ch:Channel){
+  if(!isPappas)return
+  try{
+   val old=JSONArray(prefs.getString("recent_channels","[]")?:"[]")
+   val arr=JSONArray()
+   arr.put(JSONObject().put("name",ch.name).put("url",ch.url).put("group",ch.group))
+   for(i in 0 until old.length()){
+    val o=old.optJSONObject(i)?:continue
+    if(o.optString("url")!=ch.url&&arr.length()<4)arr.put(o)
+   }
+   prefs.edit().putString("recent_channels",arr.toString()).apply()
+  }catch(_:Exception){}
+ }
+ private fun playRecent(url:String){
+  Thread{try{val all=parsePlaylist(try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e});runOnUiThread{channels=all;val i=all.indexOfFirst{it.url==url};if(i>=0)play(i)else loadChannels()}}catch(_:Exception){runOnUiThread{loadChannels()}}}.start()
+ }
+ private fun channelLogoUrl(ch:Channel):String{
+  if(!isPappas)return ""
+  val logos=remoteConfig.optJSONObject("logos")
+  val remote=logos?.optString(ch.tvgId,"")?:""
+  if(remote.isNotBlank())return remote
+  return when{
+   ch.tvgId.startsWith("ERT1")->"https://i.imgur.com/UKbCtC1.png"
+   ch.tvgId.startsWith("ANT1")->"https://i.imgur.com/ItxKvVS.png"
+   ch.tvgId.startsWith("AlphaTV")->"https://i.imgur.com/6twzd38.png"
+   ch.tvgId.startsWith("StarChannel")->"https://i.imgur.com/6NUpxhr.png"
+   ch.tvgId.startsWith("OpenTV")->"https://upload.wikimedia.org/wikipedia/el/thumb/e/e5/Open_TV_logo.png/960px-Open_TV_logo.png"
+   ch.tvgId.startsWith("MegaChannel")->"https://i.imgur.com/Z3k7iA0.png"
+   else->""
+  }
+ }
+ private fun loadImageInto(view:ImageView,url:String){
+  if(url.isBlank())return
+  Thread{try{val bmp=URL(url).openStream().use{BitmapFactory.decodeStream(it)};runOnUiThread{view.setImageBitmap(bmp)}}catch(_:Exception){}}.start()
+ }
+ private fun parseXmltvDate(v:String):Long=try{SimpleDateFormat("yyyyMMddHHmmss Z",Locale.US).parse(v.trim())?.time?:0L}catch(_:Exception){0L}
+ private fun loadEpg(){
+  if(!isPappas||epgLoading||channels.none{it.tvgId.isNotBlank()})return
+  epgLoading=true
+  val wanted=channels.map{it.tvgId}.filter{it.isNotBlank()}.toSet()
+  Thread{try{
+   val parser=Xml.newPullParser()
+   val input=URL(cfgString("epgUrl","https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml")).openConnection().apply{connectTimeout=7000;readTimeout=12000}.getInputStream()
+   parser.setInput(input,"UTF-8")
+   val now=System.currentTimeMillis()
+   var event=parser.eventType
+   while(event!=XmlPullParser.END_DOCUMENT){
+    if(event==XmlPullParser.START_TAG&&parser.name=="programme"){
+     val id=parser.getAttributeValue(null,"channel")?:""
+     val start=parseXmltvDate(parser.getAttributeValue(null,"start")?:"")
+     val stop=parseXmltvDate(parser.getAttributeValue(null,"stop")?:"")
+     if(id in wanted){
+      var title=""
+      var inner=parser.next()
+      while(!(inner==XmlPullParser.END_TAG&&parser.name=="programme")){
+       if(inner==XmlPullParser.START_TAG&&parser.name=="title")title=parser.nextText()
+       inner=parser.next()
+      }
+      if(title.isNotBlank()){
+       if(start<=now&&stop>now)epgNow[id]=title
+       else if(start>now&&!epgNext.containsKey(id))epgNext[id]=title
+      }
+     }
+    }
+    event=parser.next()
+   }
+   input.close()
+  }catch(_:Exception){}finally{epgLoading=false}}.start()
+ }
  private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=21f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(30,0,24,0);stateListAnimator=null;setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,5,0,5)};setOnFocusChangeListener{v,f->background=panel(if(f)focus else card);v.animate().scaleX(if(f)1.045f else 1f).scaleY(if(f)1.045f else 1f).setDuration(120).start();v.elevation=if(f)14f else 1f}}
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  CHIOS → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
  private fun showHome(){

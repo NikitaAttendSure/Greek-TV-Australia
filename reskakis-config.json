@@ -1,0 +1,16 @@
+{
+  "latestVersionCode": 6,
+  "latestVersionName": "0.6.0",
+  "updateUrl": "https://rtv.up.railway.app",
+  "heroUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg",
+  "tagline": "From Chios to the World",
+  "epgUrl": "https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml",
+  "logos": {
+    "ERT1.gr": "https://i.imgur.com/UKbCtC1.png",
+    "ANT1.gr": "https://i.imgur.com/ItxKvVS.png",
+    "AlphaTV.gr": "https://i.imgur.com/6twzd38.png",
+    "StarChannel.gr": "https://i.imgur.com/6NUpxhr.png",
+    "OpenTV.gr": "https://upload.wikimedia.org/wikipedia/el/thumb/e/e5/Open_TV_logo.png/960px-Open_TV_logo.png",
+    "MegaChannel.gr": "https://i.imgur.com/Z3k7iA0.png"
+  }
+}

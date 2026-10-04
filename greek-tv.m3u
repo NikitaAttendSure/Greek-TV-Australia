@@ -1,3 +1,5 @@
+#EXTINF:-1 tvg-id="ChiosTV.gr@TEST" group-title="00 ΧΙΟΣ",CHIOS TV (Legacy Test)
+http://138.201.25.26:1935/AlphaTv2/AlphaTv2/playlist.m3u8
 #EXTM3U
 #EXTINF:-1 tvg-id="4E.gr@SD" group-title="03 Greek Regional",4E (1080p)
 http://eu2.tv4e.gr:554/live/smil:myStream.sdp.smil/playlist.m3u8

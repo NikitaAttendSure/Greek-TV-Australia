@@ -22,8 +22,8 @@ android {
         create("pappas") {
             dimension = "brand"
             applicationId = "au.com.pappastv"
-            versionCode = 1
-            versionName = "1.0.0"
+            versionCode = 2
+            versionName = "1.1.0"
             resValue("string", "app_name", "PAPAS TV")
         }
     }

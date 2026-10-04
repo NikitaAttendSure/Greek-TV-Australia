@@ -111,7 +111,7 @@ class MainActivity:Activity(){
   Thread{try{val bmp=URL(url).openStream().use{BitmapFactory.decodeStream(it)};runOnUiThread{view.setImageBitmap(bmp)}}catch(_:Exception){}}.start()
  }
  private fun parseXmltvDate(v:String):Long=try{SimpleDateFormat("yyyyMMddHHmmss Z",Locale.US).parse(v.trim())?.time?:0L}catch(_:Exception){0L}
- private fun loadEpg(){
+ private fun loadEpg(onDone:(()->Unit)?=null){
   if(epgLoading||channels.none{it.tvgId.isNotBlank()})return
   epgLoading=true
   val wanted=channels.map{it.tvgId}.filter{it.isNotBlank()}.toSet()
@@ -142,7 +142,7 @@ class MainActivity:Activity(){
     event=parser.next()
    }
    input.close()
-  }catch(_:Exception){}finally{epgLoading=false}}.start()
+  }catch(_:Exception){}finally{epgLoading=false;runOnUiThread{onDone?.invoke()}}}.start()
  }
  private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=21f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(30,0,24,0);stateListAnimator=null;setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,5,0,5)};setOnFocusChangeListener{v,f->background=panel(if(f)focus else card);v.animate().scaleX(if(f)1.045f else 1f).scaleY(if(f)1.045f else 1f).setDuration(120).start();v.elevation=if(f)14f else 1f}}
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  CHIOS → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
@@ -201,7 +201,7 @@ class MainActivity:Activity(){
   val navItems=listOf<Pair<String,()->Unit>>(
    "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♥   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
    "▤   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"♜   $placeName" to {loadChannels(placeFilter)},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},
-   "☷   Categories" to {loadChannels()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showSettings()}
+   "☷   Categories" to {loadChannels()},"▦   TV Guide" to {showTvGuide()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showSettings()}
   )
   navItems.forEachIndexed{i,it->
    nav.addView(button(it.first,it.second).apply{
@@ -366,6 +366,77 @@ class MainActivity:Activity(){
   frame.setOnClickListener{action()}
   frame.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(4,Color.WHITE);cornerRadius=14f}else null;v.animate().scaleX(if(f)1.05f else 1f).scaleY(if(f)1.05f else 1f).translationZ(if(f)7f else 0f).setDuration(105).start();v.elevation=if(f)18f else 3f}
   return frame
+ }
+ private fun showTvGuide(){
+  player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  currentSection="TV GUIDE"
+  val root=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL
+   setPadding(42,28,42,28)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(4,20,35),Color.rgb(2,8,15)))
+  }
+  val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  val titleWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  titleWrap.addView(TextView(this).apply{text="TV GUIDE";textSize=34f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
+  titleWrap.addView(TextView(this).apply{text="$brandName  •  NOW & NEXT";textSize=12f;setTextColor(accent);letterSpacing=.055f})
+  header.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
+  header.addView(TextView(this).apply{text="OK Watch   •   BACK Home";textSize=14f;setTextColor(muted)})
+  root.addView(header,LinearLayout.LayoutParams(-1,78))
+
+  val status=TextView(this).apply{text="Loading TV guide…";textSize=15f;setTextColor(muted);setPadding(4,8,0,14)}
+  root.addView(status)
+
+  val scroll=ScrollView(this)
+  val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  scroll.addView(list)
+  root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+  setContentView(root)
+
+  fun render(){
+   list.removeAllViews()
+   val guideChannels=channels.filter{it.tvgId.isNotBlank()}.ifEmpty{channels}
+   status.text=if(epgNow.isEmpty()&&epgNext.isEmpty())"Programme data unavailable for some channels • Live channels still selectable" else "Live programme information"
+   guideChannels.forEachIndexed{i,ch->
+    val row=LinearLayout(this).apply{
+     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
+     setPadding(16,10,16,10)
+     background=panel(Color.rgb(10,31,50),12f)
+    }
+    val logoUrl=channelLogoUrl(ch)
+    if(logoUrl.isNotBlank()){
+     val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(4,4,4,4);background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=9f}}
+     row.addView(logo,LinearLayout.LayoutParams(52,40).apply{setMargins(0,0,14,0)})
+     loadImageInto(logo,logoUrl)
+    }else{
+     row.addView(TextView(this).apply{text="TV";gravity=Gravity.CENTER;textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);background=GradientDrawable().apply{setColor(Color.rgb(20,95,180));cornerRadius=9f}},LinearLayout.LayoutParams(52,40).apply{setMargins(0,0,14,0)})
+    }
+    val name=TextView(this).apply{text=ch.name;textSize=17f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setSingleLine(true)}
+    row.addView(name,LinearLayout.LayoutParams(220,-2).apply{setMargins(0,0,18,0)})
+    val nowTitle=epgNow[ch.tvgId]?:"Live programming"
+    val nextTitle=epgNext[ch.tvgId]?:"Schedule unavailable"
+    val info=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+    info.addView(TextView(this@MainActivity).apply{text="NOW  •  $nowTitle";textSize=15f;setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
+    info.addView(TextView(this@MainActivity).apply{text="NEXT •  $nextTitle";textSize=12f;setTextColor(Color.rgb(150,186,215));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END;setPadding(0,4,0,0)})
+    row.addView(info,LinearLayout.LayoutParams(0,-2,1f))
+    row.setOnClickListener{val realIndex=channels.indexOf(ch);if(realIndex>=0)play(realIndex)}
+    row.setOnFocusChangeListener{v,focusOn->
+     v.background=if(focusOn)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,116,213),Color.rgb(26,150,245))).apply{cornerRadius=12f;setStroke(1,Color.WHITE)} else panel(Color.rgb(10,31,50),12f)
+     v.animate().scaleX(if(focusOn)1.012f else 1f).scaleY(if(focusOn)1.012f else 1f).setDuration(90).start()
+    }
+    list.addView(row,LinearLayout.LayoutParams(-1,74).apply{setMargins(0,0,0,8)})
+   }
+   list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
+  }
+
+  Thread{try{
+   val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e}
+   val all=parsePlaylist(txt)
+   runOnUiThread{
+    channels=all
+    render()
+    loadEpg{render()}
+   }
+  }catch(_:Exception){runOnUiThread{status.text="Unable to load TV guide";render()}}}.start()
  }
  private fun loadLastChannel(){val u=prefs.getString("last_channel",null);if(u==null){loadChannels();return};Thread{try{val all=parsePlaylist(fetchPlaylist());runOnUiThread{channels=all;val i=all.indexOfFirst{it.url==u};if(i>=0)play(i)else showList()}}catch(e:Exception){runOnUiThread{loadChannels()}}}.start()}
  private fun fetchPlaylist():String{val u=URL("https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/greek-tv.m3u");val c=u.openConnection().apply{connectTimeout=8000;readTimeout=12000};return c.getInputStream().bufferedReader().use{it.readText()}.also{prefs.edit().putString("playlist_cache",it).apply()}}

@@ -268,6 +268,16 @@ class MainActivity:Activity(){
    setBackgroundColor(Color.BLACK)
   }
   videoFrame.addView(playerView,FrameLayout.LayoutParams(-1,-1))
+  val previewStatus=TextView(this).apply{
+   text="Preview unavailable • OK to try full screen"
+   textSize=13f
+   setTextColor(Color.WHITE)
+   gravity=Gravity.CENTER
+   visibility=View.GONE
+   background=GradientDrawable().apply{setColor(Color.argb(220,5,18,31));cornerRadius=12f}
+   setPadding(18,10,18,10)
+  }
+  videoFrame.addView(previewStatus,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
   videoFrame.addView(TextView(this).apply{
    text="LIVE";textSize=13f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
    background=GradientDrawable().apply{setColor(Color.rgb(205,34,52));cornerRadius=10f}
@@ -286,13 +296,25 @@ class MainActivity:Activity(){
    current=index
    previewTitle.text=channels[index].name
    previewMeta.text=(if(channels[index].group.isBlank())"GREEK TV" else channels[index].group.uppercase())+"   •   LIVE NOW"
+   previewStatus.visibility=View.GONE
    previewPlayer?.release()
    previewPlayer=ExoPlayer.Builder(this).build().also{p->
     playerView.player=p
     p.volume=0f
+    p.addListener(object:Player.Listener{
+     override fun onPlaybackStateChanged(state:Int){
+      if(state==Player.STATE_READY && previewPlayer===p)previewStatus.visibility=View.GONE
+     }
+     override fun onPlayerError(error:PlaybackException){
+      if(previewPlayer===p)previewStatus.visibility=View.VISIBLE
+     }
+    })
     p.setMediaItem(MediaItem.fromUri(channels[index].url))
     p.prepare()
     p.play()
+    playerView.postDelayed({
+     if(previewPlayer===p && p.playbackState!=Player.STATE_READY)previewStatus.visibility=View.VISIBLE
+    },8000)
    }
   }
 

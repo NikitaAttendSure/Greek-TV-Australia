@@ -209,3 +209,9 @@ http://213.7.216.229:8888/udp/239.23.0.1:1234
 http://213.7.216.229:8888/udp/239.23.0.2:1234
 #EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="RIKHD.cy@SD",RIK HD
 http://213.7.216.229:8888/udp/239.23.0.5:1234
+
+#EXTINF:-1 group-title="00 🇬🇷 ΡΟΔΟΣ",IRIDA TV — ΡΟΔΟΣ
+https://www.hellasnet.tv/rest.live.hn/ws.iri/HasBahCa.m3u8
+
+#EXTINF:-1 group-title="00 🇬🇷 ΡΟΔΟΣ",TV KOSMOS — ΡΟΔΟΣ
+https://5e8dfce185af1.streamlock.net/TvKosmosLive/TvKosmosLive/playlist.m3u8

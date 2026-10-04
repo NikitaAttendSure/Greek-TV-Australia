@@ -41,8 +41,6 @@ https://acheloostv.streamings.gr/live/stream/index.m3u8
 http://actionlive.siliconweb.com/actionabr/actiontv/playlist.m3u8
 #EXTINF:-1 tvg-id="AeolosTV.gr@SD" group-title="03 Greek Regional",Aeolos TV (1080p)
 https://cdn.istoikona.com/aeolostv/live/playlist.m3u8
-#EXTINF:-1 tvg-id="AigaioTV.gr@SD" group-title="00 🇬🇷 ΚΑΛΥΜΝΟΣ",Aigaio TV (720p)
-https://fr.crystalweb.net:1936/aigaiotv/aigaiotv/playlist.m3u8
 #EXTINF:-1 tvg-id="AlertTV.gr@SD" group-title="01 Greek National",Alert (576p)
 https://itv.streams.ovh/ALEERT/ALEERT/playlist.m3u8
 #EXTINF:-1 tvg-id="AlphaTV.gr@SD" group-title="01 Greek National",Alpha TV (1080p)
@@ -210,8 +208,4 @@ http://213.7.216.229:8888/udp/239.23.0.2:1234
 #EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="RIKHD.cy@SD",RIK HD
 http://213.7.216.229:8888/udp/239.23.0.5:1234
 
-#EXTINF:-1 group-title="00 🇬🇷 ΡΟΔΟΣ",IRIDA TV — ΡΟΔΟΣ
-https://www.hellasnet.tv/rest.live.hn/ws.iri/HasBahCa.m3u8
 
-#EXTINF:-1 group-title="00 🇬🇷 ΡΟΔΟΣ",TV KOSMOS — ΡΟΔΟΣ
-https://5e8dfce185af1.streamlock.net/TvKosmosLive/TvKosmosLive/playlist.m3u8

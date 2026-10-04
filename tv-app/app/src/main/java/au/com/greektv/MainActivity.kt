@@ -39,10 +39,12 @@ class MainActivity:Activity(){
    val bmp=URL("https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg").openStream().use{BitmapFactory.decodeStream(it)}
    runOnUiThread{backdrop.setImageBitmap(bmp)}
   }catch(_:Exception){}}.start()
-  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(34,1,6,12),Color.argb(112,1,8,15),Color.argb(228,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
-  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,intArrayOf(Color.argb(155,246,106,28),Color.argb(64,248,149,65),Color.TRANSPARENT,Color.TRANSPARENT))},FrameLayout.LayoutParams(-1,250))
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(28,1,6,12),Color.argb(132,1,8,15),Color.argb(238,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,intArrayOf(Color.argb(118,246,106,28),Color.argb(42,248,149,65),Color.TRANSPARENT,Color.TRANSPARENT))},FrameLayout.LayoutParams(-1,230))
   root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(120,0,8,18),Color.TRANSPARENT))},FrameLayout.LayoutParams(430,-1))
 
+  val lowerVeil=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.TRANSPARENT,Color.argb(95,1,8,15),Color.argb(185,1,7,13)))}
+  root.addView(lowerVeil,FrameLayout.LayoutParams(-1,-1).apply{topMargin=150})
   val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(14,12,16,12)}
 
   // Full-width premium masthead, matching the locked reference.
@@ -54,10 +56,10 @@ class MainActivity:Activity(){
   },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
   val wordmark=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   wordmark.addView(TextView(this).apply{
-   text="RESKAKIS TV";textSize=42f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.012f;setSingleLine(true);setShadowLayer(10f,0f,3f,Color.argb(110,0,0,0))
+   text="RESKAKIS TV";textSize=44f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.012f;setSingleLine(true);setShadowLayer(10f,0f,3f,Color.argb(110,0,0,0))
   })
   wordmark.addView(TextView(this).apply{
-   text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE";textSize=11f;setTextColor(Color.rgb(235,240,247));letterSpacing=.10f;setSingleLine(true)
+   text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE";textSize=10.5f;setTextColor(Color.rgb(235,240,247));letterSpacing=.10f;setSingleLine(true)
   })
   identity.addView(wordmark)
   top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
@@ -67,14 +69,14 @@ class MainActivity:Activity(){
   top.addView(TextView(this).apply{
    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
   })
-  page.addView(top,LinearLayout.LayoutParams(-1,116))
+  page.addView(top,LinearLayout.LayoutParams(-1,124))
 
   val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
 
   // Glass left rail.
   val nav=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL;setPadding(10,12,10,10)
-   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(232,1,13,25),Color.argb(214,4,25,43))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(242,1,11,22),Color.argb(226,3,22,39))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
    elevation=8f
   }
   val navItems=listOf<Pair<String,()->Unit>>(
@@ -88,11 +90,11 @@ class MainActivity:Activity(){
     background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(11,129,231),Color.rgb(29,151,247))).apply{cornerRadius=12f;setStroke(1,Color.argb(180,255,255,255))} else panel(Color.argb(122,6,26,44),12f)
    })
   }
-  body.addView(nav,LinearLayout.LayoutParams(216,-1).apply{setMargins(0,8,18,0)})
+  body.addView(nav,LinearLayout.LayoutParams(224,-1).apply{setMargins(0,8,18,0)})
 
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,0)}
   fun sectionTitle(t:String){
-   main.addView(TextView(this).apply{text=t;textSize=23f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,9,0,6);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))})
+   main.addView(TextView(this).apply{text=t;textSize=24f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,9,0,6);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))})
   }
 
   sectionTitle("Popular Greek Channels")
@@ -110,7 +112,7 @@ class MainActivity:Activity(){
    val action={if(i<2)loadChannels("ERT") else loadChannels()}
    channelRow.addView(
     logoCard(a[0],a[1],a[2].toInt(),a[3]=="1",action),
-    LinearLayout.LayoutParams(0,132,1f).apply{setMargins(0,0,12,0)}
+    LinearLayout.LayoutParams(0,138,1f).apply{setMargins(0,0,12,0)}
    )
   }
   main.addView(channelRow)
@@ -132,7 +134,7 @@ class MainActivity:Activity(){
     track.addView(prog,FrameLayout.LayoutParams(if(i==0)150 else 96,4,Gravity.START))
     cardView.addView(track,FrameLayout.LayoutParams(-1,4,Gravity.BOTTOM).apply{setMargins(10,0,10,0)})
    }
-   cont.addView(cardView,LinearLayout.LayoutParams(0,176,1f).apply{setMargins(0,0,12,0)})
+   cont.addView(cardView,LinearLayout.LayoutParams(0,182,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cont)
 
@@ -148,7 +150,7 @@ class MainActivity:Activity(){
   )
   categoryData.forEachIndexed{i,a->
    val action=when(i){0->{ {loadChannels()} };1->{ {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")} };2->{ {showMessage("Series","More Greek series coming soon")} };3->{ {loadChannels("ΠΑΙΔΙΚΑ")} };4->{ {loadChannels("ΧΙΟΣ")} };else->{ {loadChannels("ΔΙΕΘΝΗ")} }}
-   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,96,1f).apply{setMargins(0,0,12,0)})
+   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,100,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cats)
 
@@ -162,7 +164,7 @@ class MainActivity:Activity(){
    arrayOf("Chios Mastiha","Tradition","https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85")
   )
   chiosCards.forEach{a->
-   chios.addView(imageCard(a[0],a[1],a[2]){loadChannels("ΧΙΟΣ")},LinearLayout.LayoutParams(0,148,1f).apply{setMargins(0,0,12,0)})
+   chios.addView(imageCard(a[0],a[1],a[2]){loadChannels("ΧΙΟΣ")},LinearLayout.LayoutParams(0,154,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(chios)
 
@@ -184,7 +186,7 @@ class MainActivity:Activity(){
   frame.addView(logo,FrameLayout.LayoutParams(-1,0).apply{height=96})
   val cap=TextView(this).apply{
    text=label;textSize=12f;gravity=Gravity.CENTER;setTextColor(Color.WHITE)
-   background=GradientDrawable().apply{setColor(Color.argb(185,1,10,20));cornerRadii=floatArrayOf(0f,0f,0f,0f,14f,14f,14f,14f)}
+   background=GradientDrawable().apply{setColor(Color.argb(220,1,10,20));cornerRadii=floatArrayOf(0f,0f,0f,0f,14f,14f,14f,14f)}
    setPadding(4,3,4,4)
   }
   frame.addView(cap,FrameLayout.LayoutParams(-1,34,Gravity.BOTTOM))
@@ -214,7 +216,7 @@ class MainActivity:Activity(){
   val img=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.rgb(16,30,44))}
   frame.addView(img,FrameLayout.LayoutParams(-1,-1))
   Thread{try{val bmp=URL(url).openStream().use{BitmapFactory.decodeStream(it)};runOnUiThread{img.setImageBitmap(bmp)}}catch(_:Exception){}}.start()
-  val shade=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(235,2,8,14),Color.argb(96,2,8,14),Color.argb(20,2,8,14)))}
+  val shade=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(242,2,8,14),Color.argb(118,2,8,14),Color.argb(24,2,8,14)))}
   frame.addView(shade,FrameLayout.LayoutParams(-1,-1))
   val textWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(12,8,12,8)}
   textWrap.addView(TextView(this).apply{text=title;textSize=16f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setShadowLayer(6f,0f,2f,Color.BLACK)})

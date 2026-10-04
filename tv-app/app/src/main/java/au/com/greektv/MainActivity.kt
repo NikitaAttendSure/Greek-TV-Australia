@@ -38,8 +38,12 @@ class MainActivity:Activity(){
   ).forEach{nav.addView(button(it.first,it.second))}
   root.addView(nav,LinearLayout.LayoutParams(250,-1))
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(36,28,40,26)}
-  main.addView(TextView(this).apply{text="RESKAKIS TV";textSize=40f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
-  main.addView(TextView(this).apply{text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE     From Chios to the World";textSize=15f;setTextColor(accent);letterSpacing=.055f;setPadding(0,0,0,20)})
+  val hero=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(28,20,28,22);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,35,61),Color.rgb(4,18,32),Color.rgb(2,8,15))).apply{cornerRadius=28f;setStroke(1,Color.argb(80,90,165,225))}}
+  hero.addView(TextView(this).apply{text="RESKAKIS TV";textSize=40f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);letterSpacing=.035f})
+  hero.addView(TextView(this).apply{text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE";textSize=14f;setTextColor(accent);letterSpacing=.08f;setPadding(1,2,0,5)})
+  hero.addView(TextView(this).apply{text="From Chios to the World";textSize=25f;typeface=Typeface.create("sans-serif-light",Typeface.ITALIC);setTextColor(Color.WHITE)})
+  hero.addView(TextView(this).apply{text="Live Greek television, favourites and family viewing — all in one place.";textSize=15f;setTextColor(muted);setPadding(1,5,0,0)})
+  main.addView(hero,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,0,0,12)})
   fun section(title:String,items:List<Pair<String,()->Unit>>){
    main.addView(TextView(this).apply{text=title;textSize=24f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,8,0,5)})
    val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}

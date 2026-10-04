@@ -20,6 +20,11 @@ import java.util.*
 data class Channel(val name:String,val url:String,val group:String)
 class MainActivity:Activity(){
  private val bg=Color.rgb(2,7,13);private val card=Color.rgb(12,25,40);private val focus=Color.rgb(27,105,190);private val muted=Color.rgb(158,180,201);private val accent=Color.rgb(64,151,255)
+ private val isPappas get()=packageName=="au.com.pappastv"
+ private val brandName get()=if(isPappas)"PAPPAS TV" else "RESKAKIS TV"
+ private val placeName get()=if(isPappas)"Nafplio" else "Chios"
+ private val placeUpper get()=placeName.uppercase()
+ private val placeFilter get()=if(isPappas)"ΝΑΥΠΛΙΟ" else "ΧΙΟΣ"
  private var player:ExoPlayer?=null;private var previewPlayer:ExoPlayer?=null;private var channels=listOf<Channel>();private var current=0;private var overlay:TextView?=null;private var currentSection="LIVE TV"
  private lateinit var fav:Favourites
  override fun onCreate(b:Bundle?){super.onCreate(b);fav=Favourites(this);showHome()}
@@ -36,7 +41,8 @@ class MainActivity:Activity(){
   val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.82f;setBackgroundColor(Color.rgb(2,8,15))}
   root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
   Thread{try{
-   val bmp=URL("https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg").openStream().use{BitmapFactory.decodeStream(it)}
+   val hero=if(isPappas)"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg" else "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg"
+   val bmp=URL(hero).openStream().use{BitmapFactory.decodeStream(it)}
    runOnUiThread{backdrop.setImageBitmap(bmp)}
   }catch(_:Exception){}}.start()
   root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(28,1,6,12),Color.argb(132,1,8,15),Color.argb(238,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
@@ -56,15 +62,15 @@ class MainActivity:Activity(){
   },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
   val wordmark=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   wordmark.addView(TextView(this).apply{
-   text="RESKAKIS TV";textSize=44f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.012f;setSingleLine(true);setShadowLayer(10f,0f,3f,Color.argb(110,0,0,0))
+   text=brandName;textSize=44f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.012f;setSingleLine(true);setShadowLayer(10f,0f,3f,Color.argb(110,0,0,0))
   })
   wordmark.addView(TextView(this).apply{
-   text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE";textSize=10.5f;setTextColor(Color.rgb(235,240,247));letterSpacing=.10f;setSingleLine(true)
+   text="GREEK TELEVISION  ·  $placeUpper  ·  AND MORE";textSize=10.5f;setTextColor(Color.rgb(235,240,247));letterSpacing=.10f;setSingleLine(true)
   })
   identity.addView(wordmark)
   top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
   top.addView(TextView(this).apply{
-   text="From Chios\nto the World";textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
+   text="From $placeName\nto the World";textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
   })
   top.addView(TextView(this).apply{
    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
@@ -81,8 +87,8 @@ class MainActivity:Activity(){
   }
   val navItems=listOf<Pair<String,()->Unit>>(
    "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♥   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
-   "▤   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"♜   Chios" to {loadChannels("ΧΙΟΣ")},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},
-   "☷   Categories" to {loadChannels()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showMessage("Settings","RESKAKIS TV • Family Edition")}
+   "▤   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"♜   $placeName" to {loadChannels(placeFilter)},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},
+   "☷   Categories" to {loadChannels()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showMessage("Settings","$brandName • Family Edition")}
   )
   navItems.forEachIndexed{i,it->
    nav.addView(button(it.first,it.second).apply{
@@ -123,10 +129,10 @@ class MainActivity:Activity(){
    arrayOf("ERT 1 HD","News","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"),
    arrayOf("Sasmos","Drama Series","https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=85"),
    arrayOf("Akis' Food Tour","Cooking","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf("Chios","Documentary","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85")
+   arrayOf(placeName,"Documentary","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85")
   )
   contCards.forEachIndexed{i,a->
-   val action=when(i){0->{ {loadLastChannel()} };1->{ {showMessage("Sasmos","More Greek series coming soon")} };2->{ {showMessage("Food","More Greek cooking content coming soon")} };else->{ {loadChannels("ΧΙΟΣ")} }}
+   val action=when(i){0->{ {loadLastChannel()} };1->{ {showMessage("Sasmos","More Greek series coming soon")} };2->{ {showMessage("Food","More Greek cooking content coming soon")} };else->{ {loadChannels(placeFilter)} }}
    val cardView=imageCard(a[0],a[1],a[2],action)
    if(i==0||i==1){
     val track=FrameLayout(this).apply{background=GradientDrawable().apply{setColor(Color.argb(100,255,255,255));cornerRadius=2f}}
@@ -145,26 +151,26 @@ class MainActivity:Activity(){
    arrayOf("◉  Movies","Greek & International",Color.rgb(155,26,83).toString()),
    arrayOf("☻  Series","Greek Series",Color.rgb(4,116,68).toString()),
    arrayOf("★  Kids","For the Little Ones",Color.rgb(225,124,5).toString()),
-   arrayOf("♜  Chios","Local Content",Color.rgb(6,132,153).toString()),
+   arrayOf("♜  $placeName","Local Content",Color.rgb(6,132,153).toString()),
    arrayOf("◎  World TV","International Channels",Color.rgb(95,19,160).toString())
   )
   categoryData.forEachIndexed{i,a->
-   val action=when(i){0->{ {loadChannels()} };1->{ {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")} };2->{ {showMessage("Series","More Greek series coming soon")} };3->{ {loadChannels("ΠΑΙΔΙΚΑ")} };4->{ {loadChannels("ΧΙΟΣ")} };else->{ {loadChannels("ΔΙΕΘΝΗ")} }}
+   val action=when(i){0->{ {loadChannels()} };1->{ {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")} };2->{ {showMessage("Series","More Greek series coming soon")} };3->{ {loadChannels("ΠΑΙΔΙΚΑ")} };4->{ {loadChannels(placeFilter)} };else->{ {loadChannels("ΔΙΕΘΝΗ")} }}
    cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,100,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cats)
 
-  sectionTitle("Chios Highlights")
+  sectionTitle("$placeName Highlights")
   val chios=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val chiosCards=listOf(
-   arrayOf("Chios Live","Local Content","https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf("Chios Villages","Explore","https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf("Chios Beaches","Island Life","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf("Chios Documentary","History","https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf("Chios Mastiha","Tradition","https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85")
+   arrayOf("$placeName Live","Local Content","https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf(if(isPappas)"Nafplio Old Town" else "Chios Villages","Explore","https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf(if(isPappas)"Nafplio Coast" else "Chios Beaches",if(isPappas)"Seaside" else "Island Life","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf("$placeName Documentary","History","https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf(if(isPappas)"Bourtzi" else "Chios Mastiha",if(isPappas)"Landmark" else "Tradition","https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85")
   )
   chiosCards.forEach{a->
-   chios.addView(imageCard(a[0],a[1],a[2]){loadChannels("ΧΙΟΣ")},LinearLayout.LayoutParams(0,154,1f).apply{setMargins(0,0,12,0)})
+   chios.addView(imageCard(a[0],a[1],a[2]){loadChannels(placeFilter)},LinearLayout.LayoutParams(0,154,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(chios)
 
@@ -229,7 +235,7 @@ class MainActivity:Activity(){
  private fun loadLastChannel(){val u=prefs.getString("last_channel",null);if(u==null){loadChannels();return};Thread{try{val all=parsePlaylist(fetchPlaylist());runOnUiThread{channels=all;val i=all.indexOfFirst{it.url==u};if(i>=0)play(i)else showList()}}catch(e:Exception){runOnUiThread{loadChannels()}}}.start()}
  private fun fetchPlaylist():String{val u=URL("https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/greek-tv.m3u");val c=u.openConnection().apply{connectTimeout=8000;readTimeout=12000};return c.getInputStream().bufferedReader().use{it.readText()}.also{prefs.edit().putString("playlist_cache",it).apply()}}
  private fun parsePlaylist(txt:String):List<Channel>{val out=mutableListOf<Channel>();var n="";var g="";txt.lines().forEach{l->if(l.startsWith("#EXTINF")){n=l.substringAfterLast(",").trim();g=l.substringAfter("group-title=\"", "").substringBefore("\"", "")}else if(l.startsWith("http")&&n.isNotBlank()){out.add(Channel(n,l.trim(),g));n=""}};return out}
- private fun loadChannels(filter:String?=null,favouritesOnly:Boolean=false){currentSection=when{favouritesOnly->"FAVOURITES";filter?.contains("ΧΙΟΣ",true)==true->"CHIOS";filter?.contains("ΠΑΙΔΙΚΑ",true)==true->"KIDS";filter?.contains("ΤΑΙΝΙΕΣ",true)==true->"ON DEMAND";filter?.contains("ΔΙΕΘΝΗ",true)==true->"WORLD TV";filter?.contains("ERT",true)==true->"ERT";else->"LIVE TV"};Thread{try{val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e};val out=parsePlaylist(txt).filter{(filter==null||it.group.contains(filter,true))&&(!favouritesOnly||fav.has(it.url))};runOnUiThread{channels=out;if(out.isEmpty()){showMessage("RESKAKIS TV",if(favouritesOnly)"No favourites yet." else "No channels found.")}else{showList()}}}catch(e:Exception){runOnUiThread{showMessage("RESKAKIS TV","Unable to load right now. Check the internet connection and try again.")}}}.start()}
+ private fun loadChannels(filter:String?=null,favouritesOnly:Boolean=false){currentSection=when{favouritesOnly->"FAVOURITES";filter?.contains(placeFilter,true)==true->placeUpper;filter?.contains("ΠΑΙΔΙΚΑ",true)==true->"KIDS";filter?.contains("ΤΑΙΝΙΕΣ",true)==true->"ON DEMAND";filter?.contains("ΔΙΕΘΝΗ",true)==true->"WORLD TV";filter?.contains("ERT",true)==true->"ERT";else->"LIVE TV"};Thread{try{val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e};val out=parsePlaylist(txt).filter{(filter==null||it.group.contains(filter,true))&&(!favouritesOnly||fav.has(it.url))};runOnUiThread{channels=out;if(out.isEmpty()){showMessage(brandName,if(favouritesOnly)"No favourites yet." else "No channels found.")}else{showList()}}}catch(e:Exception){runOnUiThread{showMessage(brandName,"Unable to load right now. Check the internet connection and try again.")}}}.start()}
  private fun showList(){
   previewPlayer?.release();previewPlayer=null
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(42,28,42,28);background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(4,20,35),Color.rgb(2,8,15)))}
@@ -237,7 +243,7 @@ class MainActivity:Activity(){
   val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
   val titleWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   titleWrap.addView(TextView(this).apply{text=currentSection;textSize=34f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.015f;setShadowLayer(7f,0f,2f,Color.argb(100,0,0,0))})
-  titleWrap.addView(TextView(this).apply{text="RESKAKIS TV  •  GREEK TELEVISION  •  CHIOS TO THE WORLD";textSize=12f;setTextColor(accent);letterSpacing=.055f})
+  titleWrap.addView(TextView(this).apply{text="$brandName  •  GREEK TELEVISION  •  $placeUpper TO THE WORLD";textSize=12f;setTextColor(accent);letterSpacing=.055f})
   header.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
   header.addView(TextView(this).apply{text="▲▼ Browse   •   OK Full Screen   •   ★ Favourite";textSize=14f;setTextColor(muted);gravity=Gravity.END})
   root.addView(header,LinearLayout.LayoutParams(-1,76))
@@ -363,6 +369,6 @@ class MainActivity:Activity(){
  private fun play(i:Int){previewPlayer?.release();previewPlayer=null;window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;current=i;prefs.edit().putString("last_channel",channels[i].url).apply();player?.release();player=ExoPlayer.Builder(this).build();player!!.addListener(object:Player.Listener{override fun onPlayerError(error:PlaybackException){runOnUiThread{Toast.makeText(this@MainActivity,"Το κανάλι δεν είναι διαθέσιμο. Δοκιμάστε άλλο.",Toast.LENGTH_LONG).show();showList()}}});val frame=FrameLayout(this);val v=PlayerView(this).apply{player=this@MainActivity.player;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);keepScreenOn=true;controllerShowTimeoutMs=3000;setBackgroundColor(Color.BLACK)};frame.addView(v,FrameLayout.LayoutParams(-1,-1));overlay=TextView(this).apply{text="● LIVE   "+channels[i].name;textSize=22f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(235,7,24,41),Color.argb(215,12,50,82))).apply{cornerRadius=14f;setStroke(1,Color.argb(95,180,215,245))};setPadding(26,14,30,14);elevation=10f};frame.addView(overlay,FrameLayout.LayoutParams(-2,-2,Gravity.START or Gravity.BOTTOM).apply{setMargins(42,0,0,42)});setContentView(frame);overlay?.postDelayed({overlay?.visibility=View.GONE},2600);player!!.setMediaItem(MediaItem.fromUri(channels[i].url));player!!.prepare();player!!.play()}
  override fun onKeyDown(k:Int,e:KeyEvent?):Boolean{if(player!=null&&channels.isNotEmpty()){when(k){KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_CHANNEL_UP->{play((current+1)%channels.size);return true};KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_CHANNEL_DOWN->{play((current-1+channels.size)%channels.size);return true};KeyEvent.KEYCODE_STAR,KeyEvent.KEYCODE_BOOKMARK->{fav.toggle(channels[current].url);Toast.makeText(this,if(fav.has(channels[current].url))"★ Προστέθηκε στα αγαπημένα" else "Αφαιρέθηκε από τα αγαπημένα",Toast.LENGTH_SHORT).show();return true};KeyEvent.KEYCODE_BACK->{player?.release();player=null;showList();return true}}};return super.onKeyDown(k,e)}
  private fun openBrousko(){openUri("https://www.antenna.gr/mprousko")}
- private fun openUri(u:String){val i=Intent(Intent.ACTION_VIEW,Uri.parse(u));if(i.resolveActivity(packageManager)!=null)startActivity(i)else showMessage("RESKAKIS TV","Δεν βρέθηκε συμβατή εφαρμογή.")}
+ private fun openUri(u:String){val i=Intent(Intent.ACTION_VIEW,Uri.parse(u));if(i.resolveActivity(packageManager)!=null)startActivity(i)else showMessage(brandName,"Δεν βρέθηκε συμβατή εφαρμογή.")}
  private fun showMessage(t:String,m:String){AlertDialog.Builder(this).setTitle(t).setMessage(m).setPositiveButton("OK",null).show()}
 }

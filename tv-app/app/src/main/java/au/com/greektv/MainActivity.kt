@@ -39,7 +39,8 @@ class MainActivity:Activity(){
    val bmp=URL("https://commons.wikimedia.org/wiki/Special:Redirect/file/Chios_-_Port_of_Chios_(3).jpg").openStream().use{BitmapFactory.decodeStream(it)}
    runOnUiThread{backdrop.setImageBitmap(bmp)}
   }catch(_:Exception){}}.start()
-  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(70,1,6,12),Color.argb(120,1,8,15),Color.argb(218,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(45,1,6,12),Color.argb(105,1,8,15),Color.argb(220,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,intArrayOf(Color.argb(120,244,108,34),Color.argb(35,250,156,70),Color.TRANSPARENT,Color.TRANSPARENT))},FrameLayout.LayoutParams(-1,210))
 
   val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(14,12,16,12)}
 
@@ -51,7 +52,7 @@ class MainActivity:Activity(){
   },LinearLayout.LayoutParams(88,72).apply{setMargins(0,0,14,0)})
   val wordmark=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   wordmark.addView(TextView(this).apply{
-   text="RESKAKIS TV";textSize=42f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.018f;setSingleLine(true)
+   text="RESKAKIS TV";textSize=40f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.018f;setSingleLine(true)
   })
   wordmark.addView(TextView(this).apply{
    text="G R E E K   T E L E V I S I O N   ·   C H I O S   ·   A N D   M O R E";textSize=10f;setTextColor(Color.rgb(230,236,244));letterSpacing=.045f;setSingleLine(true)
@@ -59,12 +60,12 @@ class MainActivity:Activity(){
   identity.addView(wordmark)
   top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
   top.addView(TextView(this).apply{
-   text="From Chios\nto the World";textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(12,0,34,0)
+   text="From Chios\nto the World";textSize=23f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(12,0,34,0)
   })
   top.addView(TextView(this).apply{
    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
   })
-  page.addView(top,LinearLayout.LayoutParams(-1,120))
+  page.addView(top,LinearLayout.LayoutParams(-1,108))
 
   val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
 
@@ -80,15 +81,15 @@ class MainActivity:Activity(){
   )
   navItems.forEachIndexed{i,it->
    nav.addView(button(it.first,it.second).apply{
-    textSize=15f;setPadding(18,0,8,0);layoutParams=LinearLayout.LayoutParams(-1,58).apply{setMargins(0,3,0,3)}
+    textSize=14f;setPadding(16,0,8,0);setSingleLine(true);layoutParams=LinearLayout.LayoutParams(-1,50).apply{setMargins(0,2,0,2)}
     background=if(i==0)panel(Color.rgb(17,137,235),12f) else panel(Color.argb(120,6,26,44),12f)
    })
   }
-  body.addView(nav,LinearLayout.LayoutParams(220,-1).apply{setMargins(0,8,18,0)})
+  body.addView(nav,LinearLayout.LayoutParams(210,-1).apply{setMargins(0,8,16,0)})
 
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,0)}
   fun sectionTitle(t:String){
-   main.addView(TextView(this).apply{text=t;textSize=23f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,8,0,6)})
+   main.addView(TextView(this).apply{text=t;textSize=23f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,7,0,5)})
   }
 
   sectionTitle("Popular Greek Channels")

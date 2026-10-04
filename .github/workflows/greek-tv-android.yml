@@ -1,4 +1,5 @@
 name: Build Greek TV APK
+# permanent-signing-enabled
 on:
   pull_request:
     paths:

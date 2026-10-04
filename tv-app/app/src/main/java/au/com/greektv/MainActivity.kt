@@ -39,8 +39,9 @@ class MainActivity:Activity(){
    val bmp=URL("https://commons.wikimedia.org/wiki/Special:Redirect/file/Chios_-_Port_of_Chios_(3).jpg").openStream().use{BitmapFactory.decodeStream(it)}
    runOnUiThread{backdrop.setImageBitmap(bmp)}
   }catch(_:Exception){}}.start()
-  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(45,1,6,12),Color.argb(105,1,8,15),Color.argb(220,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
-  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,intArrayOf(Color.argb(120,244,108,34),Color.argb(35,250,156,70),Color.TRANSPARENT,Color.TRANSPARENT))},FrameLayout.LayoutParams(-1,210))
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(34,1,6,12),Color.argb(112,1,8,15),Color.argb(228,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,intArrayOf(Color.argb(155,246,106,28),Color.argb(64,248,149,65),Color.TRANSPARENT,Color.TRANSPARENT))},FrameLayout.LayoutParams(-1,250))
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(120,0,8,18),Color.TRANSPARENT))},FrameLayout.LayoutParams(430,-1))
 
   val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(14,12,16,12)}
 
@@ -48,19 +49,20 @@ class MainActivity:Activity(){
   val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
   val identity=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
   identity.addView(TextView(this).apply{
-   text="🇬🇷";textSize=42f;gravity=Gravity.CENTER;background=GradientDrawable().apply{setColor(Color.argb(220,10,85,175));cornerRadius=8f}
-  },LinearLayout.LayoutParams(88,72).apply{setMargins(0,0,14,0)})
+   text="🇬🇷";textSize=44f;gravity=Gravity.CENTER;background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(12,86,190),Color.rgb(8,55,132))).apply{cornerRadius=10f;setStroke(1,Color.argb(120,255,255,255))}
+   elevation=8f
+  },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
   val wordmark=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   wordmark.addView(TextView(this).apply{
-   text="RESKAKIS TV";textSize=40f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.018f;setSingleLine(true)
+   text="RESKAKIS TV";textSize=42f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.012f;setSingleLine(true);setShadowLayer(10f,0f,3f,Color.argb(110,0,0,0))
   })
   wordmark.addView(TextView(this).apply{
-   text="G R E E K   T E L E V I S I O N   ·   C H I O S   ·   A N D   M O R E";textSize=10f;setTextColor(Color.rgb(230,236,244));letterSpacing=.045f;setSingleLine(true)
+   text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE";textSize=11f;setTextColor(Color.rgb(235,240,247));letterSpacing=.10f;setSingleLine(true)
   })
   identity.addView(wordmark)
   top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
   top.addView(TextView(this).apply{
-   text="From Chios\nto the World";textSize=23f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(12,0,34,0)
+   text="From Chios\nto the World";textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
   })
   top.addView(TextView(this).apply{
    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
@@ -72,7 +74,8 @@ class MainActivity:Activity(){
   // Glass left rail.
   val nav=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL;setPadding(10,12,10,10)
-   background=GradientDrawable().apply{setColor(Color.argb(222,1,13,25));cornerRadius=12f;setStroke(1,Color.argb(60,150,195,230))}
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(232,1,13,25),Color.argb(214,4,25,43))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
+   elevation=8f
   }
   val navItems=listOf<Pair<String,()->Unit>>(
    "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♥   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
@@ -82,14 +85,14 @@ class MainActivity:Activity(){
   navItems.forEachIndexed{i,it->
    nav.addView(button(it.first,it.second).apply{
     textSize=14f;setPadding(16,0,8,0);setSingleLine(true);layoutParams=LinearLayout.LayoutParams(-1,50).apply{setMargins(0,2,0,2)}
-    background=if(i==0)panel(Color.rgb(17,137,235),12f) else panel(Color.argb(120,6,26,44),12f)
+    background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(11,129,231),Color.rgb(29,151,247))).apply{cornerRadius=12f;setStroke(1,Color.argb(180,255,255,255))} else panel(Color.argb(122,6,26,44),12f)
    })
   }
   body.addView(nav,LinearLayout.LayoutParams(210,-1).apply{setMargins(0,8,16,0)})
 
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,0)}
   fun sectionTitle(t:String){
-   main.addView(TextView(this).apply{text=t;textSize=23f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,7,0,5)})
+   main.addView(TextView(this).apply{text=t;textSize=23f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,9,0,6);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))})
   }
 
   sectionTitle("Popular Greek Channels")
@@ -110,7 +113,7 @@ class MainActivity:Activity(){
     (getChildAt(0) as TextView).apply{textSize=26f;gravity=Gravity.CENTER;setTextColor(if(i==1||i==6)Color.rgb(25,44,115) else Color.WHITE)}
     (getChildAt(1) as TextView).apply{gravity=Gravity.CENTER;setTextColor(if(i==1||i==6)Color.rgb(40,55,80) else Color.rgb(230,237,245))}
    }
-   channelRow.addView(tile,LinearLayout.LayoutParams(0,140,1f).apply{setMargins(0,0,12,0)})
+   channelRow.addView(tile,LinearLayout.LayoutParams(0,144,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(channelRow)
 
@@ -124,7 +127,7 @@ class MainActivity:Activity(){
   )
   contCards.forEachIndexed{i,a->
    val action=when(i){0->{ {loadLastChannel()} };1->{ {showMessage("Sasmos","More Greek series coming soon")} };2->{ {showMessage("Food","More Greek cooking content coming soon")} };else->{ {loadChannels("ΧΙΟΣ")} }}
-   cont.addView(imageCard(a[0],a[1],a[2],action),LinearLayout.LayoutParams(0,168,1f).apply{setMargins(0,0,12,0)})
+   cont.addView(imageCard(a[0],a[1],a[2],action),LinearLayout.LayoutParams(0,176,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cont)
 
@@ -140,7 +143,7 @@ class MainActivity:Activity(){
   )
   categoryData.forEachIndexed{i,a->
    val action=when(i){0->{ {loadChannels()} };1->{ {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")} };2->{ {showMessage("Series","More Greek series coming soon")} };3->{ {loadChannels("ΠΑΙΔΙΚΑ")} };4->{ {loadChannels("ΧΙΟΣ")} };else->{ {loadChannels("ΔΙΕΘΝΗ")} }}
-   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL},LinearLayout.LayoutParams(0,92,1f).apply{setMargins(0,0,12,0)})
+   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,96,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cats)
 
@@ -154,7 +157,7 @@ class MainActivity:Activity(){
    arrayOf("Chios Mastiha","Tradition","https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85")
   )
   chiosCards.forEach{a->
-   chios.addView(imageCard(a[0],a[1],a[2]){loadChannels("ΧΙΟΣ")},LinearLayout.LayoutParams(0,140,1f).apply{setMargins(0,0,12,0)})
+   chios.addView(imageCard(a[0],a[1],a[2]){loadChannels("ΧΙΟΣ")},LinearLayout.LayoutParams(0,148,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(chios)
 
@@ -179,15 +182,15 @@ class MainActivity:Activity(){
   }
  }
  private fun imageCard(title:String,subtitle:String,url:String,action:()->Unit):FrameLayout{
-  val frame=FrameLayout(this).apply{isFocusable=true;isClickable=true;background=panel(Color.rgb(8,20,34),14f)}
+  val frame=FrameLayout(this).apply{isFocusable=true;isClickable=true;background=panel(Color.rgb(8,20,34),16f);elevation=5f}
   val img=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.rgb(16,30,44))}
   frame.addView(img,FrameLayout.LayoutParams(-1,-1))
   Thread{try{val bmp=URL(url).openStream().use{BitmapFactory.decodeStream(it)};runOnUiThread{img.setImageBitmap(bmp)}}catch(_:Exception){}}.start()
-  val shade=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(220,2,8,14),Color.argb(40,2,8,14)))}
+  val shade=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(235,2,8,14),Color.argb(96,2,8,14),Color.argb(20,2,8,14)))}
   frame.addView(shade,FrameLayout.LayoutParams(-1,-1))
   val textWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(12,8,12,8)}
-  textWrap.addView(TextView(this).apply{text=title;textSize=15f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
-  textWrap.addView(TextView(this).apply{text=subtitle;textSize=11f;setTextColor(Color.rgb(222,231,240))})
+  textWrap.addView(TextView(this).apply{text=title;textSize=16f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setShadowLayer(4f,0f,1f,Color.BLACK)})
+  textWrap.addView(TextView(this).apply{text=subtitle;textSize=11f;setTextColor(Color.rgb(230,237,244))})
   frame.addView(textWrap,FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM))
   frame.setOnClickListener{action()}
   frame.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(4,Color.WHITE);cornerRadius=14f}else null;v.animate().scaleX(if(f)1.045f else 1f).scaleY(if(f)1.045f else 1f).setDuration(110).start();v.elevation=if(f)18f else 2f}
@@ -244,8 +247,8 @@ class MainActivity:Activity(){
   previewPane.addView(previewTitle,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,16,0,0)})
   previewPane.addView(previewMeta)
   previewPane.addView(TextView(this).apply{
-   text="Press OK for full-screen viewing.\nUse the remote to move through channels — the preview follows your selection."
-   textSize=14f;setTextColor(muted);setLineSpacing(4f,1f)
+   text="OK  Full Screen   •   ▲▼  Change Channel"
+   textSize=13f;setTextColor(muted);setPadding(0,2,0,0)
   })
 
   fun startPreview(index:Int){
@@ -299,8 +302,8 @@ class MainActivity:Activity(){
 
   scroll.addView(list)
   listPane.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
-  content.addView(listPane,LinearLayout.LayoutParams(0,-1,.44f).apply{setMargins(0,0,18,0)})
-  content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.56f))
+  content.addView(listPane,LinearLayout.LayoutParams(0,-1,.40f).apply{setMargins(0,0,18,0)})
+  content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.60f))
   root.addView(content,LinearLayout.LayoutParams(-1,0,1f))
   setContentView(root)
   list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}

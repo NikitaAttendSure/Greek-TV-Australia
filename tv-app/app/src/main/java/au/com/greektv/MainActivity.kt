@@ -16,14 +16,14 @@ import java.net.URL
 
 data class Channel(val name:String,val url:String,val group:String)
 class MainActivity:Activity(){
- private val bg=Color.rgb(3,9,17);private val card=Color.rgb(13,27,43);private val focus=Color.rgb(22,94,170);private val muted=Color.rgb(158,180,201);private val accent=Color.rgb(64,151,255)
+ private val bg=Color.rgb(2,7,13);private val card=Color.rgb(12,25,40);private val focus=Color.rgb(27,105,190);private val muted=Color.rgb(158,180,201);private val accent=Color.rgb(64,151,255)
  private var player:ExoPlayer?=null;private var channels=listOf<Channel>();private var current=0;private var overlay:TextView?=null
  private lateinit var fav:Favourites
  override fun onCreate(b:Bundle?){super.onCreate(b);fav=Favourites(this);showHome()}
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
  override fun onStop(){super.onStop();player?.release();player=null}
- private fun panel(c:Int)=GradientDrawable().apply{setColor(c);cornerRadius=22f;setStroke(1,Color.argb(85,120,180,230))}
- private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=21f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(30,0,24,0);setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,5,0,5)};setOnFocusChangeListener{v,f->background=panel(if(f)focus else card);v.scaleX=if(f)1.025f else 1f;v.scaleY=v.scaleX;v.elevation=if(f)10f else 1f}}
+ private fun panel(c:Int,r:Float=22f)=GradientDrawable().apply{setColor(c);cornerRadius=r;setStroke(1,Color.argb(72,120,180,230))}
+ private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=21f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(30,0,24,0);stateListAnimator=null;setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,5,0,5)};setOnFocusChangeListener{v,f->background=panel(if(f)focus else card);v.animate().scaleX(if(f)1.045f else 1f).scaleY(if(f)1.045f else 1f).setDuration(120).start();v.elevation=if(f)14f else 1f}}
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  CHIOS → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
  private fun showHome(){
   player?.release();player=null
@@ -36,19 +36,20 @@ class MainActivity:Activity(){
    "♜   Χίος" to {loadChannels("ΧΙΟΣ")},"◎   Κόσμος" to {loadChannels("ΔΙΕΘΝΗ")},"☷   Κατηγορίες" to {loadChannels()},
    "⌕   Αναζήτηση" to {loadChannels()},"⚙   Ρυθμίσεις" to {showMessage("Ρυθμίσεις","RESKAKIS TV • Family Edition")}
   ).forEach{nav.addView(button(it.first,it.second))}
-  root.addView(nav,LinearLayout.LayoutParams(230,-1))
-  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(30,28,36,24)}
-  main.addView(TextView(this).apply{text="RESKAKIS TV";textSize=36f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
-  main.addView(TextView(this).apply{text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE     From Chios to the World";textSize=15f;setTextColor(accent);setPadding(0,0,0,18)})
+  root.addView(nav,LinearLayout.LayoutParams(250,-1))
+  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(36,28,40,26)}
+  main.addView(TextView(this).apply{text="RESKAKIS TV";textSize=40f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
+  main.addView(TextView(this).apply{text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE     From Chios to the World";textSize=15f;setTextColor(accent);letterSpacing=.055f;setPadding(0,0,0,20)})
   fun section(title:String,items:List<Pair<String,()->Unit>>){
-   main.addView(TextView(this).apply{text=title;textSize=23f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,8,0,5)})
+   main.addView(TextView(this).apply{text=title;textSize=24f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,8,0,5)})
    val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-   items.forEach{item->row.addView(button(item.first,item.second),LinearLayout.LayoutParams(0,70,1f).apply{setMargins(0,3,10,3)})}
+   items.forEach{item->row.addView(button(item.first,item.second),LinearLayout.LayoutParams(0,76,1f).apply{setMargins(0,4,12,6)})}
    main.addView(row)
   }
   section("Popular Greek Channels",listOf("ΕΡΤ 1" to {loadChannels("ERT")},"ΕΡΤ 2" to {loadChannels("ERT")},"ANT1" to {loadChannels()},"ALPHA" to {loadChannels()},"ΣΚΑΪ" to {loadChannels()},"OPEN" to {loadChannels()},"MEGA" to {loadChannels()}))
   section("Continue Watching",listOf("▶  Τελευταίο κανάλι" to {loadLastChannel()},"★  Αγαπημένα" to {loadChannels(favouritesOnly=true)},"Μ  Μπρούσκο" to {openBrousko()}))
   section("Browse by Category",listOf("▣  Greek TV" to {loadChannels()},"●  Movies" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"▦  Series" to {showMessage("ΣΕΙΡΕΣ","Περισσότερες ελληνικές σειρές σύντομα")},"◆  Kids" to {loadChannels("ΠΑΙΔΙΚΑ")},"♜  Chios" to {loadChannels("ΧΙΟΣ")},"◎  World TV" to {loadChannels("ΔΙΕΘΝΗ")}))
+  main.addView(TextView(this).apply{text="FROM CHIOS TO THE WORLD";textSize=13f;setTextColor(muted);letterSpacing=.12f;setPadding(0,9,0,0)})
   section("Chios Highlights",listOf("Χίος Live" to {loadChannels("ΧΙΟΣ")},"Χιώτικα κανάλια" to {loadChannels("ΧΙΟΣ")},"Τοπική TV" to {loadChannels("ΧΙΟΣ")}))
   root.addView(main,LinearLayout.LayoutParams(0,-1,1f));setContentView(root)
   nav.post{if(nav.childCount>1)nav.getChildAt(1).requestFocus()}

@@ -45,12 +45,24 @@ class MainActivity:Activity(){
   hero.addView(TextView(this).apply{text="Live Greek television, favourites and family viewing — all in one place.";textSize=15f;setTextColor(muted);setPadding(1,5,0,0)})
   main.addView(hero,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,0,0,12)})
   fun section(title:String,items:List<Pair<String,()->Unit>>){
-   main.addView(TextView(this).apply{text=title;textSize=24f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,8,0,5)})
+   main.addView(TextView(this).apply{text=title;textSize=24f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,10,0,6)})
    val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-   items.forEach{item->row.addView(button(item.first,item.second),LinearLayout.LayoutParams(0,76,1f).apply{setMargins(0,4,12,6)})}
+   items.forEachIndexed{idx,item->
+    val b=button(item.first,item.second).apply{
+     textSize=18f;gravity=Gravity.CENTER;setPadding(12,0,12,0)
+     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(
+      Color.rgb(15+((idx*7)%20),38+((idx*9)%24),61+((idx*11)%30)),card)).apply{cornerRadius=24f;setStroke(1,Color.argb(82,110,178,230))}
+     setOnFocusChangeListener{v,f->
+      background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(focus,Color.rgb(16,61,106))).apply{cornerRadius=24f;setStroke(3,Color.WHITE)}
+      else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(15+((idx*7)%20),38+((idx*9)%24),61+((idx*11)%30)),card)).apply{cornerRadius=24f;setStroke(1,Color.argb(82,110,178,230))}
+      v.animate().scaleX(if(f)1.06f else 1f).scaleY(if(f)1.06f else 1f).setDuration(120).start();v.elevation=if(f)16f else 2f
+     }
+    }
+    row.addView(b,LinearLayout.LayoutParams(0,82,1f).apply{setMargins(0,4,12,7)})
+   }
    main.addView(row)
   }
-  section("Popular Greek Channels",listOf("ΕΡΤ 1" to {loadChannels("ERT")},"ΕΡΤ 2" to {loadChannels("ERT")},"ANT1" to {loadChannels()},"ALPHA" to {loadChannels()},"ΣΚΑΪ" to {loadChannels()},"OPEN" to {loadChannels()},"MEGA" to {loadChannels()}))
+  section("Popular Greek Channels",listOf("ERT 1  HD" to {loadChannels("ERT")},"ERT 2  HD" to {loadChannels("ERT")},"ANT1  HD" to {loadChannels()},"ALPHA  HD" to {loadChannels()},"SKAI  HD" to {loadChannels()},"OPEN  HD" to {loadChannels()},"MEGA  HD" to {loadChannels()}))
   section("Continue Watching",listOf("▶  Τελευταίο κανάλι" to {loadLastChannel()},"★  Αγαπημένα" to {loadChannels(favouritesOnly=true)},"Μ  Μπρούσκο" to {openBrousko()}))
   section("Browse by Category",listOf("▣  Greek TV" to {loadChannels()},"●  Movies" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"▦  Series" to {showMessage("ΣΕΙΡΕΣ","Περισσότερες ελληνικές σειρές σύντομα")},"◆  Kids" to {loadChannels("ΠΑΙΔΙΚΑ")},"♜  Chios" to {loadChannels("ΧΙΟΣ")},"◎  World TV" to {loadChannels("ΔΙΕΘΝΗ")}))
   main.addView(TextView(this).apply{text="FROM CHIOS TO THE WORLD";textSize=13f;setTextColor(muted);letterSpacing=.12f;setPadding(0,9,0,0)})

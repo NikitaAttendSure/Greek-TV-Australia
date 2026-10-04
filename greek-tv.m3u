@@ -1,3 +1,25 @@
+#EXTINF:-1 group-title="05 Greek Music",MAD World (Public Relay Test)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/MadWorld.m3u8
+#EXTINF:-1 group-title="05 Greek Music",NRG TV (Public Relay Test)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/NrgTV.m3u8
+#EXTINF:-1 group-title="05 Greek Music",KLIK TV Cyprus Music
+http://cdn.onestreaming.com/klikfmcy/klikfmcyprus/playlist.m3u8
+#EXTINF:-1 group-title="05 Greek Music",KLIK TV (Relay Test)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/KlikFm.m3u8
+#EXTINF:-1 group-title="05 Greek Music",PLAY TV (Relay Test)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/PlayTv.m3u8
+#EXTINF:-1 group-title="05 Greek Music",TILEMOUSIKI (Relay Test)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/Tilemousiki1.m3u8
+#EXTINF:-1 group-title="05 Greek Music",TILEMOUSIKI 2 Greek Music
+http://65.108.62.57:8080/live2/greekmusic.m3u8
+#EXTINF:-1 group-title="05 Greek Music",REAL MUSIC TV (Relay Test)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/RealMusicTv.m3u8
+#EXTINF:-1 group-title="05 Greek Music",PANIK TV (Relay Alternative)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/PanikTv.m3u8
+#EXTINF:-1 group-title="05 Greek Music",BARAZA Greek Hits (Relay Test)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/BarazaGreekHits.m3u8
+#EXTINF:-1 group-title="05 Greek Music",BARAZA Coffee Bar Music (Relay Test)
+https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/BarazaCoffeMusic.m3u8
 #EXTINF:-1 group-title="01 🎬 ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ",Greek Cinema (Classic Test)
 http://xnaturatv1x.api.channel.livestream.com/3.0/playlist.m3u8
 #EXTINF:-1 group-title="01 🎬 ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ",Cinefil GR (Classic Test)

@@ -231,3 +231,9 @@ https://s1.cystream.net/live/smile/playlist.m3u8
 https://eco.streams.ovh/BarazaTV/BarazarazaTV/BarazaTV/playlist.m3u8
 #EXTINF:-1 tvg-id="PemptousiaTV.gr" group-title="11 ⛪ ΟΡΘΟΔΟΞΙΑ",PEMPTOUSIA TV
 https://svs.itworkscdn.net/pemptousialive/pemptousia.smil/playlist.m3u8
+#EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",CANNALI MUSIC HD — TEST
+https://live.streams.ovh/cannali/cannali/chunklist_w381387716.m3u8
+#EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",MGR TV — TEST
+https://vod.streams.ovh:3876/stream/play.m3u8
+#EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",NG TV — TEST
+https://live.streams.ovh/NGradio/NGradio/playlist.m3u8

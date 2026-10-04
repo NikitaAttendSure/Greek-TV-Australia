@@ -237,3 +237,19 @@ https://live.streams.ovh/cannali/cannali/chunklist_w381387716.m3u8
 https://vod.streams.ovh:3876/stream/play.m3u8
 #EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",NG TV — TEST
 https://live.streams.ovh/NGradio/NGradio/playlist.m3u8
+#EXTINF:-1 tvg-id="OpenTV.gr" group-title="01 🇬🇷 ΕΛΛΑΔΑ",OPEN TV — TEST
+https://liveopen.siliconweb.com/openTvLive/liveopen/playlist.m3u8
+#EXTINF:-1 tvg-id="MegaChannel.gr" group-title="03 📰 ΕΙΔΗΣΕΙΣ",MEGA NEWS — TEST
+https://c98db5952cb54b358365984178fb898a.msvdn.net/live/S99841657/NU0xOarAMJ5X/playlist.m3u8
+#EXTINF:-1 tvg-id="PontosTV.gr" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",PONTOS TV — TEST
+https://rtmp.win:3842/live/recme1live.m3u8
+#EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",HLEKTRA TV — TEST
+https://live20.bozztv.com/giatv/giatv-hlektratv/hlektratv/playlist.m3u8
+#EXTINF:-1 group-title="11 ⛪ ΟΡΘΟΔΟΞΙΑ",LYCHNOS TV — TEST
+https://thor.mental-media.gr:19360/imp/imp.m3u8
+#EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",EPSILON TV — TEST
+https://neon.streams.gr:8081/epsilontv/index.m3u8
+#EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",THESSALIA TV — TEST
+https://thessaliachannel.gr:3339/live/thesstvlive.m3u8
+#EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",KRITI 1 — TEST
+https://livetv.streams.ovh:8081/kriti/index.m3u8

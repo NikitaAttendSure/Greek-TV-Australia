@@ -67,7 +67,7 @@ class MainActivity:Activity(){
   top.addView(TextView(this).apply{
    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
   })
-  page.addView(top,LinearLayout.LayoutParams(-1,108))
+  page.addView(top,LinearLayout.LayoutParams(-1,116))
 
   val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
 
@@ -88,7 +88,7 @@ class MainActivity:Activity(){
     background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(11,129,231),Color.rgb(29,151,247))).apply{cornerRadius=12f;setStroke(1,Color.argb(180,255,255,255))} else panel(Color.argb(122,6,26,44),12f)
    })
   }
-  body.addView(nav,LinearLayout.LayoutParams(210,-1).apply{setMargins(0,8,16,0)})
+  body.addView(nav,LinearLayout.LayoutParams(216,-1).apply{setMargins(0,8,18,0)})
 
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,0)}
   fun sectionTitle(t:String){
@@ -97,23 +97,21 @@ class MainActivity:Activity(){
 
   sectionTitle("Popular Greek Channels")
   val channelRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-  val channelData=listOf(
-   arrayOf("ΕΡΤ 1","ERT 1 HD",Color.rgb(18,53,205).toString()),
-   arrayOf("ERT 2","ERT 2 HD",Color.rgb(235,238,241).toString()),
-   arrayOf("ANT1","ANT1 HD",Color.rgb(15,53,98).toString()),
-   arrayOf("A","ALPHA HD",Color.rgb(226,30,48).toString()),
-   arrayOf("ΣΚΑΪ","SKAI HD",Color.rgb(20,96,229).toString()),
-   arrayOf("OPEN","OPEN HD",Color.rgb(7,18,33).toString()),
-   arrayOf("MEGA","MEGA HD",Color.rgb(237,239,242).toString())
+  val channelTiles=listOf(
+   arrayOf("ΕΡΤ 1","ERT 1 HD",Color.rgb(20,46,210).toString(),"0"),
+   arrayOf("ERT 2","ERT 2 HD",Color.rgb(242,244,246).toString(),"1"),
+   arrayOf("ANT1","ANT1 HD",Color.rgb(22,63,111).toString(),"0"),
+   arrayOf("A","ALPHA HD",Color.rgb(229,28,48).toString(),"0"),
+   arrayOf("ΣΚΑΪ","SKAI HD",Color.rgb(20,98,232).toString(),"0"),
+   arrayOf("OPEN","OPEN HD",Color.rgb(7,18,31).toString(),"0"),
+   arrayOf("MEGA","MEGA HD",Color.rgb(245,246,248).toString(),"1")
   )
-  channelData.forEachIndexed{i,a->
-   val action={ if(i<2)loadChannels("ERT") else loadChannels() }
-   val tile=tvCard(a[0],a[1],a[2].toInt(),action).apply{
-    gravity=Gravity.CENTER
-    (getChildAt(0) as TextView).apply{textSize=26f;gravity=Gravity.CENTER;setTextColor(if(i==1||i==6)Color.rgb(25,44,115) else Color.WHITE)}
-    (getChildAt(1) as TextView).apply{gravity=Gravity.CENTER;setTextColor(if(i==1||i==6)Color.rgb(40,55,80) else Color.rgb(230,237,245))}
-   }
-   channelRow.addView(tile,LinearLayout.LayoutParams(0,144,1f).apply{setMargins(0,0,12,0)})
+  channelTiles.forEachIndexed{i,a->
+   val action={if(i<2)loadChannels("ERT") else loadChannels()}
+   channelRow.addView(
+    logoCard(a[0],a[1],a[2].toInt(),a[3]=="1",action),
+    LinearLayout.LayoutParams(0,132,1f).apply{setMargins(0,0,12,0)}
+   )
   }
   main.addView(channelRow)
 
@@ -127,7 +125,14 @@ class MainActivity:Activity(){
   )
   contCards.forEachIndexed{i,a->
    val action=when(i){0->{ {loadLastChannel()} };1->{ {showMessage("Sasmos","More Greek series coming soon")} };2->{ {showMessage("Food","More Greek cooking content coming soon")} };else->{ {loadChannels("ΧΙΟΣ")} }}
-   cont.addView(imageCard(a[0],a[1],a[2],action),LinearLayout.LayoutParams(0,176,1f).apply{setMargins(0,0,12,0)})
+   val cardView=imageCard(a[0],a[1],a[2],action)
+   if(i==0||i==1){
+    val track=FrameLayout(this).apply{background=GradientDrawable().apply{setColor(Color.argb(100,255,255,255));cornerRadius=2f}}
+    val prog=View(this).apply{background=GradientDrawable().apply{setColor(if(i==0)Color.rgb(38,149,255) else Color.rgb(212,68,171));cornerRadius=2f}}
+    track.addView(prog,FrameLayout.LayoutParams(if(i==0)150 else 96,4,Gravity.START))
+    cardView.addView(track,FrameLayout.LayoutParams(-1,4,Gravity.BOTTOM).apply{setMargins(10,0,10,0)})
+   }
+   cont.addView(cardView,LinearLayout.LayoutParams(0,176,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cont)
 
@@ -135,7 +140,7 @@ class MainActivity:Activity(){
   val cats=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val categoryData=listOf(
    arrayOf("▣  Greek TV","All Greek Channels",Color.rgb(18,124,210).toString()),
-   arrayOf("●  Movies","Greek & International",Color.rgb(155,26,83).toString()),
+   arrayOf("◉  Movies","Greek & International",Color.rgb(155,26,83).toString()),
    arrayOf("☻  Series","Greek Series",Color.rgb(4,116,68).toString()),
    arrayOf("★  Kids","For the Little Ones",Color.rgb(225,124,5).toString()),
    arrayOf("♜  Chios","Local Content",Color.rgb(6,132,153).toString()),
@@ -167,6 +172,29 @@ class MainActivity:Activity(){
   setContentView(root)
   nav.post{if(nav.childCount>0)nav.getChildAt(0).requestFocus()}
  }
+ private fun logoCard(mark:String,label:String,base:Int,darkText:Boolean=false,action:()->Unit):FrameLayout{
+  val frame=FrameLayout(this).apply{
+   isFocusable=true;isClickable=true;elevation=6f
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(base,if(darkText)Color.rgb(222,226,232) else Color.rgb(5,18,33))).apply{cornerRadius=14f;setStroke(1,Color.argb(105,170,205,235))}
+  }
+  val logo=TextView(this).apply{
+   text=mark;textSize=27f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);gravity=Gravity.CENTER
+   setTextColor(if(darkText)Color.rgb(23,50,130) else Color.WHITE);setShadowLayer(if(darkText)0f else 5f,0f,2f,Color.argb(120,0,0,0))
+  }
+  frame.addView(logo,FrameLayout.LayoutParams(-1,0).apply{height=96})
+  val cap=TextView(this).apply{
+   text=label;textSize=12f;gravity=Gravity.CENTER;setTextColor(Color.WHITE)
+   background=GradientDrawable().apply{setColor(Color.argb(185,1,10,20));cornerRadii=floatArrayOf(0f,0f,0f,0f,14f,14f,14f,14f)}
+   setPadding(4,3,4,4)
+  }
+  frame.addView(cap,FrameLayout.LayoutParams(-1,34,Gravity.BOTTOM))
+  frame.setOnClickListener{action()}
+  frame.setOnFocusChangeListener{v,f->
+   v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(4,Color.WHITE);cornerRadius=14f}else null
+   v.animate().scaleX(if(f)1.05f else 1f).scaleY(if(f)1.05f else 1f).setDuration(110).start();v.elevation=if(f)20f else 6f
+  }
+  return frame
+ }
  private fun tvCard(title:String,subtitle:String="",base:Int=card,action:()->Unit):LinearLayout{
   return LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL;gravity=Gravity.BOTTOM;isFocusable=true;isClickable=true
@@ -189,7 +217,7 @@ class MainActivity:Activity(){
   val shade=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(235,2,8,14),Color.argb(96,2,8,14),Color.argb(20,2,8,14)))}
   frame.addView(shade,FrameLayout.LayoutParams(-1,-1))
   val textWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(12,8,12,8)}
-  textWrap.addView(TextView(this).apply{text=title;textSize=16f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setShadowLayer(4f,0f,1f,Color.BLACK)})
+  textWrap.addView(TextView(this).apply{text=title;textSize=16f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setShadowLayer(6f,0f,2f,Color.BLACK)})
   textWrap.addView(TextView(this).apply{text=subtitle;textSize=11f;setTextColor(Color.rgb(230,237,244))})
   frame.addView(textWrap,FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM))
   frame.setOnClickListener{action()}

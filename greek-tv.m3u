@@ -183,3 +183,19 @@ https://ertflix.s.llnwi.net/ertlive/ertsports4/default/index.m3u8
 https://ertflix.s.llnwi.net/ertlive/ertkids/default/index.m3u8
 #EXTINF:-1 tvg-id="MADTV.gr@SD" group-title="05 Greek Music",MAD TV
 http://ythls.onrender.com/channel/UCs3cho4vcDuCze0tk3W9iVQ.m3u8
+#EXTINF:-1 group-title="10 Greek Language Extra",Euronews Greek
+https://cdn-euronews.akamaized.net/live/eds/euronews-el/25068/index.m3u8
+#EXTINF:-1 group-title="10 Greek Language Extra",Hellenic TV
+https://l5.cloudskep.com/hellenictv/htv/playlist.m3u8
+#EXTINF:-1 group-title="10 Greek Language Extra",Greek TV Canada
+http://live.greektv.ca/hls1/greektv.m3u8
+#EXTINF:-1 group-title="10 Greek Language Extra",RIK Sat Cyprus
+https://l3.cloudskep.com/cybcsat/abr/playlist.m3u8
+#EXTINF:-1 group-title="10 Greek Language Extra",Star International Alternative
+https://livestar.siliconweb.com/starvod/star_int/star_int.m3u8
+#EXTINF:-1 group-title="10 Greek Language Extra",Explore Cyprus
+http://web.onair-radio.eu:1935/explorecy/explorecy/playlist.m3u8
+#EXTINF:-1 group-title="10 Greek Language Extra",EBS Europe by Satellite
+https://streams.prd.commavservices.eu/live/ebs/index.m3u8
+#EXTINF:-1 group-title="10 Greek Language Extra",EBS+ Europe by Satellite
+https://streams.prd.commavservices.eu/live/ebsplus/index.m3u8

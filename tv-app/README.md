@@ -1,17 +1,20 @@
-# Greek TV for Google TV
+# Greek TV — Sony / Google TV
 
-Grandparent-first Android/Google TV launcher for the Greek-TV-Australia project.
+Release candidate 0.4.0.
 
-## Goal
-One large, remote-friendly home screen:
-- LIVE TV
-- ΜΠΡΟΥΣΚΟ
-- ΤΑΙΝΙΕΣ
-- ΣΕΙΡΕΣ
-- ΜΟΥΣΙΚΗ
-- ΠΑΙΔΙΚΑ
+## Grandparent-first controls
+- Home: large Greek-labelled sections.
+- LIVE TV: D-pad to choose a channel, OK to play.
+- While watching: Channel Up / D-pad Up = next channel; Channel Down / D-pad Down = previous.
+- Star/Bookmark remote key toggles favourite where supported.
+- Back returns to the channel list.
+- Continue resumes the last selected channel.
+- Buffering indicator is shown automatically.
+- Broken streams return a simple Greek error instead of leaving a black screen.
 
-Live TV uses the existing greek-tv.m3u source. Third-party VOD remains with its authorised provider and is opened through Android ACTION_VIEW/deep links rather than extracting or repackaging protected media.
+## Content
+The app reads the existing public Greek Mix M3U remotely and does not modify it.
+Protected VOD is not extracted or republished; provider-controlled content opens via authorised external destination.
 
-## Phase 1
-This folder establishes the Android TV project and remote-first home screen. Existing IB Player setup remains untouched as fallback.
+## Release boundary
+The remaining validation is physical-device testing on the target Sony Google TV: install APK, launch from TV home, D-pad/focus check, HLS/HTTP playback, channel switching, favourites, resume and external provider hand-off.

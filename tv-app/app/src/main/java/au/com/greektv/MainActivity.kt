@@ -155,7 +155,7 @@ class MainActivity:Activity(){
   val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.82f;setBackgroundColor(Color.rgb(2,8,15))}
   root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
   Thread{try{
-   val hero=if(isPappas)"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg" else "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg"
+   val hero=if(isPappas)cfgString("heroUrl","https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg") else "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg"
    val bmp=URL(hero).openStream().use{BitmapFactory.decodeStream(it)}
    runOnUiThread{backdrop.setImageBitmap(bmp)}
   }catch(_:Exception){}}.start()
@@ -184,7 +184,7 @@ class MainActivity:Activity(){
   identity.addView(wordmark)
   top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
   top.addView(TextView(this).apply{
-   text="From $placeName\nto the World";textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
+   text=(if(isPappas)cfgString("tagline","From Nafplio to the World") else "From Chios to the World").replace(" to the World","\nto the World");textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
   })
   top.addView(TextView(this).apply{
    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
@@ -202,7 +202,7 @@ class MainActivity:Activity(){
   val navItems=listOf<Pair<String,()->Unit>>(
    "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♥   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
    "▤   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"♜   $placeName" to {loadChannels(placeFilter)},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},
-   "☷   Categories" to {loadChannels()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showMessage("Settings","$brandName • Family Edition")}
+   "☷   Categories" to {loadChannels()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showSettings()}
   )
   navItems.forEachIndexed{i,it->
    nav.addView(button(it.first,it.second).apply{
@@ -239,22 +239,37 @@ class MainActivity:Activity(){
 
   sectionTitle("Continue Watching")
   val cont=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-  val contCards=listOf(
-   arrayOf("ERT 1 HD","News","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf("Sasmos","Drama Series","https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf("Akis' Food Tour","Cooking","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf(placeName,"Documentary","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85")
-  )
-  contCards.forEachIndexed{i,a->
-   val action=when(i){0->{ {loadLastChannel()} };1->{ {showMessage("Sasmos","More Greek series coming soon")} };2->{ {showMessage("Food","More Greek cooking content coming soon")} };else->{ {loadChannels(placeFilter)} }}
-   val cardView=imageCard(a[0],a[1],a[2],action)
-   if(i==0||i==1){
-    val track=FrameLayout(this).apply{background=GradientDrawable().apply{setColor(Color.argb(100,255,255,255));cornerRadius=2f}}
-    val prog=View(this).apply{background=GradientDrawable().apply{setColor(if(i==0)Color.rgb(38,149,255) else Color.rgb(212,68,171));cornerRadius=2f}}
-    track.addView(prog,FrameLayout.LayoutParams(if(i==0)150 else 96,4,Gravity.START))
-    cardView.addView(track,FrameLayout.LayoutParams(-1,4,Gravity.BOTTOM).apply{setMargins(10,0,10,0)})
+  if(isPappas){
+   val recent=try{JSONArray(prefs.getString("recent_channels","[]")?:"[]")}catch(_:Exception){JSONArray()}
+   if(recent.length()==0){
+    val cardView=imageCard("Start watching","Your recent channels will appear here","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"){loadChannels()}
+    cont.addView(cardView,LinearLayout.LayoutParams(0,182,1f).apply{setMargins(0,0,12,0)})
+   }else{
+    for(i in 0 until minOf(4,recent.length())){
+     val o=recent.optJSONObject(i)?:continue
+     val name=o.optString("name","Channel")
+     val group=o.optString("group","Recently watched")
+     val url=o.optString("url","")
+     val image=when{
+      group.contains("ERT",true)->"https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"
+      group.contains("ΤΑΙΝ",true)->"https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=85"
+      group.contains("ΜΟΥΣ",true)->"https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=85"
+      else->"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85"
+     }
+     cont.addView(imageCard(name,"Recently watched",image){playRecent(url)},LinearLayout.LayoutParams(0,182,1f).apply{setMargins(0,0,12,0)})
+    }
    }
-   cont.addView(cardView,LinearLayout.LayoutParams(0,182,1f).apply{setMargins(0,0,12,0)})
+  }else{
+   val contCards=listOf(
+    arrayOf("ERT 1 HD","News","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"),
+    arrayOf("Sasmos","Drama Series","https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=85"),
+    arrayOf("Akis' Food Tour","Cooking","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=85"),
+    arrayOf(placeName,"Documentary","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85")
+   )
+   contCards.forEachIndexed{i,a->
+    val action=when(i){0->{ {loadLastChannel()} };1->{ {showMessage("Sasmos","More Greek series coming soon")} };2->{ {showMessage("Food","More Greek cooking content coming soon")} };else->{ {loadChannels(placeFilter)} }}
+    cont.addView(imageCard(a[0],a[1],a[2],action),LinearLayout.LayoutParams(0,182,1f).apply{setMargins(0,0,12,0)})
+   }
   }
   main.addView(cont)
 
@@ -294,16 +309,35 @@ class MainActivity:Activity(){
   setContentView(root)
   nav.post{if(nav.childCount>0)nav.getChildAt(0).requestFocus()}
  }
+ private fun popularLogoUrl(label:String):String{
+  if(!isPappas)return ""
+  return when{
+   label.startsWith("ERT 1")->"https://i.imgur.com/UKbCtC1.png"
+   label.startsWith("ANT1")->"https://i.imgur.com/ItxKvVS.png"
+   label.startsWith("ALPHA")->"https://i.imgur.com/6twzd38.png"
+   label.startsWith("SKAI")->"https://i.imgur.com/mrKRFnf.png"
+   label.startsWith("OPEN")->"https://upload.wikimedia.org/wikipedia/el/thumb/e/e5/Open_TV_logo.png/960px-Open_TV_logo.png"
+   label.startsWith("MEGA")->"https://i.imgur.com/Z3k7iA0.png"
+   else->""
+  }
+ }
  private fun logoCard(mark:String,label:String,base:Int,darkText:Boolean=false,action:()->Unit):FrameLayout{
   val frame=FrameLayout(this).apply{
    isFocusable=true;isClickable=true;elevation=6f;clipToOutline=true
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(base,if(darkText)Color.rgb(222,226,232) else Color.rgb(5,18,33))).apply{cornerRadius=14f;setStroke(1,Color.argb(105,170,205,235))}
   }
-  val logo=TextView(this).apply{
-   text=mark;textSize=27f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);gravity=Gravity.CENTER
-   setTextColor(if(darkText)Color.rgb(23,50,130) else Color.WHITE);setShadowLayer(if(darkText)0f else 5f,0f,2f,Color.argb(120,0,0,0))
+  val logoUrl=popularLogoUrl(label)
+  if(logoUrl.isNotBlank()){
+   val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(14,12,14,12)}
+   frame.addView(logo,FrameLayout.LayoutParams(-1,96))
+   loadImageInto(logo,logoUrl)
+  }else{
+   val logo=TextView(this).apply{
+    text=mark;textSize=27f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);gravity=Gravity.CENTER
+    setTextColor(if(darkText)Color.rgb(23,50,130) else Color.WHITE);setShadowLayer(if(darkText)0f else 5f,0f,2f,Color.argb(120,0,0,0))
+   }
+   frame.addView(logo,FrameLayout.LayoutParams(-1,96))
   }
-  frame.addView(logo,FrameLayout.LayoutParams(-1,0).apply{height=96})
   val cap=TextView(this).apply{
    text=label;textSize=12f;gravity=Gravity.CENTER;setTextColor(Color.WHITE)
    background=GradientDrawable().apply{setColor(Color.argb(220,1,10,20));cornerRadii=floatArrayOf(0f,0f,0f,0f,14f,14f,14f,14f)}
@@ -348,7 +382,7 @@ class MainActivity:Activity(){
  }
  private fun loadLastChannel(){val u=prefs.getString("last_channel",null);if(u==null){loadChannels();return};Thread{try{val all=parsePlaylist(fetchPlaylist());runOnUiThread{channels=all;val i=all.indexOfFirst{it.url==u};if(i>=0)play(i)else showList()}}catch(e:Exception){runOnUiThread{loadChannels()}}}.start()}
  private fun fetchPlaylist():String{val u=URL("https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/greek-tv.m3u");val c=u.openConnection().apply{connectTimeout=8000;readTimeout=12000};return c.getInputStream().bufferedReader().use{it.readText()}.also{prefs.edit().putString("playlist_cache",it).apply()}}
- private fun parsePlaylist(txt:String):List<Channel>{val out=mutableListOf<Channel>();var n="";var g="";txt.lines().forEach{l->if(l.startsWith("#EXTINF")){n=l.substringAfterLast(",").trim();g=l.substringAfter("group-title=\"", "").substringBefore("\"", "")}else if(l.startsWith("http")&&n.isNotBlank()){out.add(Channel(n,l.trim(),g));n=""}};return out}
+ private fun parsePlaylist(txt:String):List<Channel>{val out=mutableListOf<Channel>();var n="";var g="";var id="";txt.lines().forEach{l->if(l.startsWith("#EXTINF")){n=l.substringAfterLast(",").trim();g=l.substringAfter("group-title=\"", "").substringBefore("\"", "");id=l.substringAfter("tvg-id=\"", "").substringBefore("\"", "")}else if(l.startsWith("http")&&n.isNotBlank()){out.add(Channel(n,l.trim(),g,id));n="";g="";id=""}};return out}
  private fun loadChannels(filter:String?=null,favouritesOnly:Boolean=false){currentSection=when{favouritesOnly->"FAVOURITES";filter?.contains(placeFilter,true)==true->placeUpper;filter?.contains("ΠΑΙΔΙΚΑ",true)==true->"KIDS";filter?.contains("ΤΑΙΝΙΕΣ",true)==true->"ON DEMAND";filter?.contains("ΔΙΕΘΝΗ",true)==true->"WORLD TV";filter?.contains("ERT",true)==true->"ERT";else->"LIVE TV"};Thread{try{val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e};val out=parsePlaylist(txt).filter{(filter==null||it.group.contains(filter,true))&&(!favouritesOnly||fav.has(it.url))};runOnUiThread{channels=out;if(out.isEmpty()){showMessage(brandName,if(favouritesOnly)"No favourites yet." else "No channels found.")}else{showList()}}}catch(e:Exception){runOnUiThread{showMessage(brandName,"Unable to load right now. Check the internet connection and try again.")}}}.start()}
  private fun showList(){
   previewPlayer?.release();previewPlayer=null
@@ -415,7 +449,9 @@ class MainActivity:Activity(){
    if(index !in channels.indices)return
    current=index
    previewTitle.text=channels[index].name
-   previewMeta.text=(if(channels[index].group.isBlank())"GREEK TV" else channels[index].group.uppercase())+"   •   LIVE NOW"
+   val guideNow=epgNow[channels[index].tvgId]
+   val guideNext=epgNext[channels[index].tvgId]
+   previewMeta.text=if(isPappas&&guideNow!=null)"NOW  •  $guideNow"+(if(guideNext!=null)"\nNEXT •  $guideNext" else "") else (if(channels[index].group.isBlank())"GREEK TV" else channels[index].group.uppercase())+"   •   LIVE NOW"
    previewStatus.visibility=View.GONE
    previewPlayer?.release()
    previewPlayer=ExoPlayer.Builder(this).build().also{p->
@@ -445,18 +481,25 @@ class MainActivity:Activity(){
     background=panel(Color.rgb(10,31,50),12f)
     layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,0,0,8)}
    }
-   val badge=TextView(this).apply{
-    text=when{
-     ch.name.contains("ERT",true)->"ERT"
-     ch.name.contains("ALPHA",true)->"A"
-     ch.name.contains("SKAI",true)||ch.name.contains("ΣΚΑΪ",true)->"Σ"
-     ch.name.contains("MEGA",true)->"M"
-     else->"TV"
+   val logoUrl=channelLogoUrl(ch)
+   if(logoUrl.isNotBlank()){
+    val badge=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(3,3,3,3);background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=10f}}
+    row.addView(badge,LinearLayout.LayoutParams(46,36).apply{setMargins(0,0,14,0)})
+    loadImageInto(badge,logoUrl)
+   }else{
+    val badge=TextView(this).apply{
+     text=when{
+      ch.name.contains("ERT",true)->"ERT"
+      ch.name.contains("ALPHA",true)->"A"
+      ch.name.contains("SKAI",true)||ch.name.contains("ΣΚΑΪ",true)->"Σ"
+      ch.name.contains("MEGA",true)->"M"
+      else->"TV"
+     }
+     textSize=13f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+     background=GradientDrawable().apply{setColor(Color.rgb(20,95,180));cornerRadius=10f}
     }
-    textSize=13f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
-    background=GradientDrawable().apply{setColor(Color.rgb(20,95,180));cornerRadius=10f}
+    row.addView(badge,LinearLayout.LayoutParams(46,36).apply{setMargins(0,0,14,0)})
    }
-   row.addView(badge,LinearLayout.LayoutParams(46,36).apply{setMargins(0,0,14,0)})
    val info=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=52}
    info.addView(TextView(this).apply{text=ch.name;textSize=17f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END;maxLines=1})
    info.addView(TextView(this).apply{text=if(ch.group.isBlank())"LIVE TV" else ch.group.uppercase();textSize=10f;setTextColor(Color.rgb(145,177,205));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END;maxLines=1;setPadding(0,2,0,0)})
@@ -478,9 +521,10 @@ class MainActivity:Activity(){
   content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.60f))
   root.addView(content,LinearLayout.LayoutParams(-1,0,1f))
   setContentView(root)
+  if(isPappas)loadEpg()
   list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
  }
- private fun play(i:Int){previewPlayer?.release();previewPlayer=null;window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;current=i;prefs.edit().putString("last_channel",channels[i].url).apply();player?.release();player=ExoPlayer.Builder(this).build();player!!.addListener(object:Player.Listener{override fun onPlayerError(error:PlaybackException){runOnUiThread{Toast.makeText(this@MainActivity,"Το κανάλι δεν είναι διαθέσιμο. Δοκιμάστε άλλο.",Toast.LENGTH_LONG).show();showList()}}});val frame=FrameLayout(this);val v=PlayerView(this).apply{player=this@MainActivity.player;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);keepScreenOn=true;controllerShowTimeoutMs=3000;setBackgroundColor(Color.BLACK)};frame.addView(v,FrameLayout.LayoutParams(-1,-1));overlay=TextView(this).apply{text="● LIVE   "+channels[i].name;textSize=22f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(235,7,24,41),Color.argb(215,12,50,82))).apply{cornerRadius=14f;setStroke(1,Color.argb(95,180,215,245))};setPadding(26,14,30,14);elevation=10f};frame.addView(overlay,FrameLayout.LayoutParams(-2,-2,Gravity.START or Gravity.BOTTOM).apply{setMargins(42,0,0,42)});setContentView(frame);overlay?.postDelayed({overlay?.visibility=View.GONE},2600);player!!.setMediaItem(MediaItem.fromUri(channels[i].url));player!!.prepare();player!!.play()}
+ private fun play(i:Int){previewPlayer?.release();previewPlayer=null;window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;current=i;prefs.edit().putString("last_channel",channels[i].url).apply();recordRecent(channels[i]);player?.release();player=ExoPlayer.Builder(this).build();player!!.addListener(object:Player.Listener{override fun onPlayerError(error:PlaybackException){runOnUiThread{Toast.makeText(this@MainActivity,"Το κανάλι δεν είναι διαθέσιμο. Δοκιμάστε άλλο.",Toast.LENGTH_LONG).show();showList()}}});val frame=FrameLayout(this);val v=PlayerView(this).apply{player=this@MainActivity.player;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);keepScreenOn=true;controllerShowTimeoutMs=3000;setBackgroundColor(Color.BLACK)};frame.addView(v,FrameLayout.LayoutParams(-1,-1));overlay=TextView(this).apply{text="● LIVE   "+channels[i].name;textSize=22f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(235,7,24,41),Color.argb(215,12,50,82))).apply{cornerRadius=14f;setStroke(1,Color.argb(95,180,215,245))};setPadding(26,14,30,14);elevation=10f};frame.addView(overlay,FrameLayout.LayoutParams(-2,-2,Gravity.START or Gravity.BOTTOM).apply{setMargins(42,0,0,42)});setContentView(frame);overlay?.postDelayed({overlay?.visibility=View.GONE},2600);player!!.setMediaItem(MediaItem.fromUri(channels[i].url));player!!.prepare();player!!.play()}
  override fun onKeyDown(k:Int,e:KeyEvent?):Boolean{if(player!=null&&channels.isNotEmpty()){when(k){KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_CHANNEL_UP->{play((current+1)%channels.size);return true};KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_CHANNEL_DOWN->{play((current-1+channels.size)%channels.size);return true};KeyEvent.KEYCODE_STAR,KeyEvent.KEYCODE_BOOKMARK->{fav.toggle(channels[current].url);Toast.makeText(this,if(fav.has(channels[current].url))"★ Προστέθηκε στα αγαπημένα" else "Αφαιρέθηκε από τα αγαπημένα",Toast.LENGTH_SHORT).show();return true};KeyEvent.KEYCODE_BACK->{player?.release();player=null;showList();return true}}};return super.onKeyDown(k,e)}
  private fun openBrousko(){openUri("https://www.antenna.gr/mprousko")}
  private fun openUri(u:String){val i=Intent(Intent.ACTION_VIEW,Uri.parse(u));if(i.resolveActivity(packageManager)!=null)startActivity(i)else showMessage(brandName,"Δεν βρέθηκε συμβατή εφαρμογή.")}

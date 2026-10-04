@@ -48,7 +48,7 @@ jobs:
           gh release upload reskakis-tv-latest RESKAKIS-TV.apk --clobber
 
           if ! gh release view pappas-tv-latest >/dev/null 2>&1; then
-            gh release create pappas-tv-latest --title "PAPPAS TV" --notes "Latest Sony / Google TV family build."
+            gh release create pappas-tv-latest --title "PAPAS TV" --notes "Latest Sony / Google TV family build."
           fi
-          cp tv-app/app/build/outputs/apk/pappas/debug/app-pappas-debug.apk PAPPAS-TV.apk
-          gh release upload pappas-tv-latest PAPPAS-TV.apk --clobber
+          cp tv-app/app/build/outputs/apk/pappas/debug/app-pappas-debug.apk PAPAS-TV.apk
+          gh release upload pappas-tv-latest PAPAS-TV.apk --clobber

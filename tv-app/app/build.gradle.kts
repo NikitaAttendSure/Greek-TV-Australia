@@ -9,8 +9,24 @@ android {
         applicationId = "au.com.greektv"
         minSdk = 23
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.6.0"
+        versionCode = 7
+        versionName = "0.7.0"
+    }
+    signingConfigs {
+        create("reskakisRelease") {
+            val path = System.getenv("RESKAKIS_KEYSTORE_PATH")
+            if (!path.isNullOrBlank()) storeFile = file(path)
+            storePassword = System.getenv("RESKAKIS_KEYSTORE_PASSWORD")
+            keyAlias = "reskakis-tv"
+            keyPassword = System.getenv("RESKAKIS_KEYSTORE_PASSWORD")
+        }
+        create("papasRelease") {
+            val path = System.getenv("PAPAS_KEYSTORE_PATH")
+            if (!path.isNullOrBlank()) storeFile = file(path)
+            storePassword = System.getenv("PAPAS_KEYSTORE_PASSWORD")
+            keyAlias = "papas-tv"
+            keyPassword = System.getenv("PAPAS_KEYSTORE_PASSWORD")
+        }
     }
     flavorDimensions += "brand"
     productFlavors {
@@ -18,14 +34,19 @@ android {
             dimension = "brand"
             applicationId = "au.com.greektv"
             resValue("string", "app_name", "RESKAKIS TV")
+            signingConfig = signingConfigs.getByName("reskakisRelease")
         }
         create("pappas") {
             dimension = "brand"
             applicationId = "au.com.pappastv"
-            versionCode = 2
-            versionName = "1.1.0"
+            versionCode = 3
+            versionName = "1.2.0"
             resValue("string", "app_name", "PAPAS TV")
+            signingConfig = signingConfigs.getByName("papasRelease")
         }
+    }
+    buildTypes {
+        getByName("release") { isMinifyEnabled = false }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -3,6 +3,8 @@ package au.com.greektv
 import android.app.*
 import android.content.*
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
@@ -14,13 +16,14 @@ import java.net.URL
 
 data class Channel(val name:String,val url:String,val group:String)
 class MainActivity:Activity(){
- private val bg=Color.rgb(8,18,31);private val card=Color.rgb(27,51,78)
+ private val bg=Color.rgb(5,13,24);private val card=Color.rgb(18,35,55);private val focus=Color.rgb(28,86,135)
  private var player:ExoPlayer?=null;private var channels=listOf<Channel>();private var current=0
  private lateinit var fav:Favourites
  override fun onCreate(b:Bundle?){super.onCreate(b);fav=Favourites(this);showHome()}
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
  override fun onStop(){super.onStop();player?.release();player=null}
- private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=23f;isAllCaps=false;setTextColor(Color.WHITE);setBackgroundColor(card);isFocusable=true;setPadding(26,18,26,18);setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,78).apply{setMargins(0,6,0,6)};setOnFocusChangeListener{v,f->v.alpha=if(f)1f else .72f;v.scaleX=if(f)1.025f else 1f;v.scaleY=v.scaleX}}
+ private fun panel(c:Int)=GradientDrawable().apply{setColor(c);cornerRadius=18f}
+ private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=22f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(28,0,24,0);setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,76).apply{setMargins(0,6,0,6)};setOnFocusChangeListener{v,f->background=panel(if(f)focus else card);v.scaleX=if(f)1.018f else 1f;v.scaleY=v.scaleX}}
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(52,34,52,34);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=31f;setTextColor(Color.WHITE);setPadding(6,0,0,20)})}
  private fun showHome(){player?.release();player=null;val r=shell("🇬🇷  GREEK TV");listOf<Pair<String,()->Unit>>(
   "▶  ΣΥΝΕΧΙΣΤΕ" to {loadLastChannel()},"📺  LIVE TV" to {loadChannels()},"⭐  ΑΓΑΠΗΜΕΝΑ" to {loadChannels(favouritesOnly=true)},

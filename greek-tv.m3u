@@ -139,7 +139,13 @@ https://zouglacam-mdc-secure.akamaized.net/zouglalive/backup/playlist.m3u8
 http://l2.cloudskep.com/ant1cm2/abr/playlist.m3u8
 #EXTINF:-1 tvg-id="SigmaTV.cy@SD" group-title="04 Cyprus Greek",Sigma TV (576p)
 https://sl2.sigmatv.com/hls/live.m3u8
-#EXTINF:-1 tvg-id="VouliTV.cy@SD" group-title="04 Cyprus Greek",Vouli TV (1080p)
-https://dev.aftermind.xyz/edge-hls/unitrust/voulitv/index.m3u8?token=8TXWzhY3h6jrzqEqx
 #EXTINF:-1 tvg-id="OmegaChannel.cy@SD" group-title="04 Cyprus Greek",Omega Channel (576i)
 https://l1.cloudskep.com/omegatv/omcy/playlist.m3u8
+#EXTINF:-1 tvg-id="ERTSports3.gr@HD" group-title="07 Greek Sports",ERT Sports 3
+https://ertflix.s.llnwi.net/ertlive/ertsports3/default/index.m3u8
+#EXTINF:-1 tvg-id="ERTSports4.gr@HD" group-title="07 Greek Sports",ERT Sports 4
+https://ertflix.s.llnwi.net/ertlive/ertsports4/default/index.m3u8
+#EXTINF:-1 tvg-id="ERTKids.gr@HD" group-title="08 Greek Kids & Family",ERT Kids
+https://ertflix.s.llnwi.net/ertlive/ertkids/default/index.m3u8
+#EXTINF:-1 tvg-id="MADTV.gr@SD" group-title="05 Greek Music",MAD TV
+http://ythls.onrender.com/channel/UCs3cho4vcDuCze0tk3W9iVQ.m3u8

@@ -9,6 +9,8 @@ on:
       - 'tv-app/**'
       - '.github/workflows/greek-tv-android.yml'
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,3 +34,14 @@ jobs:
           path: |
             tv-app/app/build/outputs/apk/debug/app-debug.apk
             tv-app/app/build/outputs/bundle/release/app-release.aab
+      - name: Publish permanent RESKAKIS TV APK
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view reskakis-tv-latest >/dev/null 2>&1; then
+            gh release create reskakis-tv-latest --title "RESKAKIS TV" --notes "Latest Sony / Google TV family build."
+          fi
+          cp tv-app/app/build/outputs/apk/debug/app-debug.apk RESKAKIS-TV.apk
+          gh release upload reskakis-tv-latest RESKAKIS-TV.apk --clobber

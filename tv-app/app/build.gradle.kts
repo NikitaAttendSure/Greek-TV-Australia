@@ -4,11 +4,11 @@ plugins {
 }
 android {
     namespace = "au.com.greektv"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "au.com.greektv"
         minSdk = 23
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 5
         versionName = "0.5.0"
     }

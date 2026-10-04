@@ -39,23 +39,25 @@ class MainActivity:Activity(){
  override fun onCreate(b:Bundle?){
   super.onCreate(b)
   fav=Favourites(this)
-  if(isPappas){try{remoteConfig=JSONObject(prefs.getString("papas_config","{}")?:"{}")}catch(_:Exception){}}
+  val cfgKey=if(isPappas)"papas_config" else "reskakis_config"
+  try{remoteConfig=JSONObject(prefs.getString(cfgKey,"{}")?:"{}")}catch(_:Exception){}
   showHome()
-  if(isPappas)refreshRemoteConfig()
+  refreshRemoteConfig()
  }
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
  override fun onStop(){super.onStop();player?.release();player=null;previewPlayer?.release();previewPlayer=null}
  private fun panel(c:Int,r:Float=22f)=GradientDrawable().apply{setColor(c);cornerRadius=r;setStroke(1,Color.argb(72,120,180,230))}
- private fun cfgString(key:String,default:String)=if(isPappas)remoteConfig.optString(key,default).ifBlank{default}else default
+ private fun cfgString(key:String,default:String)=remoteConfig.optString(key,default).ifBlank{default}
  private fun refreshRemoteConfig(){
-  if(!isPappas||remoteRefreshDone)return
+  if(remoteRefreshDone)return
   remoteRefreshDone=true
   Thread{try{
-   val raw=URL("https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json").openConnection().apply{connectTimeout=5000;readTimeout=7000}.getInputStream().bufferedReader().use{it.readText()}
+   val configUrl=if(isPappas)"https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json" else "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
+   val raw=URL(configUrl).openConnection().apply{connectTimeout=5000;readTimeout=7000}.getInputStream().bufferedReader().use{it.readText()}
    val obj=JSONObject(raw)
    val old=remoteConfig.toString()
    remoteConfig=obj
-   prefs.edit().putString("papas_config",raw).apply()
+   prefs.edit().putString(if(isPappas)"papas_config" else "reskakis_config",raw).apply()
    if(old!=obj.toString())runOnUiThread{if(player==null&&previewPlayer==null)showHome()}
   }catch(_:Exception){}}.start()
  }
@@ -64,20 +66,18 @@ class MainActivity:Activity(){
   if(android.os.Build.VERSION.SDK_INT>=28)p.longVersionCode.toInt() else p.versionCode
  }catch(_:Exception){0}
  private fun showSettings(){
-  if(!isPappas){showMessage("Settings","$brandName • Family Edition");return}
   val ver=try{packageManager.getPackageInfo(packageName,0).versionName}catch(_:Exception){"1.0"}
-  AlertDialog.Builder(this).setTitle("PAPAS TV Settings")
+  AlertDialog.Builder(this).setTitle("$brandName Settings")
    .setMessage("Live content refreshes automatically.\n\nApp version $ver")
    .setPositiveButton("Check for update"){_,_->
     val latest=remoteConfig.optInt("latestVersionCode",currentVersionCode())
-    if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage("PAPAS TV "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->openUri(cfgString("updateUrl","https://ptv.up.railway.app"))}.setNegativeButton("Later",null).show()
-    else Toast.makeText(this,"PAPAS TV is up to date.",Toast.LENGTH_SHORT).show()
+    if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage(brandName+" "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->openUri(cfgString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}.setNegativeButton("Later",null).show()
+    else Toast.makeText(this,"$brandName is up to date.",Toast.LENGTH_SHORT).show()
    }
-   .setNeutralButton("Refresh content"){_,_->remoteRefreshDone=false;refreshRemoteConfig();Toast.makeText(this,"Refreshing PAPAS TV content…",Toast.LENGTH_SHORT).show()}
+   .setNeutralButton("Refresh content"){_,_->remoteRefreshDone=false;refreshRemoteConfig();Toast.makeText(this,"Refreshing $brandName content…",Toast.LENGTH_SHORT).show()}
    .setNegativeButton("Close",null).show()
  }
  private fun recordRecent(ch:Channel){
-  if(!isPappas)return
   try{
    val old=JSONArray(prefs.getString("recent_channels","[]")?:"[]")
    val arr=JSONArray()
@@ -93,7 +93,6 @@ class MainActivity:Activity(){
   Thread{try{val all=parsePlaylist(try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e});runOnUiThread{channels=all;val i=all.indexOfFirst{it.url==url};if(i>=0)play(i)else loadChannels()}}catch(_:Exception){runOnUiThread{loadChannels()}}}.start()
  }
  private fun channelLogoUrl(ch:Channel):String{
-  if(!isPappas)return ""
   val logos=remoteConfig.optJSONObject("logos")
   val remote=logos?.optString(ch.tvgId,"")?:""
   if(remote.isNotBlank())return remote
@@ -113,7 +112,7 @@ class MainActivity:Activity(){
  }
  private fun parseXmltvDate(v:String):Long=try{SimpleDateFormat("yyyyMMddHHmmss Z",Locale.US).parse(v.trim())?.time?:0L}catch(_:Exception){0L}
  private fun loadEpg(){
-  if(!isPappas||epgLoading||channels.none{it.tvgId.isNotBlank()})return
+  if(epgLoading||channels.none{it.tvgId.isNotBlank()})return
   epgLoading=true
   val wanted=channels.map{it.tvgId}.filter{it.isNotBlank()}.toSet()
   Thread{try{
@@ -155,7 +154,7 @@ class MainActivity:Activity(){
   val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.82f;setBackgroundColor(Color.rgb(2,8,15))}
   root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
   Thread{try{
-   val hero=if(isPappas)cfgString("heroUrl","https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg") else "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg"
+   val hero=cfgString("heroUrl",if(isPappas)"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg" else "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg")
    val bmp=URL(hero).openStream().use{BitmapFactory.decodeStream(it)}
    runOnUiThread{backdrop.setImageBitmap(bmp)}
   }catch(_:Exception){}}.start()
@@ -184,7 +183,7 @@ class MainActivity:Activity(){
   identity.addView(wordmark)
   top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
   top.addView(TextView(this).apply{
-   text=(if(isPappas)cfgString("tagline","From Nafplio to the World") else "From Chios to the World").replace(" to the World","\nto the World");textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
+   text=cfgString("tagline",if(isPappas)"From Nafplio to the World" else "From Chios to the World").replace(" to the World","\nto the World");textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
   })
   top.addView(TextView(this).apply{
    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
@@ -239,7 +238,7 @@ class MainActivity:Activity(){
 
   sectionTitle("Continue Watching")
   val cont=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-  if(isPappas){
+  run{
    val recent=try{JSONArray(prefs.getString("recent_channels","[]")?:"[]")}catch(_:Exception){JSONArray()}
    if(recent.length()==0){
     val cardView=imageCard("Start watching","Your recent channels will appear here","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"){loadChannels()}
@@ -258,17 +257,6 @@ class MainActivity:Activity(){
      }
      cont.addView(imageCard(name,"Recently watched",image){playRecent(url)},LinearLayout.LayoutParams(0,182,1f).apply{setMargins(0,0,12,0)})
     }
-   }
-  }else{
-   val contCards=listOf(
-    arrayOf("ERT 1 HD","News","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"),
-    arrayOf("Sasmos","Drama Series","https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=85"),
-    arrayOf("Akis' Food Tour","Cooking","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=85"),
-    arrayOf(placeName,"Documentary","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85")
-   )
-   contCards.forEachIndexed{i,a->
-    val action=when(i){0->{ {loadLastChannel()} };1->{ {showMessage("Sasmos","More Greek series coming soon")} };2->{ {showMessage("Food","More Greek cooking content coming soon")} };else->{ {loadChannels(placeFilter)} }}
-    cont.addView(imageCard(a[0],a[1],a[2],action),LinearLayout.LayoutParams(0,182,1f).apply{setMargins(0,0,12,0)})
    }
   }
   main.addView(cont)
@@ -310,7 +298,6 @@ class MainActivity:Activity(){
   nav.post{if(nav.childCount>0)nav.getChildAt(0).requestFocus()}
  }
  private fun popularLogoUrl(label:String):String{
-  if(!isPappas)return ""
   return when{
    label.startsWith("ERT 1")->"https://i.imgur.com/UKbCtC1.png"
    label.startsWith("ANT1")->"https://i.imgur.com/ItxKvVS.png"
@@ -451,7 +438,7 @@ class MainActivity:Activity(){
    previewTitle.text=channels[index].name
    val guideNow=epgNow[channels[index].tvgId]
    val guideNext=epgNext[channels[index].tvgId]
-   previewMeta.text=if(isPappas&&guideNow!=null)"NOW  •  $guideNow"+(if(guideNext!=null)"\nNEXT •  $guideNext" else "") else (if(channels[index].group.isBlank())"GREEK TV" else channels[index].group.uppercase())+"   •   LIVE NOW"
+   previewMeta.text=if(guideNow!=null)"NOW  •  $guideNow"+(if(guideNext!=null)"\nNEXT •  $guideNext" else "") else (if(channels[index].group.isBlank())"GREEK TV" else channels[index].group.uppercase())+"   •   LIVE NOW"
    previewStatus.visibility=View.GONE
    previewPlayer?.release()
    previewPlayer=ExoPlayer.Builder(this).build().also{p->
@@ -521,7 +508,7 @@ class MainActivity:Activity(){
   content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.60f))
   root.addView(content,LinearLayout.LayoutParams(-1,0,1f))
   setContentView(root)
-  if(isPappas)loadEpg()
+  loadEpg()
   list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
  }
  private fun play(i:Int){previewPlayer?.release();previewPlayer=null;window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;current=i;prefs.edit().putString("last_channel",channels[i].url).apply();recordRecent(channels[i]);player?.release();player=ExoPlayer.Builder(this).build();player!!.addListener(object:Player.Listener{override fun onPlayerError(error:PlaybackException){runOnUiThread{Toast.makeText(this@MainActivity,"Το κανάλι δεν είναι διαθέσιμο. Δοκιμάστε άλλο.",Toast.LENGTH_LONG).show();showList()}}});val frame=FrameLayout(this);val v=PlayerView(this).apply{player=this@MainActivity.player;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);keepScreenOn=true;controllerShowTimeoutMs=3000;setBackgroundColor(Color.BLACK)};frame.addView(v,FrameLayout.LayoutParams(-1,-1));overlay=TextView(this).apply{text="● LIVE   "+channels[i].name;textSize=22f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(235,7,24,41),Color.argb(215,12,50,82))).apply{cornerRadius=14f;setStroke(1,Color.argb(95,180,215,245))};setPadding(26,14,30,14);elevation=10f};frame.addView(overlay,FrameLayout.LayoutParams(-2,-2,Gravity.START or Gravity.BOTTOM).apply{setMargins(42,0,0,42)});setContentView(frame);overlay?.postDelayed({overlay?.visibility=View.GONE},2600);player!!.setMediaItem(MediaItem.fromUri(channels[i].url));player!!.prepare();player!!.play()}

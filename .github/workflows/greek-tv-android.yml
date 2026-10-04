@@ -1,5 +1,9 @@
 name: Build Greek TV APK
 on:
+  pull_request:
+    paths:
+      - 'tv-app/**'
+      - '.github/workflows/greek-tv-android.yml'
   push:
     paths:
       - 'tv-app/**'

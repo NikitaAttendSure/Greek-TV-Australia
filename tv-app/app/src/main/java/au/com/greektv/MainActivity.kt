@@ -32,6 +32,7 @@ class MainActivity:Activity(){
  private var player:ExoPlayer?=null;private var previewPlayer:ExoPlayer?=null;private var channels=listOf<Channel>();private var current=0;private var overlay:TextView?=null;private var currentSection="LIVE TV"
  private var remoteConfig=JSONObject()
  private var remoteRefreshDone=false
+ private var launchUpdateChecked=false
  private var epgLoading=false
  private val epgNow=mutableMapOf<String,String>()
  private val epgNext=mutableMapOf<String,String>()
@@ -58,8 +59,24 @@ class MainActivity:Activity(){
    val old=remoteConfig.toString()
    remoteConfig=obj
    prefs.edit().putString(if(isPappas)"papas_config" else "reskakis_config",raw).apply()
-   if(old!=obj.toString())runOnUiThread{if(player==null&&previewPlayer==null)showHome()}
+   runOnUiThread{
+    if(old!=obj.toString()&&player==null&&previewPlayer==null)showHome()
+    maybePromptLaunchUpdate()
+   }
   }catch(_:Exception){}}.start()
+ }
+ private fun maybePromptLaunchUpdate(){
+  if(launchUpdateChecked)return
+  val latest=remoteConfig.optInt("latestVersionCode",currentVersionCode())
+  if(latest<=currentVersionCode())return
+  launchUpdateChecked=true
+  val latestName=remoteConfig.optString("latestVersionName","new version")
+  AlertDialog.Builder(this)
+   .setTitle("Update available")
+   .setMessage("$brandName $latestName is available. Update now?")
+   .setPositiveButton("Update now"){_,_->openUri(cfgString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}
+   .setNegativeButton("Later",null)
+   .show()
  }
  private fun currentVersionCode():Int=try{
   val p=packageManager.getPackageInfo(packageName,0)

@@ -199,3 +199,19 @@ http://web.onair-radio.eu:1935/explorecy/explorecy/playlist.m3u8
 https://streams.prd.commavservices.eu/live/ebs/index.m3u8
 #EXTINF:-1 group-title="10 Greek Language Extra",EBS+ Europe by Satellite
 https://streams.prd.commavservices.eu/live/ebsplus/index.m3u8
+#EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="AdaTV.cy@SD",Ada TV
+https://yayin1.canlitv.fun/live/kibrisadatv.stream/playlist.m3u8
+#EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="MiddleEastTV.cy@SD",Middle East TV (1080p)
+https://content.uplynk.com/channel/9d35b73c264946d5945db6cdff26336e.m3u8
+#EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="RIK1.cy@SD",RIK 1
+http://213.7.216.229:8888/udp/239.23.0.1:1234
+#EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="RIK2.cy@SD",RIK 2
+http://213.7.216.229:8888/udp/239.23.0.2:1234
+#EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="RIKHD.cy@SD",RIK HD
+http://213.7.216.229:8888/udp/239.23.0.5:1234
+#EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="Sat7Arabic.cy@SD",Sat 7 Arabic (240p)
+https://svs.itworkscdn.net/sat7arabiclive/sat7arabic.smil/playlist_dvr.m3u8
+#EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="Sat7Kids.cy@SD",Sat 7 Kids (1080p)
+https://svs.itworkscdn.net/sat7kidslive/sat7kids.smil/playlist_dvr.m3u8
+#EXTINF:-1 group-title="04 Cyprus Greek" tvg-id="Sat7Turk.cy@SD",Sat 7 Türk (720p)
+https://svs.itworkscdn.net/sat7turklive/sat7turk.smil/playlist_dvr.m3u8

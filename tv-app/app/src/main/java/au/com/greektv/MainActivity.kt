@@ -29,12 +29,13 @@ class MainActivity:Activity(){
   player?.release();player=null
   val root=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setBackgroundColor(bg)}
   val nav=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(20,28,16,24);background=panel(Color.rgb(5,18,31))}
-  nav.addView(TextView(this).apply{text="🇬🇷  RESKAKIS TV";textSize=23f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(10,0,0,18)})
+  nav.addView(TextView(this).apply{text="🇬🇷  RESKAKIS TV";textSize=23f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);letterSpacing=.035f;setPadding(10,0,0,4)})
+  nav.addView(TextView(this).apply{text="CHIOS  •  GREECE";textSize=11f;setTextColor(accent);letterSpacing=.12f;setPadding(12,0,0,14)})
   listOf<Pair<String,()->Unit>>(
-   "⌂   Αρχική" to {showHome()},"▣   Live TV" to {loadChannels()},"♥   Αγαπημένα" to {loadChannels(favouritesOnly=true)},
-   "◷   Συνέχεια" to {loadLastChannel()},"▶   Ταινίες" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},
-   "♜   Χίος" to {loadChannels("ΧΙΟΣ")},"◎   Κόσμος" to {loadChannels("ΔΙΕΘΝΗ")},"☷   Κατηγορίες" to {loadChannels()},
-   "⌕   Αναζήτηση" to {loadChannels()},"⚙   Ρυθμίσεις" to {showMessage("Ρυθμίσεις","RESKAKIS TV • Family Edition")}
+   "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♥   Favourites" to {loadChannels(favouritesOnly=true)},
+   "◷   Continue" to {loadLastChannel()},"▶   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},
+   "♜   Chios" to {loadChannels("ΧΙΟΣ")},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},"☷   Categories" to {loadChannels()},
+   "⌕   Search" to {loadChannels()},"⚙   Settings" to {showMessage("Ρυθμίσεις","RESKAKIS TV • Family Edition")}
   ).forEach{nav.addView(button(it.first,it.second))}
   root.addView(nav,LinearLayout.LayoutParams(250,-1))
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(36,28,40,26)}
@@ -64,11 +65,11 @@ class MainActivity:Activity(){
   }
   section("Popular Greek Channels",listOf("ERT 1  HD" to {loadChannels("ERT")},"ERT 2  HD" to {loadChannels("ERT")},"ANT1  HD" to {loadChannels()},"ALPHA  HD" to {loadChannels()},"SKAI  HD" to {loadChannels()},"OPEN  HD" to {loadChannels()},"MEGA  HD" to {loadChannels()}))
   section("Continue Watching",listOf("▶  Τελευταίο κανάλι" to {loadLastChannel()},"★  Αγαπημένα" to {loadChannels(favouritesOnly=true)},"Μ  Μπρούσκο" to {openBrousko()}))
-  section("Browse by Category",listOf("▣  Greek TV" to {loadChannels()},"●  Movies" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"▦  Series" to {showMessage("ΣΕΙΡΕΣ","Περισσότερες ελληνικές σειρές σύντομα")},"◆  Kids" to {loadChannels("ΠΑΙΔΙΚΑ")},"♜  Chios" to {loadChannels("ΧΙΟΣ")},"◎  World TV" to {loadChannels("ΔΙΕΘΝΗ")}))
+  section("Browse by Category",listOf("🇬🇷  Greek TV" to {loadChannels()},"🎬  Movies" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"▦  Series" to {showMessage("ΣΕΙΡΕΣ","Περισσότερες ελληνικές σειρές σύντομα")},"★  Kids" to {loadChannels("ΠΑΙΔΙΚΑ")},"⚓  Chios" to {loadChannels("ΧΙΟΣ")},"◎  World TV" to {loadChannels("ΔΙΕΘΝΗ")}))
   main.addView(TextView(this).apply{text="FROM CHIOS TO THE WORLD";textSize=13f;setTextColor(muted);letterSpacing=.12f;setPadding(0,9,0,0)})
   section("Chios Highlights",listOf("Χίος Live" to {loadChannels("ΧΙΟΣ")},"Χιώτικα κανάλια" to {loadChannels("ΧΙΟΣ")},"Τοπική TV" to {loadChannels("ΧΙΟΣ")}))
   root.addView(main,LinearLayout.LayoutParams(0,-1,1f));setContentView(root)
-  nav.post{if(nav.childCount>1)nav.getChildAt(1).requestFocus()}
+  nav.post{if(nav.childCount>2)nav.getChildAt(2).requestFocus()}
  }
  private fun loadLastChannel(){val u=prefs.getString("last_channel",null);if(u==null){loadChannels();return};Thread{try{val all=parsePlaylist(fetchPlaylist());runOnUiThread{channels=all;val i=all.indexOfFirst{it.url==u};if(i>=0)play(i)else showList()}}catch(e:Exception){runOnUiThread{loadChannels()}}}.start()}
  private fun fetchPlaylist():String{val u=URL("https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/greek-tv.m3u");val c=u.openConnection().apply{connectTimeout=8000;readTimeout=12000};return c.getInputStream().bufferedReader().use{it.readText()}.also{prefs.edit().putString("playlist_cache",it).apply()}}

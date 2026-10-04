@@ -209,5 +209,5 @@ http://213.7.216.229:8888/udp/239.23.0.2:1234
 http://213.7.216.229:8888/udp/239.23.0.5:1234
 #EXTINF:-1 group-title="00 🇬🇷 ΡΟΔΟΣ",TV KOSMOS — ΡΟΔΟΣ
 https://raw.githubusercontent.com/jimgate07/grtv/master/streams/tvkosmosgr.m3u8
-#EXTINF:-1 group-title="00 🇬🇷 ΚΑΛΥΜΝΟΣ",AIGAIO TV — ΚΑΛΥΜΝΟΣ (CHUNKLIST TEST)
+#EXTINF:-1 group-title="00 🇬🇷 ΚΑΛΥΜΝΟΣ",AIGAIO TV — ΚΑΛΥΜΝΟΣ
 https://fr.crystalweb.net:1936/aigaiotv/aigaiotv/chunklist_.m3u8

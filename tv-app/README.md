@@ -18,3 +18,5 @@ Protected VOD is not extracted or republished; provider-controlled content opens
 
 ## Release boundary
 The remaining validation is physical-device testing on the target Sony Google TV: install APK, launch from TV home, D-pad/focus check, HLS/HTTP playback, channel switching, favourites, resume and external provider hand-off.
+
+Gradle 8.11.1 build verification.

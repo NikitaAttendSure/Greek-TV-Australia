@@ -33,115 +33,135 @@ class MainActivity:Activity(){
   window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 
   val root=FrameLayout(this).apply{setBackgroundColor(bg)}
-
-  val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.72f;setBackgroundColor(Color.rgb(3,10,18))}
+  val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.82f;setBackgroundColor(Color.rgb(2,8,15))}
   root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
-  Thread{
-   try{
-    val bmp=URL("https://commons.wikimedia.org/wiki/Special:Redirect/file/Chios_-_Port_of_Chios_(3).jpg").openStream().use{BitmapFactory.decodeStream(it)}
-    runOnUiThread{backdrop.setImageBitmap(bmp)}
-   }catch(_:Exception){}
-  }.start()
-  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(235,1,8,15),Color.argb(120,2,11,20),Color.argb(175,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
+  Thread{try{
+   val bmp=URL("https://commons.wikimedia.org/wiki/Special:Redirect/file/Chios_-_Port_of_Chios_(3).jpg").openStream().use{BitmapFactory.decodeStream(it)}
+   runOnUiThread{backdrop.setImageBitmap(bmp)}
+  }catch(_:Exception){}}.start()
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(70,1,6,12),Color.argb(120,1,8,15),Color.argb(218,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
 
-  val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(10,12,14,10)}
-  val nav=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(12,12,10,10);background=GradientDrawable().apply{setColor(Color.argb(220,2,13,24));cornerRadius=14f;setStroke(1,Color.argb(55,150,190,220))}}
-  nav.addView(TextView(this).apply{text="🇬🇷";textSize=28f;gravity=Gravity.CENTER_HORIZONTAL;setPadding(0,0,0,2)})
-  nav.addView(TextView(this).apply{text="RESKAKIS TV";textSize=18f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER_HORIZONTAL;setSingleLine(true)})
-  nav.addView(TextView(this).apply{text="GREEK TELEVISION · CHIOS";textSize=8f;setTextColor(muted);gravity=Gravity.CENTER_HORIZONTAL;letterSpacing=.05f;setPadding(0,2,0,12)})
+  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(14,12,16,12)}
+
+  // Full-width premium masthead, matching the locked reference.
+  val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  val identity=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  identity.addView(TextView(this).apply{
+   text="🇬🇷";textSize=42f;gravity=Gravity.CENTER;background=GradientDrawable().apply{setColor(Color.argb(220,10,85,175));cornerRadius=8f}
+  },LinearLayout.LayoutParams(88,72).apply{setMargins(0,0,14,0)})
+  val wordmark=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  wordmark.addView(TextView(this).apply{
+   text="RESKAKIS TV";textSize=42f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.018f;setSingleLine(true)
+  })
+  wordmark.addView(TextView(this).apply{
+   text="G R E E K   T E L E V I S I O N   ·   C H I O S   ·   A N D   M O R E";textSize=10f;setTextColor(Color.rgb(230,236,244));letterSpacing=.045f;setSingleLine(true)
+  })
+  identity.addView(wordmark)
+  top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
+  top.addView(TextView(this).apply{
+   text="From Chios\nto the World";textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(12,0,34,0)
+  })
+  top.addView(TextView(this).apply{
+   text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
+  })
+  page.addView(top,LinearLayout.LayoutParams(-1,120))
+
+  val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+
+  // Glass left rail.
+  val nav=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;setPadding(10,12,10,10)
+   background=GradientDrawable().apply{setColor(Color.argb(222,1,13,25));cornerRadius=12f;setStroke(1,Color.argb(60,150,195,230))}
+  }
   val navItems=listOf<Pair<String,()->Unit>>(
-   "⌂  Home" to {showHome()},"▣  Live TV" to {loadChannels()},"♥  Favourites" to {loadChannels(favouritesOnly=true)},"◷  Continue" to {loadLastChannel()},
-   "▤  On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"♜  Chios" to {loadChannels("ΧΙΟΣ")},"◎  World TV" to {loadChannels("ΔΙΕΘΝΗ")},
-   "☷  Categories" to {loadChannels()},"⌕  Search" to {loadChannels()},"⚙  Settings" to {showMessage("Settings","RESKAKIS TV • Family Edition")}
+   "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♥   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
+   "▤   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"♜   Chios" to {loadChannels("ΧΙΟΣ")},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},
+   "☷   Categories" to {loadChannels()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showMessage("Settings","RESKAKIS TV • Family Edition")}
   )
   navItems.forEachIndexed{i,it->
    nav.addView(button(it.first,it.second).apply{
-    textSize=15f;setPadding(16,0,8,0);layoutParams=LinearLayout.LayoutParams(-1,52).apply{setMargins(0,2,0,2)}
-    if(i==0)background=panel(focus,12f)
+    textSize=15f;setPadding(18,0,8,0);layoutParams=LinearLayout.LayoutParams(-1,58).apply{setMargins(0,3,0,3)}
+    background=if(i==0)panel(Color.rgb(17,137,235),12f) else panel(Color.argb(120,6,26,44),12f)
    })
   }
-  body.addView(nav,LinearLayout.LayoutParams(235,-1))
+  body.addView(nav,LinearLayout.LayoutParams(220,-1).apply{setMargins(0,8,18,0)})
 
-  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(28,0,0,0)}
+  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,0)}
+  fun sectionTitle(t:String){
+   main.addView(TextView(this).apply{text=t;textSize=23f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,8,0,6)})
+  }
 
-  val mast=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
-  val brand=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-  brand.addView(TextView(this).apply{text="RESKAKIS TV";textSize=38f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);letterSpacing=.02f;setSingleLine(true)})
-  brand.addView(TextView(this).apply{text="GREEK TELEVISION  ·  CHIOS  ·  AND MORE";textSize=10f;setTextColor(Color.WHITE);letterSpacing=.06f})
-  mast.addView(brand,LinearLayout.LayoutParams(0,-2,1f))
-  mast.addView(TextView(this).apply{text="From Chios\nto the World";textSize=24f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(10,0,24,0)})
-  mast.addView(TextView(this).apply{text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=13f;setTextColor(Color.WHITE);gravity=Gravity.END;setSingleLine(true)})
-  main.addView(mast,LinearLayout.LayoutParams(-1,112))
-
-  fun title(t:String){main.addView(TextView(this).apply{text=t;textSize=21f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,4,0,5)})}
-
-  title("Popular Greek Channels")
+  sectionTitle("Popular Greek Channels")
   val channelRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val channelData=listOf(
-   Triple("ERT 1 HD",Color.rgb(12,48,190),{loadChannels("ERT")}),
-   Triple("ERT 2 HD",Color.rgb(232,235,238),{loadChannels("ERT")}),
-   Triple("ANT1 HD",Color.rgb(20,57,104),{loadChannels()}),
-   Triple("ALPHA HD",Color.rgb(225,30,48),{loadChannels()}),
-   Triple("SKAI HD",Color.rgb(24,96,222),{loadChannels()}),
-   Triple("OPEN HD",Color.rgb(8,18,32),{loadChannels()}),
-   Triple("MEGA HD",Color.rgb(235,236,239),{loadChannels()})
+   arrayOf("ΕΡΤ 1","ERT 1 HD",Color.rgb(18,53,205).toString()),
+   arrayOf("ERT 2","ERT 2 HD",Color.rgb(235,238,241).toString()),
+   arrayOf("ANT1","ANT1 HD",Color.rgb(15,53,98).toString()),
+   arrayOf("A","ALPHA HD",Color.rgb(226,30,48).toString()),
+   arrayOf("ΣΚΑΪ","SKAI HD",Color.rgb(20,96,229).toString()),
+   arrayOf("OPEN","OPEN HD",Color.rgb(7,18,33).toString()),
+   arrayOf("MEGA","MEGA HD",Color.rgb(237,239,242).toString())
   )
-  channelData.forEachIndexed{i,d->
-   val top=when(i){0->"ΕΡΤ 1";1->"ERT 2";2->"ANT1";3->"A";4->"ΣΚΑΪ";5->"OPEN";else->"MEGA"}
-   val tile=tvCard(top,d.first,d.second,d.third).apply{
-    getChildAt(0).let{(it as TextView).textSize=24f;(it as TextView).gravity=Gravity.CENTER_HORIZONTAL}
-    getChildAt(1).let{(it as TextView).gravity=Gravity.CENTER_HORIZONTAL}
+  channelData.forEachIndexed{i,a->
+   val action={ if(i<2)loadChannels("ERT") else loadChannels() }
+   val tile=tvCard(a[0],a[1],a[2].toInt(),action).apply{
+    gravity=Gravity.CENTER
+    (getChildAt(0) as TextView).apply{textSize=26f;gravity=Gravity.CENTER;setTextColor(if(i==1||i==6)Color.rgb(25,44,115) else Color.WHITE)}
+    (getChildAt(1) as TextView).apply{gravity=Gravity.CENTER;setTextColor(if(i==1||i==6)Color.rgb(40,55,80) else Color.rgb(230,237,245))}
    }
-   channelRow.addView(tile,LinearLayout.LayoutParams(0,118,1f).apply{setMargins(0,0,10,0)})
+   channelRow.addView(tile,LinearLayout.LayoutParams(0,140,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(channelRow)
 
-  title("Continue Watching")
+  sectionTitle("Continue Watching")
   val cont=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val contCards=listOf(
-   arrayOf("ERT 1 HD","News","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80"),
-   arrayOf("Sasmos","Drama Series","https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80"),
-   arrayOf("Akis' Food Tour","Cooking","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80"),
-   arrayOf("Chios","Documentary","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80")
+   arrayOf("ERT 1 HD","News","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf("Sasmos","Drama Series","https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf("Akis' Food Tour","Cooking","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf("Chios","Documentary","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85")
   )
   contCards.forEachIndexed{i,a->
    val action=when(i){0->{ {loadLastChannel()} };1->{ {showMessage("Sasmos","More Greek series coming soon")} };2->{ {showMessage("Food","More Greek cooking content coming soon")} };else->{ {loadChannels("ΧΙΟΣ")} }}
-   cont.addView(imageCard(a[0],a[1],a[2],action),LinearLayout.LayoutParams(0,128,1f).apply{setMargins(0,0,10,0)})
+   cont.addView(imageCard(a[0],a[1],a[2],action),LinearLayout.LayoutParams(0,168,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cont)
 
-  title("Browse by Category")
-  val cat=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-  val cats=listOf(
-   arrayOf("▣  Greek TV","All Greek Channels",Color.rgb(19,115,198).toString()),
-   arrayOf("●  Movies","Greek & International",Color.rgb(153,26,82).toString()),
-   arrayOf("☻  Series","Greek Series",Color.rgb(7,115,66).toString()),
-   arrayOf("★  Kids","For the Little Ones",Color.rgb(225,122,5).toString()),
-   arrayOf("♜  Chios","Local Content",Color.rgb(5,129,149).toString()),
-   arrayOf("◎  World TV","International Channels",Color.rgb(96,20,160).toString())
+  sectionTitle("Browse by Category")
+  val cats=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val categoryData=listOf(
+   arrayOf("▣  Greek TV","All Greek Channels",Color.rgb(18,124,210).toString()),
+   arrayOf("●  Movies","Greek & International",Color.rgb(155,26,83).toString()),
+   arrayOf("☻  Series","Greek Series",Color.rgb(4,116,68).toString()),
+   arrayOf("★  Kids","For the Little Ones",Color.rgb(225,124,5).toString()),
+   arrayOf("♜  Chios","Local Content",Color.rgb(6,132,153).toString()),
+   arrayOf("◎  World TV","International Channels",Color.rgb(95,19,160).toString())
   )
-  cats.forEachIndexed{i,a->
+  categoryData.forEachIndexed{i,a->
    val action=when(i){0->{ {loadChannels()} };1->{ {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")} };2->{ {showMessage("Series","More Greek series coming soon")} };3->{ {loadChannels("ΠΑΙΔΙΚΑ")} };4->{ {loadChannels("ΧΙΟΣ")} };else->{ {loadChannels("ΔΙΕΘΝΗ")} }}
-   cat.addView(tvCard(a[0],a[1],a[2].toInt(),action),LinearLayout.LayoutParams(0,78,1f).apply{setMargins(0,0,10,0)})
+   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL},LinearLayout.LayoutParams(0,92,1f).apply{setMargins(0,0,12,0)})
   }
-  main.addView(cat)
+  main.addView(cats)
 
-  title("Chios Highlights")
+  sectionTitle("Chios Highlights")
   val chios=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val chiosCards=listOf(
-   arrayOf("Chios Live","Local Content","https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80"),
-   arrayOf("Chios Villages","Explore","https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=900&q=80"),
-   arrayOf("Chios Beaches","Island Life","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"),
-   arrayOf("Chios Documentary","History","https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?auto=format&fit=crop&w=900&q=80"),
-   arrayOf("Chios Mastiha","Tradition","https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80")
+   arrayOf("Chios Live","Local Content","https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf("Chios Villages","Explore","https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf("Chios Beaches","Island Life","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf("Chios Documentary","History","https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?auto=format&fit=crop&w=1200&q=85"),
+   arrayOf("Chios Mastiha","Tradition","https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85")
   )
-  chiosCards.forEach{a->chios.addView(imageCard(a[0],a[1],a[2]){loadChannels("ΧΙΟΣ")},LinearLayout.LayoutParams(0,112,1f).apply{setMargins(0,0,10,0)})}
+  chiosCards.forEach{a->
+   chios.addView(imageCard(a[0],a[1],a[2]){loadChannels("ΧΙΟΣ")},LinearLayout.LayoutParams(0,140,1f).apply{setMargins(0,0,12,0)})
+  }
   main.addView(chios)
 
   body.addView(main,LinearLayout.LayoutParams(0,-1,1f))
-  root.addView(body)
+  page.addView(body,LinearLayout.LayoutParams(-1,0,1f))
+  root.addView(page)
   setContentView(root)
-  nav.post{if(nav.childCount>3)nav.getChildAt(3).requestFocus()}
+  nav.post{if(nav.childCount>0)nav.getChildAt(0).requestFocus()}
  }
  private fun tvCard(title:String,subtitle:String="",base:Int=card,action:()->Unit):LinearLayout{
   return LinearLayout(this).apply{

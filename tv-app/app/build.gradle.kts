@@ -24,7 +24,7 @@ android {
             applicationId = "au.com.pappastv"
             versionCode = 1
             versionName = "1.0.0"
-            resValue("string", "app_name", "PAPPAS TV")
+            resValue("string", "app_name", "PAPAS TV")
         }
     }
     compileOptions {

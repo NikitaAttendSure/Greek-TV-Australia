@@ -41,7 +41,7 @@ https://acheloostv.streamings.gr/live/stream/index.m3u8
 http://actionlive.siliconweb.com/actionabr/actiontv/playlist.m3u8
 #EXTINF:-1 tvg-id="AeolosTV.gr@SD" group-title="03 Greek Regional",Aeolos TV (1080p)
 https://cdn.istoikona.com/aeolostv/live/playlist.m3u8
-#EXTINF:-1 tvg-id="AigaioTV.gr@SD" group-title="03 Greek Regional",Aigaio TV (720p)
+#EXTINF:-1 tvg-id="AigaioTV.gr@SD" group-title="00 🇬🇷 ΡΟΔΟΣ",Aigaio TV (720p)
 https://fr.crystalweb.net:1936/aigaiotv/aigaiotv/playlist.m3u8
 #EXTINF:-1 tvg-id="AlertTV.gr@SD" group-title="01 Greek National",Alert (576p)
 https://itv.streams.ovh/ALEERT/ALEERT/playlist.m3u8

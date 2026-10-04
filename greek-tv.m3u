@@ -223,3 +223,7 @@ https://channel9.gr/live/playlist.m3u8
 https://eu1.vectromdigital.com:1936/ort/ort/playlist.m3u8
 #EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",ITV ΙΩΑΝΝΙΝΑ — TEST
 https://channel.streams.ovh:1936/ioanninatv/ioanninatv/playlist.m3u8
+#EXTINF:-1 group-title="07 🧸 ΠΑΙΔΙΚΑ",KEEDOO — TEST
+http://185.102.171.218/Nickelodeon/index.m3u8
+#EXTINF:-1 group-title="07 🧸 ΠΑΙΔΙΚΑ",SMILE TV — TEST
+https://s1.cystream.net/live/smile/playlist.m3u8

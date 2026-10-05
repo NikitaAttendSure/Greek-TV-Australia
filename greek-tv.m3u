@@ -17,8 +17,6 @@ http://livestar.siliconweb.com/starvod/star4/star4.m3u8
 https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8
 #EXTINF:-1 tvg-id="ERTNews.gr@HD" group-title="02 📺 ERT",ERT News HD
 https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTNews/default/index.m3u8
-#EXTINF:-1 tvg-id="ERT3.gr@SD" group-title="02 📺 ERT",ERT3
-http://88.99.254.101/ert3/mono.m3u8
 #EXTINF:-1 tvg-id="HellenicParliamentTV.gr@SD" group-title="02 📺 ERT",Hellenic Parliament TV
 https://ert-ucdn.broadpeak-aas.com/bpk-tv/VOULITV/default/index.m3u8
 #EXTINF:-1 tvg-id="ExtraProNews.gr@SD" group-title="03 📰 ΕΙΔΗΣΕΙΣ",Extra ProNews
@@ -35,8 +33,6 @@ https://zouglacam-mdc-secure.akamaized.net/zouglalive/backup/playlist.m3u8
 https://raw.githubusercontent.com/jimgate07/grtv/master/streams/tvkosmosgr.m3u8
 #EXTINF:-1 group-title="05 🇬🇷 ΚΑΛΥΜΝΟΣ",AIGAIO TV — ΚΑΛΥΜΝΟΣ
 https://fr.crystalweb.net:1936/aigaiotv/aigaiotv/chunklist_.m3u8
-#EXTINF:-1 group-title="06 🇬🇷 ΧΙΟΣ",ΑΛΗΘΕΙΑ TV — ΧΙΟΣ
-https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/streams/alithiatv.m3u8
 #EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",BARAZA Coffee Bar Music
 https://raw.githubusercontent.com/jimgate07/grtv/refs/heads/master/Metadoseis/BarazaCoffeMusic.m3u8
 #EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",BARAZA Greek Hits
@@ -93,14 +89,10 @@ https://sl2.sigmatv.com/hls/live.m3u8
 http://eu2.tv4e.gr:554/live/smil:myStream.sdp.smil/playlist.m3u8
 #EXTINF:-1 tvg-id="AcheloosTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Acheloos TV
 https://acheloostv.streamings.gr/live/stream/index.m3u8
-#EXTINF:-1 tvg-id="ART.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",ART
-https://hugh.cdn.rumble.cloud/live/k5e12sb4/slot-82/fdd0-tbln/chunklist_DVR.m3u8
 #EXTINF:-1 tvg-id="AstraTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Astra TV
 https://server.gointernet.gr/live/livestream.m3u8
 #EXTINF:-1 tvg-id="BestTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Best TV
 http://push-int.siliconweb.com/bestTV/stream/playlist.m3u8
-#EXTINF:-1 tvg-id="BlueSkyTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Blue Sky TV
-https://cdn1.smart-tv-data.com/bluesky/bluesky-live/playlist.m3u8
 #EXTINF:-1 tvg-id="Channel8.gr@HD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Channel 8
 https://gra1.crystalweb.net:1936/channel8/channel8/playlist.m3u8
 #EXTINF:-1 tvg-id="CorfuChannel.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Corfu Channel
@@ -111,12 +103,8 @@ http://live.streams.ovh:1935/tvcreta/tvcreta/playlist.m3u8
 http://81.171.10.42:554/liveD/DStream.sdp/playlist.m3u8
 #EXTINF:-1 tvg-id="EgnatiaTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Egnatia TV
 https://video.streams.ovh:1936/egnatiatv/egnatiatv/index.m3u8
-#EXTINF:-1 tvg-id="ENAChannel.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",ENA Channel
-https://storemusic.top:8222/enachannel/enachannel/enachannel/playlist.m3u8
 #EXTINF:-1 tvg-id="EpilogesTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Epiloges TV
 https://gra1.crystalweb.net:1936/epilogestv/epilogestv/playlist.m3u8
-#EXTINF:-1 tvg-id="EpirusTV1.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Epirus TV1
-https://til.pp.ua:3928/live/epiruslive.m3u8
 #EXTINF:-1 tvg-id="EuroTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Euro TV
 https://lbgo.bozztv.com/ssh101/ssh101/eurotvlive/playlist.m3u8
 #EXTINF:-1 tvg-id="GnomiTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Gnomi TV
@@ -129,10 +117,6 @@ http://stream.ioniantv.gr:8081/ionian/live/playlist.m3u8
 https://eu1.streams.gr:8081/kostv/index.m3u8
 #EXTINF:-1 tvg-id="KritiTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Kriti TV
 https://cretetvlive.siliconweb.com/cretetv/liveabr/playlist.m3u8
-#EXTINF:-1 tvg-id="LepantoTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Lepanto TV
-https://raw.githubusercontent.com/azgaresncf/strm2hls/main/streams/LePanto.m3u8
-#EXTINF:-1 tvg-id="MesogeiosTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Mesogeios TV
-https://til.pp.ua:3872/live/mesogeiostvlive.m3u8
 #EXTINF:-1 tvg-id="MessatidaTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Messatida TV
 https://rtmp.streams.ovh:8081/mtv/index.m3u8
 #EXTINF:-1 tvg-id="NeaTV.gr@SD" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Nea TV
@@ -179,16 +163,10 @@ https://l3.cloudskep.com/cybcsat/abr/playlist.m3u8
 https://livestar.siliconweb.com/starvod/star_int/star_int.m3u8
 #EXTINF:-1 group-title="03 📰 ΕΙΔΗΣΕΙΣ",ONE CHANNEL — TEST
 https://onechannel.siliconweb.com/one/stream/chunks_dvr.m3u8
-#EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",ITV ΙΩΑΝΝΙΝΑ — TEST
-https://raw.githubusercontent.com/iptvnikolas/Nikki-TVM3U8/main/ioanninatv.m3u8
 #EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",BARAZA LAIKA — ΜΠΟΥΖΟΥΚΙΑ — TEST
 https://eco.streams.ovh:8081/barazatv/tracks-v1a1/mono.m3u8
 #EXTINF:-1 tvg-id="PemptousiaTV.gr" group-title="11 ⛪ ΟΡΘΟΔΟΞΙΑ",PEMPTOUSIA TV
 https://svs.itworkscdn.net/pemptousialive/pemptousia.smil/playlist.m3u8
-#EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",CANNALI MUSIC HD — TEST
-http://live.streams.ovh:1935/cannali/cannali/playlist.m3u8
-#EXTINF:-1 group-title="08 🎵 ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ",NG TV — TEST
-http://live.streams.ovh:1935/NGradio/NGradio/playlist.m3u8
 #EXTINF:-1 tvg-id="OpenTV.gr" group-title="01 🇬🇷 ΕΛΛΑΔΑ",OPEN TV — TEST
 https://liveopen.siliconweb.com/openTvLive/liveopen/playlist.m3u8
 #EXTINF:-1 tvg-id="MegaChannel.gr" group-title="03 📰 ΕΙΔΗΣΕΙΣ",MEGA NEWS — TEST
@@ -199,8 +177,6 @@ https://live20.bozztv.com/giatv/giatv-hlektratv/hlektratv/playlist.m3u8
 https://thor.mental-media.gr:19360/imp/imp.m3u8
 #EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",EPSILON TV — TEST
 https://neon.streams.gr:8081/epsilontv/index.m3u8
-#EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",THESSALIA TV — TEST
-https://raw.githubusercontent.com/azgaresncf/strm2hls/main/streams/thessaliatv.m3u8
 #EXTINF:-1 group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",KRITI 1 — TEST
 https://livetv.streams.ovh:8081/kriti/index.m3u8
 #EXTINF:-1 group-title="07 🎬 ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ",SIERRA CHANNEL — TEST

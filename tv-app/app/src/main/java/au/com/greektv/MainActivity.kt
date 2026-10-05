@@ -290,9 +290,9 @@ class MainActivity:Activity(){
  }
  private fun timeAt(zone:String):String=SimpleDateFormat("hh:mm a",Locale.US).apply{timeZone=TimeZone.getTimeZone(zone)}.format(Date())
  private fun updateHomeHeader(){
-  athensInfoView?.text="🇬🇷  ATHENS\n${timeAt("Europe/Athens")}  •  $athensTemp°C  •  $athensCondition"
-  sydneyInfoView?.text="🇦🇺  SYDNEY\n${timeAt("Australia/Sydney")}  •  $sydneyTemp°C  •  $sydneyCondition"
-  dateInfoView?.text=SimpleDateFormat("EEE d MMM",Locale.getDefault()).format(Date()).uppercase()
+  athensInfoView?.text="🇬🇷 ATHENS\n${timeAt("Europe/Athens")}  •  ${athensTemp}°C"
+  sydneyInfoView?.text="🇦🇺 SYDNEY\n${timeAt("Australia/Sydney")}  •  ${sydneyTemp}°C"
+  dateInfoView?.text=SimpleDateFormat("d MMM",Locale.getDefault()).format(Date()).uppercase()
  }
  private val headerTick=object:Runnable{override fun run(){if(screenMode=="HOME"){updateHomeHeader();headerHandler.postDelayed(this,30000)}}}
  private fun refreshHomeWeather(){
@@ -548,16 +548,16 @@ class MainActivity:Activity(){
    },LinearLayout.LayoutParams(58,58).apply{setMargins(0,0,12,0)})
    val bt=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
    bt.addView(TextView(this@MainActivity).apply{
-    text="GREEK ONE";textSize=29f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.02f;setSingleLine(true)
+    text="GREEK ONE";textSize=24f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.02f;setSingleLine(true)
    })
    bt.addView(TextView(this@MainActivity).apply{
     text="GREEK TELEVISION";textSize=8.5f;letterSpacing=.18f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(145,195,229));setSingleLine(true)
    })
-   brand.addView(bt,LinearLayout.LayoutParams(250,-2))
-   top.addView(brand,LinearLayout.LayoutParams(0,-2,1f))
+   brand.addView(bt,LinearLayout.LayoutParams(190,-2))
+   top.addView(brand,LinearLayout.LayoutParams(0,-2,1.25f))
    fun infoChip():TextView=TextView(this).apply{
-    textSize=10.8f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
-    setPadding(12,7,12,7)
+    textSize=10.2f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
+    setPadding(8,6,8,6)
     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(190,4,22,39),Color.argb(170,8,48,79))).apply{cornerRadius=15f;setStroke(1,Color.argb(80,144,203,242))}
    }
    athensInfoView=infoChip()
@@ -565,9 +565,9 @@ class MainActivity:Activity(){
     textSize=10f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(222,235,245));gravity=Gravity.CENTER;letterSpacing=.05f;setSingleLine(true)
    }
    sydneyInfoView=infoChip()
-   top.addView(athensInfoView,LinearLayout.LayoutParams(188,60).apply{setMargins(8,0,6,0)})
-   top.addView(dateInfoView,LinearLayout.LayoutParams(102,60))
-   top.addView(sydneyInfoView,LinearLayout.LayoutParams(192,60).apply{setMargins(6,0,6,0)})
+   top.addView(athensInfoView,LinearLayout.LayoutParams(178,60).apply{setMargins(6,0,4,0)})
+   top.addView(dateInfoView,LinearLayout.LayoutParams(88,60))
+   top.addView(sydneyInfoView,LinearLayout.LayoutParams(182,60).apply{setMargins(4,0,4,0)})
    val settingsChip=TextView(this).apply{
     text="⚙";textSize=20f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
     background=GradientDrawable().apply{setColor(Color.argb(165,5,24,42));cornerRadius=14f;setStroke(1,Color.argb(75,150,205,245))}
@@ -645,7 +645,7 @@ class MainActivity:Activity(){
    }
    row.addView(iconView,LinearLayout.LayoutParams(28,32).apply{setMargins(0,0,8,0)})
    val labelView=TextView(this).apply{
-    text=label;textSize=13.4f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
+    text=label;textSize=12.8f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
     setTextColor(if(selected)Color.WHITE else Color.rgb(210,226,237));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
    }
    row.addView(labelView,LinearLayout.LayoutParams(0,-1,1f))
@@ -667,7 +667,7 @@ class MainActivity:Activity(){
    }
   }
 
-  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 278,-1).apply{
+  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 312,-1).apply{
    setMargins(0,6,if(isPappas)18 else 22,0)
   })
 

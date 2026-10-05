@@ -330,91 +330,92 @@ class MainActivity:Activity(){
 
   val lowerVeil=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.TRANSPARENT,Color.argb(95,1,8,15),Color.argb(185,1,7,13)))}
   root.addView(lowerVeil,FrameLayout.LayoutParams(-1,-1).apply{topMargin=150})
-  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(26,18,34,20);clipToPadding=false}
+  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(34,20,46,24);clipToPadding=false}
 
-  // TV-safe masthead: compact brand, generous safe margins, no clipped right edge.
+  // Compact TV-safe masthead. Everything is weighted so nothing can run off-screen.
   val top=LinearLayout(this).apply{
    orientation=LinearLayout.HORIZONTAL
    gravity=Gravity.CENTER_VERTICAL
-   setPadding(4,0,4,0)
+   setPadding(0,0,0,0)
   }
   if(isPappas){
    val identity=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
    identity.addView(TextView(this).apply{
-    text="🇬🇷";textSize=38f;gravity=Gravity.CENTER
+    text="🇬🇷";textSize=34f;gravity=Gravity.CENTER
     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(12,86,190),Color.rgb(8,55,132))).apply{cornerRadius=10f;setStroke(1,Color.argb(120,255,255,255))}
-   },LinearLayout.LayoutParams(76,64).apply{setMargins(0,0,12,0)})
+   },LinearLayout.LayoutParams(64,54).apply{setMargins(0,0,10,0)})
    identity.addView(TextView(this).apply{
-    text=brandName;textSize=34f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true)
+    text=brandName;textSize=28f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true)
    })
    top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
    top.addView(TextView(this).apply{
-    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date());textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.END;setSingleLine(true)
-   })
+    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date());textSize=13f;setTextColor(Color.WHITE);gravity=Gravity.END;setSingleLine(true)
+   },LinearLayout.LayoutParams(0,-2,.55f))
   }else{
-   val brand=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
-   brand.addView(ImageView(this).apply{
-    setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE
-   },LinearLayout.LayoutParams(58,58).apply{setMargins(0,0,12,0)})
-   val bt=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+   val left=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+   left.addView(ImageView(this).apply{
+    setImageResource(R.drawable.greek_one_mark)
+    scaleType=ImageView.ScaleType.CENTER_INSIDE
+   },LinearLayout.LayoutParams(44,44).apply{setMargins(0,0,10,0)})
+   val bt=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL}
    bt.addView(TextView(this@MainActivity).apply{
-    text="GREEK ONE";textSize=29f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.02f;setSingleLine(true)
+    text="GREEK ONE";textSize=21f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.015f;setSingleLine(true)
    })
    bt.addView(TextView(this@MainActivity).apply{
-    text="GREEK TELEVISION";textSize=8.5f;letterSpacing=.18f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(145,195,229));setSingleLine(true)
+    text="GREEK TELEVISION";textSize=7f;letterSpacing=.14f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(142,190,222));setSingleLine(true)
    })
-   brand.addView(bt,LinearLayout.LayoutParams(210,-2))
-   top.addView(brand,LinearLayout.LayoutParams(0,-2,1f))
-   fun infoChip():TextView=TextView(this).apply{
-    textSize=11.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
-    setPadding(12,7,12,7)
-    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(190,4,22,39),Color.argb(170,8,48,79))).apply{cornerRadius=15f;setStroke(1,Color.argb(80,144,203,242))}
+   left.addView(bt,LinearLayout.LayoutParams(0,-2,1f))
+   top.addView(left,LinearLayout.LayoutParams(0,54,.72f))
+
+   val centre=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER}
+   fun miniInfo():TextView=TextView(this).apply{
+    textSize=9.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
+    setPadding(8,5,8,5);setSingleLine(false)
+    background=GradientDrawable().apply{setColor(Color.argb(145,4,24,42));cornerRadius=12f;setStroke(1,Color.argb(55,145,205,242))}
    }
-   athensInfoView=infoChip()
+   athensInfoView=miniInfo()
    dateInfoView=TextView(this).apply{
-    textSize=10.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(222,235,245));gravity=Gravity.CENTER;letterSpacing=.05f;setSingleLine(true)
+    textSize=9f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(218,232,243));gravity=Gravity.CENTER;setSingleLine(true)
    }
-   sydneyInfoView=infoChip()
-   top.addView(athensInfoView,LinearLayout.LayoutParams(200,64).apply{setMargins(8,0,6,0)})
-   top.addView(dateInfoView,LinearLayout.LayoutParams(108,64))
-   top.addView(sydneyInfoView,LinearLayout.LayoutParams(206,64).apply{setMargins(6,0,6,0)})
+   sydneyInfoView=miniInfo()
+   centre.addView(athensInfoView,LinearLayout.LayoutParams(0,50,1f).apply{setMargins(4,0,4,0)})
+   centre.addView(dateInfoView,LinearLayout.LayoutParams(0,50,.56f))
+   centre.addView(sydneyInfoView,LinearLayout.LayoutParams(0,50,1f).apply{setMargins(4,0,4,0)})
+   top.addView(centre,LinearLayout.LayoutParams(0,54,1.25f))
+
    val settingsChip=TextView(this).apply{
-    text="⚙";textSize=20f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
-    background=GradientDrawable().apply{setColor(Color.argb(165,5,24,42));cornerRadius=14f;setStroke(1,Color.argb(75,150,205,245))}
+    text="⚙";textSize=18f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
+    background=GradientDrawable().apply{setColor(Color.argb(145,5,24,42));cornerRadius=12f;setStroke(1,Color.argb(55,150,205,245))}
     setOnClickListener{activeHomeNav="Settings";showSettings()}
-    setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,120,210) else Color.argb(165,5,24,42));cornerRadius=14f;setStroke(if(f)2 else 1,if(f)Color.WHITE else Color.argb(75,150,205,245))}}
+    setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,120,210) else Color.argb(145,5,24,42));cornerRadius=12f;setStroke(if(f)2 else 1,if(f)Color.WHITE else Color.argb(55,150,205,245))}}
    }
-   top.addView(settingsChip,LinearLayout.LayoutParams(50,50))
+   top.addView(settingsChip,LinearLayout.LayoutParams(42,42).apply{setMargins(8,0,0,0)})
    updateHomeHeader();refreshHomeWeather();headerHandler.post(headerTick)
   }
-  page.addView(top,LinearLayout.LayoutParams(-1,88))
+  page.addView(top,LinearLayout.LayoutParams(-1,64))
 
   val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
 
-  // Premium navigation rail: focus is bright; current section is only a subtle marker.
+  // Clean TV navigation rail. Current section is subtle; remote focus is the only bright blue state.
   val nav=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
-   setPadding(if(isPappas)10 else 14,if(isPappas)12 else 14,if(isPappas)10 else 14,12)
+   setPadding(if(isPappas)10 else 12,if(isPappas)12 else 10,if(isPappas)10 else 12,10)
    background=if(isPappas)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(242,1,11,22),Color.argb(226,3,22,39))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
-   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(248,2,13,26),Color.argb(240,3,27,47))).apply{
-    cornerRadius=24f;setStroke(1,Color.argb(88,103,181,231))
+   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(247,1,12,25),Color.argb(238,3,28,47))).apply{
+    cornerRadius=22f;setStroke(1,Color.argb(70,98,173,223))
    }
-   elevation=if(isPappas)8f else 16f
+   elevation=if(isPappas)8f else 14f
   }
+
   if(!isPappas){
-   val brandWrap=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(6,0,4,8)}
-   brandWrap.addView(ImageView(this).apply{
+   val railMark=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(5,0,5,6)}
+   railMark.addView(ImageView(this).apply{
     setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE
-   },LinearLayout.LayoutParams(42,42).apply{setMargins(0,0,10,0)})
-   val brandText=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL}
-   brandText.addView(TextView(this).apply{
-    text="GREEK ONE";textSize=15f;letterSpacing=.035f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true)
-   })
-   brandText.addView(TextView(this).apply{
-    text="TELEVISION";textSize=7.5f;letterSpacing=.16f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(108,171,211));setSingleLine(true)
-   })
-   brandWrap.addView(brandText,LinearLayout.LayoutParams(0,42,1f))
-   nav.addView(brandWrap,LinearLayout.LayoutParams(-1,54))
+   },LinearLayout.LayoutParams(34,34).apply{setMargins(0,0,8,0)})
+   railMark.addView(TextView(this).apply{
+    text="GREEK ONE";textSize=13f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true);letterSpacing=.025f
+   },LinearLayout.LayoutParams(0,34,1f))
+   nav.addView(railMark,LinearLayout.LayoutParams(-1,42))
   }
 
   val navItems=mutableListOf<Triple<String,String,()->Unit>>()
@@ -437,54 +438,47 @@ class MainActivity:Activity(){
    val selected=!isPappas&&label==activeHomeNav
    val row=LinearLayout(this).apply{
     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
-    setPadding(8,0,10,0)
-    layoutParams=LinearLayout.LayoutParams(-1,if(isPappas)50 else 43).apply{setMargins(0,1,0,1)}
-    background=if(selected)GradientDrawable().apply{
-     setColor(Color.argb(76,25,142,220));cornerRadius=13f
-    }else GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=13f}
+    setPadding(7,0,9,0)
+    layoutParams=LinearLayout.LayoutParams(-1,if(isPappas)50 else 39).apply{setMargins(0,1,0,1)}
+    background=GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=12f}
     setOnClickListener{action()}
    }
-   val marker=View(this).apply{
-    background=GradientDrawable().apply{setColor(if(selected)Color.rgb(55,196,255) else Color.TRANSPARENT);cornerRadius=3f}
-   }
-   row.addView(marker,LinearLayout.LayoutParams(4,24).apply{setMargins(0,0,9,0)})
-   val iconView=TextView(this).apply{
-    text=icon;textSize=15f;gravity=Gravity.CENTER;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD)
-    setTextColor(if(selected)Color.WHITE else Color.rgb(150,193,222))
-   }
-   row.addView(iconView,LinearLayout.LayoutParams(28,32).apply{setMargins(0,0,8,0)})
+   val marker=View(this).apply{background=GradientDrawable().apply{setColor(if(selected)Color.rgb(38,166,235) else Color.TRANSPARENT);cornerRadius=2f}}
+   row.addView(marker,LinearLayout.LayoutParams(3,20).apply{setMargins(0,0,8,0)})
+   row.addView(TextView(this).apply{
+    text=icon;textSize=13f;gravity=Gravity.CENTER;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD)
+    setTextColor(if(selected)Color.rgb(204,238,255) else Color.rgb(145,187,214))
+   },LinearLayout.LayoutParams(26,28).apply{setMargins(0,0,7,0)})
    val labelView=TextView(this).apply{
-    text=label;textSize=13.4f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
-    setTextColor(if(selected)Color.WHITE else Color.rgb(210,226,237));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
+    text=label;textSize=12.8f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
+    setTextColor(if(selected)Color.WHITE else Color.rgb(207,222,233));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
    }
    row.addView(labelView,LinearLayout.LayoutParams(0,-1,1f))
    row.setOnFocusChangeListener{v,f->
-    row.background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,104,198),Color.rgb(31,177,246))).apply{
-     cornerRadius=13f;setStroke(2,Color.argb(245,232,250,255))
-    }else if(selected)GradientDrawable().apply{setColor(Color.argb(76,25,142,220));cornerRadius=13f}
-     else GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=13f}
-    marker.background=GradientDrawable().apply{setColor(if(f||selected)Color.rgb(62,205,255) else Color.TRANSPARENT);cornerRadius=3f}
-    iconView.setTextColor(if(f||selected)Color.WHITE else Color.rgb(150,193,222))
-    labelView.setTextColor(if(f||selected)Color.WHITE else Color.rgb(210,226,237))
+    row.background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,103,192),Color.rgb(31,165,232))).apply{
+     cornerRadius=12f;setStroke(2,Color.argb(235,235,251,255))
+    }else GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=12f}
+    marker.background=GradientDrawable().apply{setColor(if(f||selected)Color.rgb(58,199,255) else Color.TRANSPARENT);cornerRadius=2f}
+    labelView.setTextColor(if(f||selected)Color.WHITE else Color.rgb(207,222,233))
     labelView.typeface=Typeface.create("sans-serif-medium",if(f||selected)Typeface.BOLD else Typeface.NORMAL)
-    v.animate().translationX(if(f)3f else 0f).scaleX(if(f)1.012f else 1f).scaleY(if(f)1.018f else 1f).setDuration(130).start()
-    v.elevation=if(f)12f else 0f
+    v.animate().translationX(if(f)2f else 0f).scaleX(if(f)1.008f else 1f).scaleY(if(f)1.012f else 1f).setDuration(120).start()
+    v.elevation=if(f)10f else 0f
    }
    nav.addView(row)
    if(!isPappas&&(i==3||i==7)){
-    nav.addView(View(this).apply{setBackgroundColor(Color.argb(28,111,179,226))},LinearLayout.LayoutParams(-1,1).apply{setMargins(16,4,16,4)})
+    nav.addView(View(this).apply{setBackgroundColor(Color.argb(24,111,179,226))},LinearLayout.LayoutParams(-1,1).apply{setMargins(14,3,14,3)})
    }
   }
 
-  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 246,-1).apply{
-   setMargins(0,6,if(isPappas)18 else 22,0)
+  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 210,-1).apply{
+   setMargins(0,4,if(isPappas)18 else 18,0)
   })
 
   val mainScroll=ScrollView(this).apply{isFillViewport=true;overScrollMode=View.OVER_SCROLL_NEVER}
-  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(2,0,18,26);clipToPadding=false}
+  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,26,30);clipToPadding=false}
   mainScroll.addView(main,ViewGroup.LayoutParams(-1,-2))
   fun sectionTitle(t:String){
-   main.addView(TextView(this).apply{text=t;textSize=21f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,9,0,6);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))})
+   main.addView(TextView(this).apply{text=t;textSize=19.5f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,9,0,6);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))})
   }
   if(!isPappas){
    val featured=homeCachedChannels().firstOrNull{it.name.contains("ERT 1",true)||it.name.contains("ERT1",true)}?:homeCachedChannels().firstOrNull()
@@ -494,12 +488,15 @@ class MainActivity:Activity(){
      background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(245,4,31,55),Color.argb(230,8,82,129),Color.argb(205,3,26,46))).apply{cornerRadius=20f;setStroke(1,Color.argb(120,130,207,250))}
      elevation=10f
     }
-    val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(8,8,8,8);background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=14f}}
-    heroCard.addView(logo,LinearLayout.LayoutParams(92,72).apply{setMargins(0,0,20,0)})
+    val logo=ImageView(this).apply{
+     scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(7,7,7,7)
+     background=GradientDrawable().apply{setColor(Color.argb(210,7,31,52));cornerRadius=12f;setStroke(1,Color.argb(80,130,190,230))}
+    }
+    heroCard.addView(logo,LinearLayout.LayoutParams(74,60).apply{setMargins(0,0,20,0)})
     loadImageInto(logo,channelLogoUrl(featured))
     val heroText=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
     heroText.addView(TextView(this@MainActivity).apply{this.text="FEATURED NOW";textSize=10f;letterSpacing=.14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(98,206,255))})
-    heroText.addView(TextView(this@MainActivity).apply{this.text=featured.name;textSize=22f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
+    heroText.addView(TextView(this@MainActivity).apply{this.text=featured.name;textSize=19f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
     heroText.addView(TextView(this@MainActivity).apply{this.text=epgNow[featured.tvgId]?.let{"NOW  •  "+it}?:"LIVE  •  Greek television";textSize=14f;setTextColor(Color.rgb(225,237,246));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
     heroText.addView(TextView(this@MainActivity).apply{this.text=epgNext[featured.tvgId]?.let{"NEXT •  "+it}?:"Press OK to watch";textSize=12f;setTextColor(Color.rgb(154,199,228));setPadding(0,3,0,0)})
     heroCard.addView(heroText,LinearLayout.LayoutParams(0,-2,1f))
@@ -507,10 +504,10 @@ class MainActivity:Activity(){
      setText("WATCH  ▶");textSize=14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
      background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,115,216),Color.rgb(34,184,252))).apply{cornerRadius=14f}
     }
-    heroCard.addView(watchButton,LinearLayout.LayoutParams(132,48))
+    heroCard.addView(watchButton,LinearLayout.LayoutParams(112,44))
     heroCard.setOnClickListener{playRecent(featured.url)}
     heroCard.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(3,Color.WHITE);cornerRadius=20f}else null;v.animate().scaleX(if(f)1.018f else 1f).scaleY(if(f)1.018f else 1f).setDuration(145).start();v.elevation=if(f)20f else 10f}
-    main.addView(heroCard,LinearLayout.LayoutParams(-1,116).apply{setMargins(0,4,0,8)})
+    main.addView(heroCard,LinearLayout.LayoutParams(-1,100).apply{setMargins(0,4,0,8)})
    }
   }
 
@@ -533,7 +530,7 @@ class MainActivity:Activity(){
    val action={if(ch!=null)playRecent(ch.url) else if(i<2)loadChannels("ERT") else loadChannels()}
    channelRow.addView(
     logoCard(a[0],sub,a[2].toInt(),a[3]=="1",action),
-    LinearLayout.LayoutParams(0,120,1f).apply{setMargins(0,0,12,0)}
+    LinearLayout.LayoutParams(0,108,1f).apply{setMargins(0,0,12,0)}
    )
   }
   main.addView(channelRow)
@@ -544,7 +541,7 @@ class MainActivity:Activity(){
    val recent=try{JSONArray(prefs.getString("recent_channels","[]")?:"[]")}catch(_:Exception){JSONArray()}
    if(recent.length()==0){
     val cardView=imageCard("Start watching","Recently watched channels will appear here","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"){loadChannels()}
-    cont.addView(cardView,LinearLayout.LayoutParams(0,154,1f).apply{setMargins(0,0,12,0)})
+    cont.addView(cardView,LinearLayout.LayoutParams(0,140,1f).apply{setMargins(0,0,12,0)})
    }else{
     for(i in 0 until minOf(4,recent.length())){
      val o=recent.optJSONObject(i)?:continue
@@ -586,7 +583,7 @@ class MainActivity:Activity(){
     a[0].contains(placeName)->{ {loadChannels(placeFilter)} }
     else->{ {loadChannels("ΔΙΕΘΝΗ")} }
    }
-   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,86,1f).apply{setMargins(0,0,12,0)})
+   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,78,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cats)
 
@@ -609,11 +606,11 @@ class MainActivity:Activity(){
   }
   if(selectedHomeChannels.isEmpty()){
    listOf("ERT 1","ANT1","ALPHA","SKAI","MEGA").forEach{name->
-    liveRow.addView(tvCard("●  $name","Live TV",Color.rgb(16,74,132)){loadChannels()},LinearLayout.LayoutParams(0,100,1f).apply{setMargins(0,0,12,0)})
+    liveRow.addView(tvCard("●  $name","Live TV",Color.rgb(16,74,132)){loadChannels()},LinearLayout.LayoutParams(0,90,1f).apply{setMargins(0,0,12,0)})
    }
   }else{
    selectedHomeChannels.forEach{ch->
-    liveRow.addView(logoCard(ch.name,ch.name,Color.rgb(16,74,132),false,{playRecent(ch.url)},channelLogoUrl(ch)),LinearLayout.LayoutParams(0,100,1f).apply{setMargins(0,0,12,0)})
+    liveRow.addView(logoCard(ch.name,ch.name,Color.rgb(16,74,132),false,{playRecent(ch.url)},channelLogoUrl(ch)),LinearLayout.LayoutParams(0,90,1f).apply{setMargins(0,0,12,0)})
    }
   }
   main.addView(liveRow)

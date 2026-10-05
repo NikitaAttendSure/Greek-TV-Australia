@@ -58,6 +58,13 @@ class MainActivity:Activity(){
  private var sydneyTemp="--"
  private var sydneyCondition="Weather"
  private var weatherLoadedAt=0L
+ private var homeBackdropIndex=0
+ private val homeBackdropUrls=listOf(
+  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg",
+  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Chios_town_view.jpg",
+  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Mesta_Chios_Greece.jpg",
+  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Pyrgi_Chios_Greece.jpg"
+ )
  private val weatherCacheTtlMs=30*60*1000L
  private val imageCache=object:LruCache<String,Bitmap>(24){}
  private val epgNow=mutableMapOf<String,String>()
@@ -505,23 +512,30 @@ class MainActivity:Activity(){
   val root=FrameLayout(this).apply{setBackgroundColor(Color.rgb(2,7,13))}
   val backdrop=ImageView(this).apply{
    scaleType=ImageView.ScaleType.CENTER_CROP
-   alpha=.34f
+   alpha=.78f
    setBackgroundColor(Color.rgb(2,8,15))
   }
   root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
-  val hero=cfgString("heroUrl","https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg")
-  imageCache.get(hero)?.let{backdrop.setImageBitmap(it)}?:Thread{try{
-   val bmp=URL(hero).openStream().use{BitmapFactory.decodeStream(it)}
-   if(bmp!=null)imageCache.put(hero,bmp)
-   runOnUiThread{if(screenMode=="HOME"&&bmp!=null)backdrop.setImageBitmap(bmp)}
-  }catch(_:Exception){}}.start()
+  val configuredHero=cfgString("heroUrl",homeBackdropUrls.first())
+  val rotatingBackdrops=(listOf(configuredHero)+homeBackdropUrls).distinct()
+  fun loadHomeBackdrop(index:Int){
+   val url=rotatingBackdrops[index%rotatingBackdrops.size]
+   imageCache.get(url)?.let{backdrop.setImageBitmap(it)}?:Thread{try{
+    val bmp=URL(url).openStream().use{BitmapFactory.decodeStream(it)}
+    if(bmp!=null)imageCache.put(url,bmp)
+    runOnUiThread{if(screenMode=="HOME"&&bmp!=null){backdrop.animate().alpha(.20f).setDuration(220).withEndAction{backdrop.setImageBitmap(bmp);backdrop.animate().alpha(.78f).setDuration(650).start()}.start()}}
+   }catch(_:Exception){}}.start()
+  }
+  loadHomeBackdrop(homeBackdropIndex)
+  val backdropRotation=object:Runnable{override fun run(){if(screenMode=="HOME"){homeBackdropIndex=(homeBackdropIndex+1)%rotatingBackdrops.size;loadHomeBackdrop(homeBackdropIndex);headerHandler.postDelayed(this,24000)}}}
+  headerHandler.postDelayed(backdropRotation,24000)
 
   root.addView(View(this).apply{
-   background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(22,2,10,18),Color.argb(180,2,8,15),Color.argb(248,1,6,12)))
+   background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(32,1,8,15),Color.argb(88,1,8,15),Color.argb(188,1,6,12)))
   },FrameLayout.LayoutParams(-1,-1))
   root.addView(View(this).apply{
-   background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(220,1,9,19),Color.argb(90,1,9,19),Color.TRANSPARENT))
-  },FrameLayout.LayoutParams(520,-1))
+   background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(178,1,9,19),Color.argb(72,1,9,19),Color.argb(18,1,9,19)))
+  },FrameLayout.LayoutParams(-1,-1))
 
   val page=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
@@ -556,7 +570,7 @@ class MainActivity:Activity(){
    setTextColor(Color.WHITE);gravity=Gravity.CENTER
    setPadding(10,6,10,6)
    background=GradientDrawable().apply{
-    setColor(Color.argb(150,5,24,42));cornerRadius=13f
+    setColor(Color.argb(112,5,24,42));cornerRadius=13f
     setStroke(1,Color.argb(55,150,205,245))
    }
   }
@@ -571,7 +585,7 @@ class MainActivity:Activity(){
   top.addView(sydneyInfoView,LinearLayout.LayoutParams(136,42).apply{setMargins(4,0,8,0)})
   val settingsTop=TextView(this).apply{
    text="⚙";textSize=18f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
-   background=GradientDrawable().apply{setColor(Color.argb(145,5,24,42));cornerRadius=12f;setStroke(1,Color.argb(55,150,205,245))}
+   background=GradientDrawable().apply{setColor(Color.argb(108,5,24,42));cornerRadius=12f;setStroke(1,Color.argb(55,150,205,245))}
    setOnClickListener{activeHomeNav="Settings";showSettings()}
    setOnFocusChangeListener{v,f->
     v.background=GradientDrawable().apply{
@@ -590,7 +604,7 @@ class MainActivity:Activity(){
   val nav=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
    setPadding(10,8,10,8)
-   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(248,2,13,26),Color.argb(238,3,28,47))).apply{
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(218,2,13,26),Color.argb(202,3,28,47))).apply{
     cornerRadius=22f;setStroke(1,Color.argb(66,95,170,220))
    }
    elevation=14f
@@ -672,7 +686,7 @@ class MainActivity:Activity(){
    val heroCard=LinearLayout(this).apply{
     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
     setPadding(18,12,18,12)
-    background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(246,5,29,50),Color.argb(235,9,78,120),Color.argb(210,7,40,70))).apply{
+    background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(222,5,29,50),Color.argb(205,9,78,120),Color.argb(188,7,40,70))).apply{
      cornerRadius=18f;setStroke(1,Color.argb(90,125,198,240))
     }
     elevation=8f

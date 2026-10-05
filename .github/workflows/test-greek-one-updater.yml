@@ -1,0 +1,32 @@
+name: Test Greek One updater
+
+on:
+  push:
+    paths:
+      - ".github/workflows/test-greek-one-updater.yml"
+  workflow_dispatch:
+
+jobs:
+  test-updater:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify APK endpoint
+        run: |
+          set -euxo pipefail
+          URL="https://rtv.up.railway.app/GREEK-ONE-1.0.6.apk"
+          curl -fL --retry 3 --retry-delay 2 -D headers.txt -o greek-one.apk "$URL"
+          cat headers.txt
+          file greek-one.apk
+          SIZE=$(stat -c%s greek-one.apk)
+          echo "size=$SIZE"
+          test "$SIZE" -gt 3000000
+          python3 - <<'PY'
+          import zipfile
+          p="greek-one.apk"
+          assert zipfile.is_zipfile(p), "APK is not a valid ZIP container"
+          with zipfile.ZipFile(p) as z:
+              names=set(z.namelist())
+              assert "AndroidManifest.xml" in names, "AndroidManifest.xml missing"
+              print("valid_apk_zip=true")
+              print("entries=", len(names))
+          PY

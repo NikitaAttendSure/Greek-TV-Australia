@@ -513,7 +513,14 @@ class MainActivity:Activity(){
    CookingShow("ΠΟΠ Μαγειρική","Ανδρέας Λαγός • Ελληνικά προϊόντα & συνταγές","ERTFLIX","https://www.ertflix.gr/vod/vod.179854"),
    CookingShow("Kitchen Lab","Άκης Πετρετζίκης • Σεζόν 2026–2027","ΣΚΑΪ","https://www.skai.gr/tv/show/psuchagogia/kitchen-lab-2/sezon-2026-2027"),
    CookingShow("Kitchen Lab • 04/10/2026","Πλήρες επεισόδιο • 3 συνταγές","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/kitchen-lab-04102026"),
-   CookingShow("Kitchen Lab • 03/10/2026","Πλήρες επεισόδιο • πρεμιέρα σεζόν","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/kitchen-lab-03102026")
+   CookingShow("Kitchen Lab • 03/10/2026","Πλήρες επεισόδιο • πρεμιέρα σεζόν","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/kitchen-lab-03102026"),
+   CookingShow("Γεύσεις από Ελλάδα • Επ. 1","Χόρτα του χειμώνα • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=3dD9ps5DXWo"),
+   CookingShow("Γεύσεις από Ελλάδα • Επ. 5","Πορτοκάλι • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=yUf0f6kXQNo"),
+   CookingShow("Γεύσεις από Ελλάδα • Επ. 6","Θαλασσινά • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=X0cX9UyCFP8"),
+   CookingShow("Γεύσεις από Ελλάδα • Επ. 7","Γάλα • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=FmpxTcbWVZs"),
+   CookingShow("Γεύσεις από Ελλάδα • Επ. 8","Μανιτάρια • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=vCR3zTyEwho"),
+   CookingShow("Γεύσεις από Ελλάδα • Επ. 9","Ελιά • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=ySshUw411xM"),
+   CookingShow("Γεύσεις από Ελλάδα • Αβγό","17/03/2017 • Νίκος Καραθάνος","ΕΡΤ","https://www.youtube.com/watch?v=26_3zgdmqLs")
   )
   val scroll=ScrollView(this).apply{isFillViewport=true}
   val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}

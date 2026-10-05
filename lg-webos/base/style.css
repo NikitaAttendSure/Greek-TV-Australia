@@ -15,3 +15,7 @@
 .guideRow{display:flex;align-items:center;gap:1.1vw}.guideRow strong{width:20%;font-size:1vw}.guideRow span{font-size:.78vw;color:#c7d9ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #boot{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 42%,#0b4d8e,#061b31 42%,#02070d 78%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .32s ease}.bootFlag{font-size:4.6vw}.bootBrand{font-size:3vw;font-weight:900;letter-spacing:.04em;margin-top:.7vh}.bootSub{font-size:.8vw;letter-spacing:.13em;color:#acd5f7;margin-top:.8vh}
 .tile,.navBtn,.channelRow{transition:transform .11s ease,box-shadow .11s ease,background .11s ease}
+
+#miniGuide{position:fixed;left:2.2vw;right:2.2vw;bottom:2.8vh;z-index:40;padding:1.15vw 1.35vw;border-radius:.9vw;background:linear-gradient(90deg,rgba(4,17,31,.97),rgba(7,49,82,.96),rgba(3,13,25,.94));border:1px solid rgba(160,205,240,.45);box-shadow:0 .5vw 1.6vw rgba(0,0,0,.48);transition:opacity .18s ease}
+.mgTop{display:flex;align-items:center;gap:.7vw}.mgTop strong{font-size:1.45vw}.mgLive{background:#cd2234;padding:.24vw .55vw;border-radius:.35vw;font-size:.72vw;font-weight:800}.mgTime{margin-left:auto;font-size:1.05vw;font-weight:800}
+.mgNow{font-size:1vw;margin-top:.55vh;color:#fff}.mgNext{font-size:.82vw;margin-top:.3vh;color:#9fc8e7}.mgHelp{font-size:.72vw;margin-top:.7vh;color:#a9c8df}

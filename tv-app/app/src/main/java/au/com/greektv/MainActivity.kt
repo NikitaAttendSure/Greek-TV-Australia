@@ -77,7 +77,7 @@ class MainActivity:Activity(){
    wrap.addView(TextView(this).apply{text="🇬🇷";textSize=58f;gravity=Gravity.CENTER})
    wrap.addView(TextView(this).apply{text=brandName;textSize=46f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER;letterSpacing=.035f})
   }else{
-   wrap.addView(ImageView(this).apply{setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE},LinearLayout.LayoutParams(360,360))
+   wrap.addView(ImageView(this).apply{setImageResource(R.drawable.greek_one_icon);scaleType=ImageView.ScaleType.CENTER_INSIDE},LinearLayout.LayoutParams(360,360))
   }
   wrap.addView(TextView(this).apply{text="GREEK TELEVISION  •  $placeUpper  •  AND MORE";textSize=13f;setTextColor(Color.rgb(175,211,241));gravity=Gravity.CENTER;letterSpacing=.08f;setPadding(0,10,0,0)})
   root.addView(wrap,FrameLayout.LayoutParams(-1,-1))
@@ -219,7 +219,7 @@ class MainActivity:Activity(){
  private fun weatherName(code:Int)=when(code){
   0->"Clear";1,2->"Mostly clear";3->"Cloudy";45,48->"Fog";51,53,55,56,57->"Drizzle";61,63,65,66,67,80,81,82->"Rain";71,73,75,77,85,86->"Snow";95,96,99->"Storm";else->"Weather"
  }
- private fun timeAt(zone:String):String=SimpleDateFormat("HH:mm",Locale.getDefault()).apply{timeZone=TimeZone.getTimeZone(zone)}.format(Date())
+ private fun timeAt(zone:String):String=SimpleDateFormat("hh:mm a",Locale.US).apply{timeZone=TimeZone.getTimeZone(zone)}.format(Date())
  private fun updateHomeHeader(){
   athensInfoView?.text="🇬🇷  ATHENS\n${timeAt("Europe/Athens")}  •  $athensTemp°C  •  $athensCondition"
   sydneyInfoView?.text="🇦🇺  SYDNEY\n${timeAt("Australia/Sydney")}  •  $sydneyTemp°C  •  $sydneyCondition"
@@ -280,7 +280,7 @@ class MainActivity:Activity(){
    },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
   }else{
    identity.addView(ImageView(this).apply{
-    setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(5,5,5,5)
+    setImageResource(R.drawable.greek_one_icon);scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(5,5,5,5)
     background=GradientDrawable().apply{setColor(Color.rgb(3,15,32));cornerRadius=10f;setStroke(1,Color.argb(120,255,255,255))}
     elevation=8f
    },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
@@ -333,12 +333,12 @@ class MainActivity:Activity(){
   val nav=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL;setPadding(if(isPappas)10 else 12,if(isPappas)12 else 14,if(isPappas)10 else 12,10)
    background=if(isPappas)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(242,1,11,22),Color.argb(226,3,22,39))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
-   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(248,2,13,27),Color.argb(236,4,29,51),Color.argb(246,2,16,31))).apply{cornerRadius=22f;setStroke(1,Color.argb(105,112,183,236))}
-   elevation=if(isPappas)8f else 14f
+   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(252,1,10,22),Color.argb(244,3,26,48),Color.argb(250,2,13,29))).apply{cornerRadius=26f;setStroke(1,Color.argb(125,102,185,242))}
+   elevation=if(isPappas)8f else 20f
   }
   if(!isPappas){
    nav.addView(TextView(this).apply{
-    text="GREEK ONE";textSize=9.5f;letterSpacing=.16f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(114,190,246));gravity=Gravity.CENTER_VERTICAL;setPadding(13,0,0,5)
+    text="GREEK ONE";textSize=10.5f;letterSpacing=.18f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(151,216,255));gravity=Gravity.CENTER_VERTICAL;setPadding(16,0,0,6)
    },LinearLayout.LayoutParams(-1,30))
    nav.addView(View(this).apply{setBackgroundColor(Color.argb(65,110,185,235))},LinearLayout.LayoutParams(-1,1).apply{setMargins(8,0,8,8)})
   }
@@ -349,16 +349,16 @@ class MainActivity:Activity(){
   )
   navItems.forEachIndexed{i,it->
    val nb=button(it.first,it.second).apply{
-    textSize=if(isPappas)14f else 14.5f
+    textSize=if(isPappas)14f else 15f
     typeface=Typeface.create("sans-serif-medium",if(i==0)Typeface.BOLD else Typeface.NORMAL)
     setPadding(if(isPappas)16 else 18,0,8,0);setSingleLine(true)
-    layoutParams=LinearLayout.LayoutParams(-1,if(isPappas)50 else 53).apply{setMargins(0,if(isPappas)2 else 3,0,if(isPappas)2 else 3)}
-    background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,112,210),Color.rgb(30,164,247))).apply{cornerRadius=if(isPappas)12f else 15f;setStroke(if(isPappas)1 else 2,Color.argb(210,225,247,255))}
-    else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(132,7,29,50),Color.argb(88,10,44,72))).apply{cornerRadius=15f;setStroke(1,Color.argb(50,130,190,230))}
+    layoutParams=LinearLayout.LayoutParams(-1,if(isPappas)50 else 55).apply{setMargins(0,if(isPappas)2 else 4,0,if(isPappas)2 else 4)}
+    background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(7,113,210),Color.rgb(31,174,252))).apply{cornerRadius=if(isPappas)12f else 17f;setStroke(if(isPappas)1 else 2,Color.argb(235,236,249,255))}
+    else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(176,5,27,48),Color.argb(130,7,40,68))).apply{cornerRadius=17f;setStroke(1,Color.argb(72,123,192,239))}
     if(!isPappas)setOnFocusChangeListener{v,focused->
-     background=if(focused)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,118,216),Color.rgb(31,170,248))).apply{cornerRadius=15f;setStroke(2,Color.WHITE)}
-     else if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,112,210),Color.rgb(30,164,247))).apply{cornerRadius=15f;setStroke(2,Color.argb(210,225,247,255))}
-     else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(132,7,29,50),Color.argb(88,10,44,72))).apply{cornerRadius=15f;setStroke(1,Color.argb(50,130,190,230))}
+     background=if(focused)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(7,119,220),Color.rgb(39,184,255))).apply{cornerRadius=17f;setStroke(2,Color.WHITE)}
+     else if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(7,113,210),Color.rgb(31,174,252))).apply{cornerRadius=17f;setStroke(2,Color.argb(235,236,249,255))}
+     else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(176,5,27,48),Color.argb(130,7,40,68))).apply{cornerRadius=17f;setStroke(1,Color.argb(72,123,192,239))}
      v.animate().scaleX(if(focused)1.025f else 1f).scaleY(if(focused)1.025f else 1f).setDuration(100).start()
      v.elevation=if(focused)18f else 2f
     }
@@ -366,7 +366,7 @@ class MainActivity:Activity(){
    nav.addView(nb)
    if(!isPappas&&(i==3||i==8))nav.addView(View(this).apply{setBackgroundColor(Color.argb(45,120,185,230))},LinearLayout.LayoutParams(-1,1).apply{setMargins(12,4,12,4)})
   }
-  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 232,-1).apply{setMargins(0,8,if(isPappas)18 else 20,0)})
+  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 246,-1).apply{setMargins(0,8,if(isPappas)18 else 20,0)})
 
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,0)}
   fun sectionTitle(t:String){
@@ -880,7 +880,7 @@ class MainActivity:Activity(){
 
   val right=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.END}
   right.addView(TextView(this).apply{
-   text=SimpleDateFormat("HH:mm",Locale.getDefault()).format(Date());textSize=18f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.END
+   text=SimpleDateFormat("hh:mm a",Locale.US).format(Date());textSize=18f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.END
   })
   right.addView(TextView(this).apply{
    text=(if(fav.has(ch.url))"★ Favourite" else "☆ Add favourite")+"   •   ▲▼ Change channel"

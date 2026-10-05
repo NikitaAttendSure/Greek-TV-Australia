@@ -273,12 +273,12 @@ class MainActivity:Activity(){
   }
   main.addView(channelRow)
 
-  sectionTitle("Continue Watching")
+  sectionTitle("Recently Watched")
   val cont=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   run{
    val recent=try{JSONArray(prefs.getString("recent_channels","[]")?:"[]")}catch(_:Exception){JSONArray()}
    if(recent.length()==0){
-    val cardView=imageCard("Start watching","Your recent channels will appear here","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"){loadChannels()}
+    val cardView=imageCard("Start watching","Recently watched channels will appear here","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"){loadChannels()}
     cont.addView(cardView,LinearLayout.LayoutParams(0,182,1f).apply{setMargins(0,0,12,0)})
    }else{
     for(i in 0 until minOf(4,recent.length())){
@@ -314,19 +314,33 @@ class MainActivity:Activity(){
   }
   main.addView(cats)
 
-  sectionTitle("$placeName Highlights")
-  val chios=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-  val chiosCards=listOf(
-   arrayOf("$placeName Live","Local Content","https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf(if(isPappas)"Nafplio Old Town" else "Chios Villages","Explore","https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf(if(isPappas)"Nafplio Coast" else "Chios Beaches",if(isPappas)"Seaside" else "Island Life","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf("$placeName Documentary","History","https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?auto=format&fit=crop&w=1200&q=85"),
-   arrayOf(if(isPappas)"Bourtzi" else "Chios Mastiha",if(isPappas)"Landmark" else "Tradition","https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85")
-  )
-  chiosCards.forEach{a->
-   chios.addView(imageCard(a[0],a[1],a[2]){loadChannels(placeFilter)},LinearLayout.LayoutParams(0,154,1f).apply{setMargins(0,0,12,0)})
+  sectionTitle("Live Channels")
+  val liveRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val cachedHomeChannels=try{
+   val cached=prefs.getString("playlist_cache",null)
+   if(cached.isNullOrBlank()) emptyList() else parsePlaylist(cached)
+  }catch(_:Exception){emptyList()}
+  val preferredNames=listOf("ERT 1","ERT1","ERT 2","ANT1","ALPHA","SKAI","ΣΚΑΪ","OPEN","MEGA")
+  val selectedHomeChannels=mutableListOf<Channel>()
+  preferredNames.forEach{name->
+   val found=cachedHomeChannels.firstOrNull{it.name.contains(name,true)&&selectedHomeChannels.none{x->x.url==it.url}}
+   if(found!=null&&selectedHomeChannels.size<5)selectedHomeChannels.add(found)
   }
-  main.addView(chios)
+  if(selectedHomeChannels.size<5){
+   cachedHomeChannels.forEach{ch->
+    if(selectedHomeChannels.size<5&&selectedHomeChannels.none{x->x.url==ch.url})selectedHomeChannels.add(ch)
+   }
+  }
+  if(selectedHomeChannels.isEmpty()){
+   listOf("ERT 1","ANT1","ALPHA","SKAI","MEGA").forEach{name->
+    liveRow.addView(tvCard("●  $name","Live TV",Color.rgb(16,74,132)){loadChannels()},LinearLayout.LayoutParams(0,100,1f).apply{setMargins(0,0,12,0)})
+   }
+  }else{
+   selectedHomeChannels.forEach{ch->
+    liveRow.addView(tvCard("●  "+ch.name,if(ch.group.isBlank())"LIVE TV" else ch.group,Color.rgb(16,74,132)){playRecent(ch.url)},LinearLayout.LayoutParams(0,100,1f).apply{setMargins(0,0,12,0)})
+   }
+  }
+  main.addView(liveRow)
 
   body.addView(main,LinearLayout.LayoutParams(0,-1,1f))
   page.addView(body,LinearLayout.LayoutParams(-1,0,1f))

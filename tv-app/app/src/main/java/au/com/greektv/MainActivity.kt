@@ -338,7 +338,11 @@ class MainActivity:Activity(){
    SeriesItem("ΠΕΝΗΝΤΑ ΠΕΝΗΝΤΑ","MEGA","81 episodes","https://www.megatv.com/ekpompes/43207/peninta-peninta/"),
    SeriesItem("ΕΘΝΙΚΗ ΕΛΛΑΔΟΣ","MEGA","15 episodes","https://www.megatv.com/ekpompes/1356374/ethniki-ellados/"),
    SeriesItem("ΟΙ ΑΠΑΡΑΔΕΚΤΟΙ","MEGA","48 episodes","https://www.megatv.com/ekpompes/43303/aparadektoi/"),
-   SeriesItem("ΚΩΝΣΤΑΝΤΙΝΟΥ ΚΑΙ ΕΛΕΝΗΣ","ANT1","official archive","https://www.antenna.gr/webtv/3142")
+   SeriesItem("ΚΩΝΣΤΑΝΤΙΝΟΥ ΚΑΙ ΕΛΕΝΗΣ","ANT1","official archive","https://www.antenna.gr/webtv/3142"),
+   SeriesItem("Η ΝΤΑΝΤΑ","MEGA","70 episodes","https://www.megatv.com/ekpompes/43294/i-ntanta/"),
+   SeriesItem("ΕΜΕΙΣ ΚΑΙ ΕΜΕΙΣ","MEGA","139 episodes","https://www.megatv.com/ekpompes/42594/emeis-kai-emeis-2/"),
+   SeriesItem("ΛΑΤΡΕΜΕΝΟΙ ΜΟΥ ΓΕΙΤΟΝΕΣ","MEGA","53 episodes","https://www.megatv.com/ekpompes/42963/latremenoi-mou-geitones/"),
+   SeriesItem("ΜΑΥΡΑ ΜΕΣΑΝΥΧΤΑ","MEGA","48 episodes","https://www.megatv.com/ekpompes/43238/maura-mesanuxta/")
   )
   val scroll=ScrollView(this)
   val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(4,2,12,24)}

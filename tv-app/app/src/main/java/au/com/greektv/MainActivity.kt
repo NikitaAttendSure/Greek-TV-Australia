@@ -583,7 +583,7 @@ class MainActivity:Activity(){
     a[0].contains(placeName)->{ {loadChannels(placeFilter)} }
     else->{ {loadChannels("ΔΙΕΘΝΗ")} }
    }
-   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,78,1f).apply{setMargins(0,0,12,0)})
+   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,92,1f).apply{setMargins(0,0,10,0)})
   }
   main.addView(cats)
 
@@ -597,20 +597,20 @@ class MainActivity:Activity(){
   val selectedHomeChannels=mutableListOf<Channel>()
   preferredNames.forEach{name->
    val found=cachedHomeChannels.firstOrNull{it.name.contains(name,true)&&selectedHomeChannels.none{x->x.url==it.url}}
-   if(found!=null&&selectedHomeChannels.size<5)selectedHomeChannels.add(found)
+   if(found!=null&&selectedHomeChannels.size<4)selectedHomeChannels.add(found)
   }
-  if(selectedHomeChannels.size<5){
+  if(selectedHomeChannels.size<4){
    cachedHomeChannels.forEach{ch->
-    if(selectedHomeChannels.size<5&&selectedHomeChannels.none{x->x.url==ch.url})selectedHomeChannels.add(ch)
+    if(selectedHomeChannels.size<4&&selectedHomeChannels.none{x->x.url==ch.url})selectedHomeChannels.add(ch)
    }
   }
   if(selectedHomeChannels.isEmpty()){
    listOf("ERT 1","ANT1","ALPHA","SKAI","MEGA").forEach{name->
-    liveRow.addView(tvCard("●  $name","Live TV",Color.rgb(16,74,132)){loadChannels()},LinearLayout.LayoutParams(0,90,1f).apply{setMargins(0,0,12,0)})
+    liveRow.addView(tvCard("●  $name","Live TV",Color.rgb(16,74,132)){loadChannels()},LinearLayout.LayoutParams(0,96,1f).apply{setMargins(0,0,10,0)})
    }
   }else{
    selectedHomeChannels.forEach{ch->
-    liveRow.addView(logoCard(ch.name,ch.name,Color.rgb(16,74,132),false,{playRecent(ch.url)},channelLogoUrl(ch)),LinearLayout.LayoutParams(0,90,1f).apply{setMargins(0,0,12,0)})
+    liveRow.addView(logoCard(ch.name,ch.name,Color.rgb(16,74,132),false,{playRecent(ch.url)},channelLogoUrl(ch)),LinearLayout.LayoutParams(0,96,1f).apply{setMargins(0,0,10,0)})
    }
   }
   main.addView(liveRow)
@@ -657,22 +657,22 @@ class MainActivity:Activity(){
   }
   val logoUrl=logoUrlOverride.ifBlank{popularLogoUrl(label)}
   if(logoUrl.isNotBlank()){
-   val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(14,12,14,12)}
-   frame.addView(logo,FrameLayout.LayoutParams(-1,96))
+   val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(12,8,12,8)}
+   frame.addView(logo,FrameLayout.LayoutParams(-1,64))
    loadImageInto(logo,logoUrl)
   }else{
    val logo=TextView(this).apply{
     text=mark;textSize=23f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);gravity=Gravity.CENTER
     setTextColor(if(darkText)Color.rgb(23,50,130) else Color.WHITE);setShadowLayer(if(darkText)0f else 5f,0f,2f,Color.argb(120,0,0,0))
    }
-   frame.addView(logo,FrameLayout.LayoutParams(-1,96))
+   frame.addView(logo,FrameLayout.LayoutParams(-1,64))
   }
   val cap=TextView(this).apply{
-   text=label;textSize=10.5f;gravity=Gravity.CENTER;setTextColor(Color.WHITE)
+   text=label;textSize=9.5f;gravity=Gravity.CENTER;setTextColor(Color.WHITE)
    background=GradientDrawable().apply{setColor(Color.argb(220,1,10,20));cornerRadii=floatArrayOf(0f,0f,0f,0f,14f,14f,14f,14f)}
    setPadding(4,3,4,4)
   }
-  frame.addView(cap,FrameLayout.LayoutParams(-1,34,Gravity.BOTTOM))
+  frame.addView(cap,FrameLayout.LayoutParams(-1,27,Gravity.BOTTOM))
   frame.setOnClickListener{action()}
   frame.setOnFocusChangeListener{v,f->
    v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(4,Color.WHITE);cornerRadius=14f}else null
@@ -683,10 +683,10 @@ class MainActivity:Activity(){
  private fun tvCard(title:String,subtitle:String="",base:Int=card,action:()->Unit):LinearLayout{
   return LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL;gravity=Gravity.BOTTOM;isFocusable=true;isClickable=true
-   setPadding(14,10,14,10)
+   setPadding(12,7,12,7)
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(base,Color.rgb(7,18,31))).apply{cornerRadius=14f;setStroke(1,Color.argb(90,150,195,230))}
-   addView(TextView(this@MainActivity).apply{text=title;textSize=17f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
-   if(subtitle.isNotBlank())addView(TextView(this@MainActivity).apply{text=subtitle;textSize=12f;setTextColor(Color.rgb(218,228,238));setPadding(0,2,0,0)})
+   addView(TextView(this@MainActivity).apply{text=title;textSize=15f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
+   if(subtitle.isNotBlank())addView(TextView(this@MainActivity).apply{text=subtitle;textSize=10f;setTextColor(Color.rgb(218,228,238));setPadding(0,2,0,0);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
    setOnClickListener{action()}
    setOnFocusChangeListener{v,f->
     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(if(f)focus else base,Color.rgb(6,19,34))).apply{cornerRadius=14f;setStroke(if(f)3 else 1,if(f)Color.WHITE else Color.argb(90,150,195,230))}

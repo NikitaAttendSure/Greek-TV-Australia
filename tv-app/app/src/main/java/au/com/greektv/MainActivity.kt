@@ -329,18 +329,42 @@ class MainActivity:Activity(){
 
   val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
 
-  // Premium glass navigation rail.
+  // Premium Greek One navigation rail.
   val nav=LinearLayout(this).apply{
-   orientation=LinearLayout.VERTICAL;setPadding(if(isPappas)10 else 12,if(isPappas)12 else 14,if(isPappas)10 else 12,10)
+   orientation=LinearLayout.VERTICAL
+   setPadding(if(isPappas)10 else 10,if(isPappas)12 else 16,if(isPappas)10 else 10,10)
    background=if(isPappas)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(242,1,11,22),Color.argb(226,3,22,39))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
-   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(252,1,10,22),Color.argb(244,3,26,48),Color.argb(250,2,13,29))).apply{cornerRadius=26f;setStroke(1,Color.argb(125,102,185,242))}
-   elevation=if(isPappas)8f else 20f
+   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(
+    Color.argb(252,1,10,22),
+    Color.argb(244,3,24,43),
+    Color.argb(252,1,12,25)
+   )).apply{cornerRadius=28f;setStroke(1,Color.argb(90,105,188,244))}
+   elevation=if(isPappas)8f else 22f
   }
   if(!isPappas){
-   nav.addView(TextView(this).apply{
-    text="GREEK ONE";textSize=10.5f;letterSpacing=.18f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(151,216,255));gravity=Gravity.CENTER_VERTICAL;setPadding(16,0,0,6)
-   },LinearLayout.LayoutParams(-1,30))
-   nav.addView(View(this).apply{setBackgroundColor(Color.argb(65,110,185,235))},LinearLayout.LayoutParams(-1,1).apply{setMargins(8,0,8,8)})
+   val brandWrap=LinearLayout(this).apply{
+    orientation=LinearLayout.VERTICAL
+    setPadding(14,2,12,10)
+   }
+   brandWrap.addView(TextView(this).apply{
+    text="GREEK";textSize=18f;letterSpacing=.05f
+    typeface=Typeface.create("sans-serif",Typeface.BOLD)
+    setTextColor(Color.WHITE)
+   },LinearLayout.LayoutParams(-1,25))
+   brandWrap.addView(TextView(this).apply{
+    text="ONE";textSize=18f;letterSpacing=.12f
+    typeface=Typeface.create("sans-serif",Typeface.BOLD)
+    setTextColor(Color.rgb(43,184,255))
+   },LinearLayout.LayoutParams(-1,25))
+   brandWrap.addView(TextView(this).apply{
+    text="GREEK TELEVISION";textSize=8f;letterSpacing=.20f
+    typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL)
+    setTextColor(Color.rgb(136,178,207))
+   },LinearLayout.LayoutParams(-1,20))
+   brandWrap.addView(View(this).apply{
+    background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(38,181,255),Color.argb(20,38,181,255))).apply{cornerRadius=2f}
+   },LinearLayout.LayoutParams(-1,2).apply{setMargins(0,2,20,0)})
+   nav.addView(brandWrap,LinearLayout.LayoutParams(-1,86))
   }
   val navItems=mutableListOf<Pair<String,()->Unit>>(
    "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♡   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
@@ -352,24 +376,66 @@ class MainActivity:Activity(){
   navItems.add("⚙   Settings" to {showSettings()})
   navItems.forEachIndexed{i,it->
    val nb=button(it.first,it.second).apply{
-    textSize=if(isPappas)14f else 15f
+    textSize=if(isPappas)14f else 14.5f
     typeface=Typeface.create("sans-serif-medium",if(i==0)Typeface.BOLD else Typeface.NORMAL)
-    setPadding(if(isPappas)16 else 18,0,8,0);setSingleLine(true)
-    layoutParams=LinearLayout.LayoutParams(-1,if(isPappas)50 else 55).apply{setMargins(0,if(isPappas)2 else 4,0,if(isPappas)2 else 4)}
-    background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(7,113,210),Color.rgb(31,174,252))).apply{cornerRadius=if(isPappas)12f else 17f;setStroke(if(isPappas)1 else 2,Color.argb(235,236,249,255))}
-    else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(176,5,27,48),Color.argb(130,7,40,68))).apply{cornerRadius=17f;setStroke(1,Color.argb(72,123,192,239))}
-    if(!isPappas)setOnFocusChangeListener{v,focused->
-     background=if(focused)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(7,119,220),Color.rgb(39,184,255))).apply{cornerRadius=17f;setStroke(2,Color.WHITE)}
-     else if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(7,113,210),Color.rgb(31,174,252))).apply{cornerRadius=17f;setStroke(2,Color.argb(235,236,249,255))}
-     else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(176,5,27,48),Color.argb(130,7,40,68))).apply{cornerRadius=17f;setStroke(1,Color.argb(72,123,192,239))}
-     v.animate().scaleX(if(focused)1.025f else 1f).scaleY(if(focused)1.025f else 1f).setDuration(100).start()
-     v.elevation=if(focused)18f else 2f
+    setPadding(if(isPappas)16 else 17,0,8,0)
+    setSingleLine(true)
+    gravity=Gravity.CENTER_VERTICAL or Gravity.START
+    layoutParams=LinearLayout.LayoutParams(-1,if(isPappas)50 else 48).apply{
+     setMargins(0,if(isPappas)2 else 2,0,if(isPappas)2 else 2)
+    }
+    if(!isPappas){
+     setTextColor(if(i==0)Color.WHITE else Color.rgb(205,222,236))
+     background=if(i==0)
+      GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(9,119,220),Color.rgb(34,181,252))).apply{
+       cornerRadius=15f;setStroke(1,Color.argb(220,208,244,255))
+      }
+     else
+      GradientDrawable().apply{
+       setColor(Color.TRANSPARENT);cornerRadius=15f
+      }
+     setOnFocusChangeListener{v,focused->
+      if(focused){
+       background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,105,204),Color.rgb(34,185,255))).apply{
+        cornerRadius=15f;setStroke(2,Color.argb(245,224,249,255))
+       }
+       setTextColor(Color.WHITE)
+       typeface=Typeface.create("sans-serif-medium",Typeface.BOLD)
+       v.animate().translationX(5f).scaleX(1.018f).scaleY(1.035f).setDuration(110).start()
+       v.elevation=16f
+      }else{
+       background=if(i==0)
+        GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(9,119,220),Color.rgb(34,181,252))).apply{
+         cornerRadius=15f;setStroke(1,Color.argb(220,208,244,255))
+        }
+       else GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=15f}
+       setTextColor(if(i==0)Color.WHITE else Color.rgb(205,222,236))
+       typeface=Typeface.create("sans-serif-medium",if(i==0)Typeface.BOLD else Typeface.NORMAL)
+       v.animate().translationX(0f).scaleX(1f).scaleY(1f).setDuration(110).start()
+       v.elevation=if(i==0)7f else 0f
+      }
+     }
+    }else{
+     background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(7,113,210),Color.rgb(31,174,252))).apply{cornerRadius=12f;setStroke(1,Color.argb(235,236,249,255))}
+     else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(176,5,27,48),Color.argb(130,7,40,68))).apply{cornerRadius=12f;setStroke(1,Color.argb(72,123,192,239))}
     }
    }
    nav.addView(nb)
-   if(!isPappas&&(i==3||i==8))nav.addView(View(this).apply{setBackgroundColor(Color.argb(45,120,185,230))},LinearLayout.LayoutParams(-1,1).apply{setMargins(12,4,12,4)})
+   if(!isPappas&&(i==3||i==8)){
+    nav.addView(View(this).apply{setBackgroundColor(Color.argb(34,111,179,226))},LinearLayout.LayoutParams(-1,1).apply{setMargins(18,5,18,5)})
+   }
   }
-  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 246,-1).apply{setMargins(0,8,if(isPappas)18 else 20,0)})
+  if(!isPappas){
+   nav.addView(TextView(this).apply{
+    text="GREEK ONE  •  TV";textSize=8f;letterSpacing=.14f
+    gravity=Gravity.CENTER_HORIZONTAL
+    setTextColor(Color.rgb(92,137,170))
+    setPadding(0,8,0,0)
+   },LinearLayout.LayoutParams(-1,30))
+  }
+  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 220,-1).apply{
+   setMargins(0,8,if(isPappas)18 else 24,0)
+  })
 
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,0)}
   fun sectionTitle(t:String){

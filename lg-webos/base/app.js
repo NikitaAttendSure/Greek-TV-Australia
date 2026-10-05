@@ -14,12 +14,39 @@ function buildNav(){const n=$("nav");n.innerHTML="";[
 ["☷   Categories",home],["⌕   Search",()=>list()],["⚙   Settings",settings]
 ].forEach(x=>n.appendChild(navButton(x[0],x[1])))}
 function section(title,items){return '<div class="sectionTitle">'+esc(title)+'</div><div class="row">'+items.join("")+"</div>"}
-function tile(title,sub,action,cls=""){return '<button class="tile '+cls+'" data-action="'+action+'"><strong>'+esc(title)+'</strong><small>'+esc(sub)+'</small></button>'}
-function home(){stopPreview();$("main").innerHTML=
-section("Popular Greek Channels",["ERT 1","ERT 2","ANT1","ALPHA","SKAI","OPEN","MEGA"].map(x=>tile(x,x+" HD","live"))) +
-section("Continue Watching",recent().length?recent().slice(0,4).map((x,i)=>tile(x.name,"Recently watched","recent:"+i)): [tile("Start watching","Your recent channels will appear here","live")])+
-section("Browse by Category",[tile("▣  Greek TV","All Greek Channels","live"),tile("◉  Movies","Greek & International","movies"),tile("★  Kids","For the Little Ones","kids"),tile("◉  "+B.place,"Local Content","local"),tile("◎  World TV","International Channels","world")])+
-section(B.place+" Highlights",[tile(B.place+" Live","Local Content","local"),tile(B.place+" Highlights","Explore","local"),tile(B.place+" Coast","Seaside","local"),tile(B.place+" Documentary","History","local")]);
+function tile(title,sub,action,cls="",style=""){return '<button class="tile '+cls+'" style="'+style+'" data-action="'+action+'"><strong>'+esc(title)+'</strong><small>'+esc(sub)+'</small></button>'}
+function home(){stopPreview();const r=recent();const continueTiles=r.length?r.slice(0,4).map((x,i)=>tile(x.name,"Recently watched","recent:"+i,"photo",'background-image:url("https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1000&q=80")')):[
+tile("ERT 1 HD","News","live","photo",'background-image:url("https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1000&q=80")'),
+tile("Sasmos","Drama Series","live","photo",'background-image:url("https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1000&q=80")'),
+tile("Akis’ Food Tour","Cooking","live","photo",'background-image:url("https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1000&q=80")'),
+tile(B.place,"Documentary","local","photo",'background-image:url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80")')
+];
+$("main").innerHTML=
+section("Popular Greek Channels",[
+tile("ERT 1","ERT 1 HD","live","popular",'--brandbg:#123ec6'),
+tile("ERT 2","ERT 2 HD","live","popular",'--brandbg:#f2f4f7;color:#123f8c'),
+tile("ANT1","ANT1 HD","live","popular",'--brandbg:#194778'),
+tile("A","ALPHA HD","live","popular",'--brandbg:#f10f56'),
+tile("ΣΚΑΪ","SKAI HD","live","popular",'--brandbg:#1268dd'),
+tile("OPEN","OPEN HD","live","popular",'--brandbg:#182031'),
+tile("MEGA","MEGA HD","live","popular",'--brandbg:#f6f7f8;color:#1f3c98')
+])+
+section("Continue Watching",continueTiles)+
+section("Browse by Category",[
+tile("▣  Greek TV","All Greek Channels","live","category",'background:linear-gradient(135deg,#1880d7,#0a57b0)'),
+tile("●  Movies","Greek & International","movies","category",'background:linear-gradient(135deg,#d72a95,#8b1e72)'),
+tile("▤  Series","Greek Series","live","category",'background:linear-gradient(135deg,#1f9f76,#0e6852)'),
+tile("★  Kids","For the Little Ones","kids","category",'background:linear-gradient(135deg,#ef9c20,#c7680b)'),
+tile("⌂  "+B.place,"Local Content","local","category",'background:linear-gradient(135deg,#2497d9,#0e6ba8)'),
+tile("◎  World TV","International","world","category",'background:linear-gradient(135deg,#7d2bc9,#4e1691)')
+])+
+section(B.place+" Highlights",[
+tile(B.place+" Live","Local Content","local","highlight",'background-image:url("https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=900&q=80")'),
+tile(B.place+" Villages","Explore","local","highlight",'background-image:url("https://images.unsplash.com/photo-1504512485720-7d83a16ee930?auto=format&fit=crop&w=900&q=80")'),
+tile(B.place+" Beaches","Island Life","local","highlight",'background-image:url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80")'),
+tile(B.place+" Documentary","History","local","highlight",'background-image:url("https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?auto=format&fit=crop&w=900&q=80")'),
+tile(B.place+" Tradition","Tradition","local","highlight",'background-image:url("https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80")')
+]);
 bindActions();focusFirst()}
 function bindActions(){$("main").querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==="live")list();else if(a==="movies")list("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ");else if(a==="kids")list("ΠΑΙΔΙΚΑ");else if(a==="local")list(B.localFilter);else if(a==="world")list("ΔΙΕΘΝΗ");else if(a.startsWith("recent:")){const r=recent()[+a.split(":")[1]];const c=channels.find(x=>x.url===r.url);if(c)play(c)}})}
 function focusFirst(){setTimeout(()=>{const x=document.querySelector("main button");if(x)x.focus()},30)}

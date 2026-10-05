@@ -1,0 +1,1 @@
+window.TV_BRAND={name:"RESKAKIS TV",place:"Chios",localFilter:"ΧΙΟΣ",hero:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg"};

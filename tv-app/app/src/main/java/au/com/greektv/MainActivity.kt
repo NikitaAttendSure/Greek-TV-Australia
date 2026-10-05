@@ -311,6 +311,143 @@ class MainActivity:Activity(){
  }
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
 
+
+ private fun showPreloadedMovies(){
+  if(isPappas){showHome();return}
+  screenMode="PRELOADED_MOVIES"
+  previewHandler.removeCallbacksAndMessages(null)
+  headerHandler.removeCallbacksAndMessages(null)
+  previewPlayer?.release();previewPlayer=null
+  player?.release();player=null
+  activeHomeNav="Preloaded Movies"
+  window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+
+  val root=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL
+   setPadding(34,24,42,28)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(6,24,40),Color.rgb(2,8,15)))
+  }
+
+  val head=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  val titleWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  titleWrap.addView(TextView(this).apply{
+   text="PRELOADED MOVIES";textSize=30f;letterSpacing=.025f
+   typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true)
+  })
+  titleWrap.addView(TextView(this).apply{
+   text="Greek cinema • classics to modern • ready from Greek One";textSize=11.5f
+   setTextColor(Color.rgb(142,190,222));letterSpacing=.035f;setSingleLine(true)
+  })
+  head.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
+  head.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(150,52))
+  root.addView(head,LinearLayout.LayoutParams(-1,76))
+
+  val sourceNote=TextView(this).apply{
+   text="CURATED LIBRARY  •  Official/free sources are used where available"
+   textSize=9.5f;letterSpacing=.09f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD)
+   setTextColor(Color.rgb(97,196,244));setPadding(2,4,0,12)
+  }
+  root.addView(sourceNote)
+
+  val scroll=ScrollView(this).apply{isFillViewport=true;overScrollMode=View.OVER_SCROLL_NEVER}
+  val content=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,18,20)}
+  scroll.addView(content,ViewGroup.LayoutParams(-1,-2))
+
+  val decadeRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  listOf("ALL","1950s","1960s","CLASSICS","MODERN").forEachIndexed{i,label->
+   val chip=TextView(this).apply{
+    text=label;textSize=10.5f;gravity=Gravity.CENTER;isFocusable=true;isClickable=true
+    typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE)
+    background=GradientDrawable().apply{
+     setColor(if(i==0)Color.rgb(16,112,200) else Color.argb(155,5,27,46))
+     cornerRadius=14f;setStroke(1,if(i==0)Color.argb(220,215,246,255) else Color.argb(65,120,183,225))
+    }
+    setOnFocusChangeListener{v,f->
+     v.background=GradientDrawable().apply{
+      setColor(if(f)Color.rgb(24,148,230) else if(i==0)Color.rgb(16,112,200) else Color.argb(155,5,27,46))
+      cornerRadius=14f;setStroke(if(f)2 else 1,if(f)Color.WHITE else Color.argb(65,120,183,225))
+     }
+    }
+   }
+   decadeRow.addView(chip,LinearLayout.LayoutParams(112,42).apply{setMargins(0,0,10,0)})
+  }
+  content.addView(decadeRow,LinearLayout.LayoutParams(-1,52))
+
+  data class MovieItem(val title:String,val year:String,val meta:String,val url:String,val accent:Int)
+  val movies=listOf(
+   MovieItem("What Fate Holds","1957","Drama • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_233117",Color.rgb(120,49,114)),
+   MovieItem("Young Aphrodites","1963","Drama • Arthouse • Period Romance","https://live.ertflix.gr/details/ERT_M002468",Color.rgb(92,57,132)),
+   MovieItem("Master of the Shadows","1967","Drama • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M001452",Color.rgb(27,93,131)),
+   MovieItem("Ready","2023","Animation • Greek Cinema • Short Film","https://live.ertflix.gr/details/ERT_P000184",Color.rgb(18,115,102))
+  )
+
+  content.addView(TextView(this).apply{
+   text="Featured Greek Cinema";textSize=19f;typeface=Typeface.create("sans-serif",Typeface.BOLD)
+   setTextColor(Color.WHITE);setPadding(0,14,0,8)
+  })
+
+  val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  movies.forEach{m->
+   val card=LinearLayout(this).apply{
+    orientation=LinearLayout.VERTICAL;gravity=Gravity.BOTTOM;isFocusable=true;isClickable=true
+    setPadding(16,14,16,14)
+    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(m.accent,Color.rgb(5,20,34))).apply{
+     cornerRadius=17f;setStroke(1,Color.argb(90,160,205,235))
+    }
+    elevation=6f
+    setOnClickListener{openUri(m.url)}
+   }
+   card.addView(TextView(this@MainActivity).apply{
+    text=m.year;textSize=9f;letterSpacing=.1f;typeface=Typeface.DEFAULT_BOLD
+    setTextColor(Color.rgb(165,220,247))
+   })
+   card.addView(TextView(this@MainActivity).apply{
+    text=m.title;textSize=17f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD)
+    setTextColor(Color.WHITE);setMaxLines(2);ellipsize=android.text.TextUtils.TruncateAt.END
+   },LinearLayout.LayoutParams(-1,0,1f))
+   card.addView(TextView(this@MainActivity).apply{
+    text=m.meta;textSize=9.5f;setTextColor(Color.rgb(216,230,239));setMaxLines(2)
+   })
+   card.addView(TextView(this@MainActivity).apply{
+    text="WATCH  ▶";textSize=10.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
+    setPadding(0,6,0,0)
+   })
+   card.setOnFocusChangeListener{v,f->
+    v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=17f;setStroke(3,Color.WHITE)}else null
+    v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(130).start()
+    v.elevation=if(f)18f else 6f
+   }
+   row.addView(card,LinearLayout.LayoutParams(0,176,1f).apply{setMargins(0,0,12,0)})
+  }
+  content.addView(row)
+
+  val more=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
+   setPadding(18,12,18,12)
+   background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(220,7,49,79),Color.argb(190,9,88,129))).apply{
+    cornerRadius=16f;setStroke(1,Color.argb(90,145,207,244))
+   }
+   setOnClickListener{openUri("https://live.ertflix.gr/")}
+  }
+  val moreText=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  moreText.addView(TextView(this@MainActivity).apply{
+   text="MORE GREEK CINEMA";textSize=15f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
+  })
+  moreText.addView(TextView(this@MainActivity).apply{
+   text="Browse the official ERTFLIX Greek Cinema catalogue";textSize=10.5f;setTextColor(Color.rgb(184,215,235))
+  })
+  more.addView(moreText,LinearLayout.LayoutParams(0,-2,1f))
+  more.addView(TextView(this).apply{text="OPEN  ›";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER},LinearLayout.LayoutParams(92,42))
+  more.setOnFocusChangeListener{v,f->
+   v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=16f;setStroke(3,Color.WHITE)}else null
+  }
+  content.addView(more,LinearLayout.LayoutParams(-1,76).apply{setMargins(0,16,0,0)})
+
+  root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+  setContentView(root)
+  row.post{if(row.childCount>0)row.getChildAt(0).requestFocus()}
+ }
+
  private fun showGreekOneHome(){
   screenMode="HOME"
   activeHomeNav="Home"
@@ -420,6 +557,7 @@ class MainActivity:Activity(){
   addNav("▣","Live TV"){loadChannels()}
   addNav("♡","Favourites"){loadChannels(favouritesOnly=true)}
   addNav("◷","Continue"){loadLastChannel()}
+  addNav("◆","Preloaded Movies"){showPreloadedMovies()}
   addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
   addNav("◎","World TV"){loadChannels("ΔΙΕΘΝΗ")}
   addNav("☷","Categories"){loadChannels()}
@@ -501,17 +639,17 @@ class MainActivity:Activity(){
    heroCard.addView(logo,LinearLayout.LayoutParams(76,62).apply{setMargins(0,0,16,0)})
    val featuredLogo=channelLogoUrl(featured)
    if(featuredLogo.isNotBlank())loadImageInto(logo,featuredLogo)
-   val text=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-   text.addView(TextView(this@MainActivity).apply{
+   val heroText=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+   heroText.addView(TextView(this@MainActivity).apply{
     this.text="FEATURED NOW";textSize=9.5f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(96,205,255))
    })
-   text.addView(TextView(this@MainActivity).apply{
+   heroText.addView(TextView(this@MainActivity).apply{
     this.text=featured.name;textSize=19f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
    })
-   text.addView(TextView(this@MainActivity).apply{
+   heroText.addView(TextView(this@MainActivity).apply{
     this.text=epgNow[featured.tvgId]?.let{"NOW  •  "+it}?:"LIVE  •  Greek television";textSize=11.5f;setTextColor(Color.rgb(220,235,245));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
    })
-   heroCard.addView(text,LinearLayout.LayoutParams(0,-2,1f))
+   heroCard.addView(heroText,LinearLayout.LayoutParams(0,-2,1f))
    heroCard.addView(TextView(this).apply{
     text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
     background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,111,205),Color.rgb(31,170,239))).apply{cornerRadius=12f}
@@ -523,6 +661,39 @@ class MainActivity:Activity(){
    }
    main.addView(heroCard,LinearLayout.LayoutParams(-1,96).apply{setMargins(0,4,0,8)})
   }
+
+  title("Preloaded Movies")
+  val movieFolder=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
+   setPadding(18,12,18,12)
+   background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(242,77,31,112),Color.argb(224,21,84,128),Color.argb(210,5,34,58))).apply{
+    cornerRadius=18f;setStroke(1,Color.argb(95,169,215,242))
+   }
+   elevation=8f
+   setOnClickListener{showPreloadedMovies()}
+  }
+  val movieIcon=TextView(this).apply{
+   text="▶";textSize=24f;gravity=Gravity.CENTER;setTextColor(Color.WHITE)
+   background=GradientDrawable().apply{setColor(Color.argb(170,255,255,255));cornerRadius=13f}
+  }
+  movieFolder.addView(movieIcon,LinearLayout.LayoutParams(58,58).apply{setMargins(0,0,16,0)})
+  val movieCopy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  movieCopy.addView(TextView(this@MainActivity).apply{
+   text="PRELOADED MOVIES";textSize=18f;letterSpacing=.035f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)
+  })
+  movieCopy.addView(TextView(this@MainActivity).apply{
+   text="Greek cinema • classics to modern • curated library";textSize=10.5f;setTextColor(Color.rgb(216,234,245))
+  })
+  movieFolder.addView(movieCopy,LinearLayout.LayoutParams(0,-2,1f))
+  movieFolder.addView(TextView(this).apply{
+   text="OPEN  ›";textSize=12f;typeface=Typeface.DEFAULT_BOLD;gravity=Gravity.CENTER;setTextColor(Color.WHITE)
+  },LinearLayout.LayoutParams(96,42))
+  movieFolder.setOnFocusChangeListener{v,f->
+   v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=18f;setStroke(3,Color.WHITE)}else null
+   v.animate().scaleX(if(f)1.012f else 1f).scaleY(if(f)1.012f else 1f).setDuration(120).start()
+   v.elevation=if(f)18f else 8f
+  }
+  main.addView(movieFolder,LinearLayout.LayoutParams(-1,84).apply{setMargins(0,2,0,8)})
 
   title("Popular Greek Channels")
   val popularRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}

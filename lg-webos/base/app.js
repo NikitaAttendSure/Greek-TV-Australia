@@ -31,7 +31,7 @@ tile("ΣΚΑΪ","SKAI HD","live","popular",'--brandbg:#1268dd'),
 tile("OPEN","OPEN HD","live","popular",'--brandbg:#182031'),
 tile("MEGA","MEGA HD","live","popular",'--brandbg:#f6f7f8;color:#1f3c98')
 ])+
-section("Continue Watching",continueTiles)+
+section("Recently Watched",continueTiles)+
 section("Browse by Category",[
 tile("▣  Greek TV","All Greek Channels","live","category",'background:linear-gradient(135deg,#1880d7,#0a57b0)'),
 tile("●  Movies","Greek & International","movies","category",'background:linear-gradient(135deg,#d72a95,#8b1e72)'),
@@ -40,16 +40,17 @@ tile("★  Kids","For the Little Ones","kids","category",'background:linear-grad
 tile("⌂  "+B.place,"Local Content","local","category",'background:linear-gradient(135deg,#2497d9,#0e6ba8)'),
 tile("◎  World TV","International","world","category",'background:linear-gradient(135deg,#7d2bc9,#4e1691)')
 ])+
-section(B.place+" Highlights",[
-tile(B.place+" Live","Local Content","local","highlight",'background-image:url("https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=900&q=80")'),
-tile(B.place+" Villages","Explore","local","highlight",'background-image:url("https://images.unsplash.com/photo-1504512485720-7d83a16ee930?auto=format&fit=crop&w=900&q=80")'),
-tile(B.place+" Beaches","Island Life","local","highlight",'background-image:url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80")'),
-tile(B.place+" Documentary","History","local","highlight",'background-image:url("https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?auto=format&fit=crop&w=900&q=80")'),
-tile(B.place+" Tradition","Tradition","local","highlight",'background-image:url("https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80")')
-]);
+section("Live Channels",homeLiveTiles());
 bindActions();focusFirst()}
-function bindActions(){$("main").querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==="live")list();else if(a==="movies")list("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ");else if(a==="kids")list("ΠΑΙΔΙΚΑ");else if(a==="local")list(B.localFilter);else if(a==="world")list("ΔΙΕΘΝΗ");else if(a.startsWith("recent:")){const r=recent()[+a.split(":")[1]];const c=channels.find(x=>x.url===r.url);if(c)play(c)}})}
+function bindActions(){$("main").querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==="live")list();else if(a==="movies")list("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ");else if(a==="kids")list("ΠΑΙΔΙΚΑ");else if(a==="local")list(B.localFilter);else if(a==="world")list("ΔΙΕΘΝΗ");else if(a.startsWith("homech:")){const tiles=homeLiveTiles();const idx=+a.split(":")[1];const preferred=["ERT 1","ERT1","ERT 2","ANT1","ALPHA","SKAI","ΣΚΑΪ","OPEN","MEGA"],picked=[];preferred.forEach(n=>{const c=channels.find(x=>x.name.toUpperCase().includes(n.toUpperCase())&&!picked.some(p=>p.url===x.url));if(c&&picked.length<5)picked.push(c)});channels.forEach(c=>{if(picked.length<5&&!picked.some(p=>p.url===c.url))picked.push(c)});if(picked[idx])play(picked[idx])}else if(a.startsWith("recent:")){const r=recent()[+a.split(":")[1]];const c=channels.find(x=>x.url===r.url);if(c)play(c)}})}
 function focusFirst(){setTimeout(()=>{const x=document.querySelector("main button");if(x)x.focus()},30)}
+function homeLiveTiles(){
+ const preferred=["ERT 1","ERT1","ERT 2","ANT1","ALPHA","SKAI","ΣΚΑΪ","OPEN","MEGA"],picked=[];
+ preferred.forEach(n=>{const c=channels.find(x=>x.name.toUpperCase().includes(n.toUpperCase())&&!picked.some(p=>p.url===x.url));if(c&&picked.length<5)picked.push(c)});
+ channels.forEach(c=>{if(picked.length<5&&!picked.some(p=>p.url===c.url))picked.push(c)});
+ if(!picked.length)return ["ERT 1","ANT1","ALPHA","SKAI","MEGA"].map(n=>tile("●  "+n,"Live TV","live","category",'background:linear-gradient(135deg,#15518d,#0a2f58)'));
+ return picked.map((c,i)=>tile("●  "+c.name,c.group||"LIVE TV","homech:"+i,"category",'background:linear-gradient(135deg,#15518d,#0a2f58)'));
+}
 function recent(){try{return JSON.parse(localStorage.getItem("recent")||"[]")}catch(e){return[]}}
 function saveRecent(c){let r=recent().filter(x=>x.url!==c.url);r.unshift({name:c.name,url:c.url,group:c.group});localStorage.setItem("recent",JSON.stringify(r.slice(0,4)))}
 function favs(){try{return JSON.parse(localStorage.getItem("favs")||"[]")}catch(e){return[]}}

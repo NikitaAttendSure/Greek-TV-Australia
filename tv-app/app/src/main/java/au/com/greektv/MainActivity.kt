@@ -808,33 +808,49 @@ class MainActivity:Activity(){
    }
   }catch(_:Exception){runOnUiThread{status.text="Unable to load TV guide";render()}}}.start()
  }
- private fun openYouTubeSearch(query:String){
-  val q=query.trim()
-  if(q.isBlank())return
-  val url="https://www.youtube.com/results?search_query="+java.net.URLEncoder.encode(q,"UTF-8")
+ private fun openYouTubeExternal(url:String){
   val uri=Uri.parse(url)
-  val tvPackages=listOf("com.google.android.youtube.tv","com.google.android.youtube")
-  for(pkg in tvPackages){
+  val packages=listOf("com.google.android.youtube.tv","com.google.android.youtube")
+  for(pkg in packages){
    try{
-    val intent=Intent(Intent.ACTION_VIEW,uri).apply{
-     setPackage(pkg)
-     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-    if(intent.resolveActivity(packageManager)!=null){
-     startActivity(intent)
-     return
-    }
+    val intent=Intent(Intent.ACTION_VIEW,uri).apply{setPackage(pkg);addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
+    if(intent.resolveActivity(packageManager)!=null){startActivity(intent);return}
    }catch(_:Exception){}
   }
-  try{
-   val generic=Intent(Intent.ACTION_VIEW,uri).apply{addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
-   if(generic.resolveActivity(packageManager)!=null){
-    startActivity(generic)
-    return
-   }
-  }catch(_:Exception){}
-  showMessage("YouTube","YouTube is not installed on this TV. Install or enable the YouTube app, then try again.")
+  openUri(url)
  }
+ private fun showYouTubeResults(query:String){
+  val q=query.trim()
+  if(q.isBlank())return
+  screenMode="YOUTUBE_RESULTS"
+  val root=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(5,25,44),Color.rgb(2,9,17)))
+  }
+  val bar=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(30,14,30,14);background=GradientDrawable().apply{setColor(Color.argb(245,3,17,30));setStroke(1,Color.argb(75,130,190,230))}}
+  bar.addView(TextView(this).apply{text="YouTube  •  $q";textSize=20f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END},LinearLayout.LayoutParams(0,54,1f))
+  bar.addView(button("← Search"){showYouTubeSearch()},LinearLayout.LayoutParams(170,54))
+  root.addView(bar,LinearLayout.LayoutParams(-1,82))
+  val web=WebView(this).apply{
+   setBackgroundColor(Color.rgb(2,8,15));isFocusable=true;isFocusableInTouchMode=true
+   settings.javaScriptEnabled=true;settings.domStorageEnabled=true;settings.mediaPlaybackRequiresUserGesture=true;settings.cacheMode=WebSettings.LOAD_DEFAULT
+   webViewClient=object:WebViewClient(){
+    override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
+     val u=request?.url?.toString()?:""
+     if(u.contains("youtube.com/watch")||u.contains("youtu.be/")){openYouTubeExternal(u);return true}
+     return false
+    }
+    override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){
+     if(request?.isForMainFrame==true)Toast.makeText(this@MainActivity,"YouTube results could not load.",Toast.LENGTH_SHORT).show()
+    }
+   }
+  }
+  root.addView(web,LinearLayout.LayoutParams(-1,0,1f))
+  setContentView(root)
+  val url="https://www.youtube.com/results?search_query="+java.net.URLEncoder.encode(q,"UTF-8")
+  try{web.loadUrl(url);web.requestFocus()}catch(_:Exception){openYouTubeExternal(url)}
+ }
+ private fun openYouTubeSearch(query:String){showYouTubeResults(query)}
  private fun showYouTubeSearch(){
   if(isPappas){showHome();return}
   screenMode="YOUTUBE"

@@ -33,3 +33,7 @@ lines=["# Greek One Channel Audit","",f"- Total: **{len(results)}**",f"- Working
 for r in bad: lines.append(f"| {r['name'].replace('|','/')} | {r['group'].replace('|','/')} | {r['status']} | {r['detail'].replace('|','/')} |")
 Path("channel-audit.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
 print(json.dumps({"total":len(results),"working":len(good),"failed":len(bad)}))
+print("FAILED_CHANNELS_BEGIN")
+for r in bad:
+    print(json.dumps({"name":r["name"],"group":r["group"],"status":r["status"],"detail":r["detail"],"url":r["url"]},ensure_ascii=False))
+print("FAILED_CHANNELS_END")

@@ -335,7 +335,7 @@ class MainActivity:Activity(){
    typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true)
   })
   titleWrap.addView(TextView(this).apply{
-   text="24 Greek & Greece-connected films • classics to modern • curated for Greek One";textSize=11.5f
+   text="32 Greek-language cinema titles • classics to modern • curated for Greek One";textSize=11.5f
    setTextColor(Color.rgb(142,190,222));letterSpacing=.035f;setSingleLine(true)
   })
   head.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
@@ -374,37 +374,46 @@ class MainActivity:Activity(){
   content.addView(decadeRow,LinearLayout.LayoutParams(-1,52))
 
   data class MovieItem(val title:String,val year:String,val meta:String,val url:String,val accent:Int)
-  val ertMovies="https://live.ertflix.gr/movies"
   val movies=listOf(
-   MovieItem("What Fate Holds","1957","Drama • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_233117",Color.rgb(120,49,114)),
-   MovieItem("Young Aphrodites","1963","Drama • Arthouse • Period Romance","https://live.ertflix.gr/details/ERT_M002468",Color.rgb(92,57,132)),
-   MovieItem("Master of the Shadows","1967","Drama • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M001452",Color.rgb(27,93,131)),
-   MovieItem("Ready","2023","Animation • Greek Short Film","https://live.ertflix.gr/details/ERT_P000184",Color.rgb(18,115,102)),
+   MovieItem("Our Guardian Angel","1961","Comedy • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M000545",Color.rgb(37,91,126)),
+   MovieItem("The Girl of the Neighborhood","1954","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M002260",Color.rgb(113,61,92)),
+   MovieItem("Me, Myself and I","1964","Greek Cinema • Comedy","https://live.ertflix.gr/details/ERT_214813",Color.rgb(43,96,129)),
+   MovieItem("Cry","1964","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M002490",Color.rgb(82,61,116)),
 
-   MovieItem("Minore","ERTFLIX","Greek Cinema • Drama",ertMovies,Color.rgb(88,55,128)),
-   MovieItem("The Big Shark","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(37,78,116)),
-   MovieItem("Cruise to Rhodes","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(20,104,132)),
-   MovieItem("Crime in Kolonaki","ERTFLIX","Greek Cinema • Crime",ertMovies,Color.rgb(94,47,103)),
+   MovieItem("The Mischief-Makers","Classic","Comedy • Old Greek Cinema","https://live.ertflix.gr/details/ERT_213212",Color.rgb(127,79,31)),
+   MovieItem("The Big Shark","1957","Comedy • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_182067",Color.rgb(23,104,120)),
+   MovieItem("Bouboulina","1959","Biography • Historical • Greek Cinema","https://live.ertflix.gr/details/ERT_P000052",Color.rgb(105,59,39)),
+   MovieItem("The Refugee","1969","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M001256",Color.rgb(45,76,118)),
 
-   MovieItem("My Poor Little Sparrow","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(127,70,42)),
-   MovieItem("Roza of Smyrna","ERTFLIX","Greek Cinema • Drama",ertMovies,Color.rgb(117,51,54)),
-   MovieItem("Rembetiko","ERTFLIX","Greek Cinema • Music • Drama",ertMovies,Color.rgb(80,49,112)),
-   MovieItem("The Refugee","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(38,89,122)),
+   MovieItem("Athens – Istanbul","2008","Drama • Adventure • Greek Cinema","https://live.ertflix.gr/details/ERT_M002494",Color.rgb(26,99,119)),
+   MovieItem("Almond Tree in Bloom","Classic","Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M000294",Color.rgb(118,70,52)),
+   MovieItem("Blood Ties","2012","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M001448",Color.rgb(104,49,68)),
+   MovieItem("The Poor Boy","Classic","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M001392",Color.rgb(59,76,112)),
 
-   MovieItem("The Big Trick","ERTFLIX","Greek Cinema • Comedy",ertMovies,Color.rgb(126,77,24)),
-   MovieItem("Journey of Love","ERTFLIX","Greek Cinema • Romance",ertMovies,Color.rgb(117,53,87)),
-   MovieItem("The Watermelon","ERTFLIX","Greek Cinema • Comedy",ertMovies,Color.rgb(26,112,83)),
-   MovieItem("The River","ERTFLIX","Greek Cinema • Drama",ertMovies,Color.rgb(30,78,113)),
+   MovieItem("My Poor Little Sparrow","Classic","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M002279",Color.rgb(126,64,86)),
+   MovieItem("The Hook","1976","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000567",Color.rgb(67,61,113)),
+   MovieItem("Lefteris Dimakopoulos","1993","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000031",Color.rgb(39,82,117)),
+   MovieItem("Exotic Vitamins","Classic","Comedy • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M002272",Color.rgb(25,105,95)),
 
-   MovieItem("Bouboulina","ERTFLIX","Greek Cinema • Historical",ertMovies,Color.rgb(97,59,41)),
-   MovieItem("To Fintanaki","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(68,81,112)),
-   MovieItem("The Uncle from Canada","ERTFLIX","Greek Cinema • Comedy",ertMovies,Color.rgb(23,102,111)),
-   MovieItem("The Horafa Family","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(110,68,33)),
+   MovieItem("Liubi","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000372",Color.rgb(81,53,112)),
+   MovieItem("Roza of Smyrna","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000440",Color.rgb(118,53,61)),
+   MovieItem("The King","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000029",Color.rgb(56,75,112)),
+   MovieItem("The Seventh Sun of Love","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000886",Color.rgb(111,60,85)),
 
-   MovieItem("Gorgo","2023","Greek-Australian • Drama • SBS","https://www.sbs.com.au/ondemand/movie/gorgo/2488322115913",Color.rgb(102,39,83)),
-   MovieItem("Arcadia","2024","Greek • Fantasy Drama • SBS","https://www.sbs.com.au/ondemand/movie/arcadia/2486881347814",Color.rgb(58,63,119)),
-   MovieItem("Brando with a Glass Eye","2024","Greek • Drama • SBS","https://www.sbs.com.au/ondemand/movie/brando-with-a-glass-eye/2489640003823",Color.rgb(77,45,91)),
-   MovieItem("Two Tickets to Greece","2023","Comedy • Greece • SBS","https://www.sbs.com.au/ondemand/movie/two-tickets-to-greece/2497687107820",Color.rgb(17,102,119))
+   MovieItem("Drift","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000807",Color.rgb(38,87,118)),
+   MovieItem("Love Under the Date Tree","Greek Cinema","Romance • Greek Cinema","https://live.ertflix.gr/details/ERT_M000338",Color.rgb(122,55,82)),
+   MovieItem("Invincible Lovers","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P001777",Color.rgb(47,74,113)),
+   MovieItem("Such a Long Absence","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000437",Color.rgb(73,60,112)),
+
+   MovieItem("The Photographers","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M002473",Color.rgb(31,92,120)),
+   MovieItem("Young Aphrodites","1963","Drama • Arthouse • Greek Cinema","https://live.ertflix.gr/details/ERT_M002468",Color.rgb(93,56,131)),
+   MovieItem("Riviera","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000893",Color.rgb(20,102,125)),
+   MovieItem("Rembetiko","Greek Cinema","Music • Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000496",Color.rgb(83,47,105)),
+
+   MovieItem("Crows","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000345",Color.rgb(52,72,104)),
+   MovieItem("The Tears of the Mountain","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M001148",Color.rgb(64,70,102)),
+   MovieItem("Meteor and Shadow","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_271968",Color.rgb(49,78,108)),
+   MovieItem("Coat Fitting","2006","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_214863",Color.rgb(91,56,88))
   )
 
   content.addView(TextView(this).apply{

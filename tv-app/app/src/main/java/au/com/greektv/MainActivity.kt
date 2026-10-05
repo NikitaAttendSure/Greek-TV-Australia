@@ -380,16 +380,16 @@ class MainActivity:Activity(){
   }
   content.addView(decadeRow,LinearLayout.LayoutParams(-1,46))
 
-  data class MovieItem(val title:String,val year:String,val meta:String,val url:String,val accent:Int)
+  data class MovieItem(val title:String,val year:String,val meta:String,val url:String,val accent:Int,val posterUrl:String?=null)
   val movies=listOf(
-   MovieItem("Our Guardian Angel","1961","Comedy • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M000545",Color.rgb(37,91,126)),
-   MovieItem("The Girl of the Neighborhood","1954","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M002260",Color.rgb(113,61,92)),
-   MovieItem("Me, Myself and I","1964","Greek Cinema • Comedy","https://live.ertflix.gr/details/ERT_214813",Color.rgb(43,96,129)),
-   MovieItem("Cry","1964","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M002490",Color.rgb(82,61,116)),
+   MovieItem("Our Guardian Angel","1961","Comedy • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M000545",Color.rgb(37,91,126),"https://m.media-amazon.com/images/M/MV5BODA0MjIzOGQtOTQ5OC00NzcxLWE1YTMtY2VkMzBiMzg4OTUyXkEyXkFqcGc@._V1_.jpg"),
+   MovieItem("The Girl of the Neighborhood","1954","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M002260",Color.rgb(113,61,92),"https://m.media-amazon.com/images/M/MV5BZWE5MWNjNGUtNmM1OC00YTIzLTg4OGItNjY3Zjk0MjIyOTM5XkEyXkFqcGc@._V1_.jpg"),
+   MovieItem("Me, Myself and I","1964","Greek Cinema • Comedy","https://live.ertflix.gr/details/ERT_214813",Color.rgb(43,96,129),"https://image.tmdb.org/t/p/w500/1JysIlTfbtQLCcIxo8l1NESQEzX.jpg"),
+   MovieItem("Cry","1964","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M002490",Color.rgb(82,61,116),"https://www.filmy.gr/wp-content/uploads/2026/05/Cry-1964-50.jpg"),
 
    MovieItem("The Mischief-Makers","Classic","Comedy • Old Greek Cinema","https://live.ertflix.gr/details/ERT_213212",Color.rgb(127,79,31)),
-   MovieItem("The Big Shark","1957","Comedy • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_182067",Color.rgb(23,104,120)),
-   MovieItem("Bouboulina","1959","Biography • Historical • Greek Cinema","https://live.ertflix.gr/details/ERT_P000052",Color.rgb(105,59,39)),
+   MovieItem("The Big Shark","1957","Comedy • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_182067",Color.rgb(23,104,120),"https://a.ltrbxd.com/resized/film-poster/3/3/6/8/3/0/336830-o-megalokarharias-0-230-0-345-crop.jpg?v=690a87308f"),
+   MovieItem("Bouboulina","1959","Biography • Historical • Greek Cinema","https://live.ertflix.gr/details/ERT_P000052",Color.rgb(105,59,39),"https://m.media-amazon.com/images/M/MV5BNGI2NTAxMWUtZWI5Zi00ZTQxLThiMDEtYTU5NjNjYWE3Y2RkXkEyXkFqcGc@._V1_.jpg"),
    MovieItem("The Refugee","1969","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M001256",Color.rgb(45,76,118)),
 
    MovieItem("Athens – Istanbul","2008","Drama • Adventure • Greek Cinema","https://live.ertflix.gr/details/ERT_M002494",Color.rgb(26,99,119)),
@@ -413,9 +413,9 @@ class MainActivity:Activity(){
    MovieItem("Such a Long Absence","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000437",Color.rgb(73,60,112)),
 
    MovieItem("The Photographers","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M002473",Color.rgb(31,92,120)),
-   MovieItem("Young Aphrodites","1963","Drama • Arthouse • Greek Cinema","https://live.ertflix.gr/details/ERT_M002468",Color.rgb(93,56,131)),
+   MovieItem("Young Aphrodites","1963","Drama • Arthouse • Greek Cinema","https://live.ertflix.gr/details/ERT_M002468",Color.rgb(93,56,131),"https://m.media-amazon.com/images/M/MV5BZWNjYjZiNjItMjZmOS00N2ZmLTg4NDktZGYxM2EyZGZiZDkxXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg"),
    MovieItem("Riviera","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000893",Color.rgb(20,102,125)),
-   MovieItem("Rembetiko","Greek Cinema","Music • Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000496",Color.rgb(83,47,105)),
+   MovieItem("Rembetiko","1983","Music • Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000496",Color.rgb(83,47,105),"https://a.ltrbxd.com/resized/film-poster/1/7/6/7/9/17679-rembetiko-0-600-0-900-crop.jpg?v=d4070d253a"),
 
    MovieItem("Crows","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000345",Color.rgb(52,72,104)),
    MovieItem("The Tears of the Mountain","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M001148",Color.rgb(64,70,102)),
@@ -476,7 +476,7 @@ class MainActivity:Activity(){
     "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=500&q=75",
     "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=500&q=75"
    )[i%4]
-   loadImageInto(posterImage,fallbackArt)
+   loadImageInto(posterImage,m.posterUrl?:fallbackArt)
    card.setOnFocusChangeListener{v,f->
     v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=15f;setStroke(3,Color.WHITE)}else null
     v.animate().scaleX(if(f)1.022f else 1f).scaleY(if(f)1.022f else 1f).setDuration(125).start()

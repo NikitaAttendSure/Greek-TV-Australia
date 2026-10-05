@@ -1,6 +1,6 @@
 const B=window.TV_BRAND;
 const PLAYLIST="https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/greek-tv.m3u";
-let channels=[],filtered=[],current=-1,previewTimer=null,epgNow={},epgNext={};
+let channels=[],filtered=[],current=-1,currentChannel=null,previewTimer=null,miniGuideTimer=null,epgNow={},epgNext={};
 const $=id=>document.getElementById(id);
 function esc(s){return String(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}
 function clock(){const d=new Date();$("clock").textContent=d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+"  |  "+d.toLocaleDateString([],{weekday:"short",day:"numeric",month:"short"})}
@@ -61,10 +61,26 @@ function guide(){stopPreview();$("main").innerHTML='<div class="screenTitle">TV 
 function list(filter=null,favOnly=false){stopPreview();filtered=channels.filter(c=>(!filter||c.group.toLowerCase().includes(filter.toLowerCase()))&&(!favOnly||favs().includes(c.url)));$("main").innerHTML='<div class="screenTitle">'+(favOnly?"FAVOURITES":filter?esc(filter):"LIVE TV")+'</div><div class="channelLayout"><div class="channelList"><div class="channelRows" id="channelRows"></div></div><div class="preview"><video id="preview" muted autoplay></video><div id="previewTitle">Select a channel</div><div id="previewMeta">Live preview</div></div></div>';const rows=$("channelRows");if(!filtered.length){rows.innerHTML='<div class="empty">No channels found.</div>';return}filtered.forEach((c,i)=>{const b=document.createElement("button");b.className="channelRow";b.textContent=c.name+(favs().includes(c.url)?"   ★":"");b.onclick=()=>play(c);b.onfocus=()=>schedulePreview(c);b.oncontextmenu=e=>{e.preventDefault();toggleFav(c);list(filter,favOnly)};b.onkeydown=e=>{if(e.keyCode===461||e.keyCode===8)return;if(e.keyCode===13&&e.ctrlKey){toggleFav(c);list(filter,favOnly)}};rows.appendChild(b)});focusFirst();setTimeout(()=>{const x=rows.querySelector("button");if(x)x.focus()},30)}
 function schedulePreview(c){clearTimeout(previewTimer);$("previewTitle").textContent=c.name;$("previewMeta").textContent="Loading preview…";previewTimer=setTimeout(()=>{const v=$("preview");if(!v)return;try{v.src=c.url;v.onplaying=()=>{$("previewMeta").textContent=(c.tvgId&&epgNow[c.tvgId]?"NOW  •  "+epgNow[c.tvgId]:(c.group||"GREEK TV").toUpperCase()+" · LIVE NOW")};v.onerror=()=>{$("previewMeta").textContent="Temporarily unavailable • OK to try full screen"};v.play().catch(()=>{$("previewMeta").textContent="Temporarily unavailable • OK to try full screen"})}catch(e){$("previewMeta").textContent="Temporarily unavailable • OK to try full screen"}},350)}
 function stopPreview(){clearTimeout(previewTimer);const v=$("preview");if(v){try{v.pause();v.removeAttribute("src");v.load()}catch(e){}}}
-function play(c){stopPreview();current=channels.findIndex(x=>x.url===c.url);saveRecent(c);$("app").classList.add("hidden");$("playerScreen").classList.remove("hidden");$("playerTitle").textContent=c.name;const v=$("video");v.onerror=()=>{$("playerTitle").textContent=c.name+" • Temporarily unavailable";setTimeout(closePlayer,1200)};v.src=c.url;v.play().catch(()=>{$("playerTitle").textContent=c.name+" • Temporarily unavailable"})}
-function closePlayer(){const v=$("video");try{v.pause();v.removeAttribute("src");v.load()}catch(e){};$("playerScreen").classList.add("hidden");$("app").classList.remove("hidden");list()}
+function showMiniGuide(c=currentChannel){
+ if(!c)return;
+ let g=$("miniGuide");
+ if(!g){
+  document.body.insertAdjacentHTML("beforeend",'<div id="miniGuide" class="hidden"></div>');
+  g=$("miniGuide");
+ }
+ const now=(c.tvgId&&epgNow[c.tvgId])?epgNow[c.tvgId]:(c.group||"LIVE TV");
+ const next=(c.tvgId&&epgNext[c.tvgId])?epgNext[c.tvgId]:"Live channel";
+ const fav=favs().includes(c.url)?"★ Favourite":"☆ Add favourite";
+ g.innerHTML='<div class="mgTop"><span class="mgLive">LIVE</span><strong>'+esc(c.name)+'</strong><span class="mgTime">'+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+'</span></div><div class="mgNow">NOW  •  '+esc(now)+'</div><div class="mgNext">NEXT •  '+esc(next)+'</div><div class="mgHelp">'+fav+' &nbsp;&nbsp;•&nbsp;&nbsp; ▲▼ Change channel &nbsp;&nbsp;•&nbsp;&nbsp; OK/INFO Guide</div>';
+ g.classList.remove("hidden");
+ g.style.opacity="1";
+ clearTimeout(miniGuideTimer);
+ miniGuideTimer=setTimeout(()=>{g.style.opacity="0";setTimeout(()=>g.classList.add("hidden"),180)},5000);
+}
+function play(c){stopPreview();current=channels.findIndex(x=>x.url===c.url);currentChannel=c;saveRecent(c);$("app").classList.add("hidden");$("playerScreen").classList.remove("hidden");$("playerTitle").textContent=c.name;const v=$("video");v.onerror=()=>{$("playerTitle").textContent=c.name+" • Temporarily unavailable";setTimeout(closePlayer,1200)};v.src=c.url;showMiniGuide(c);v.play().catch(()=>{$("playerTitle").textContent=c.name+" • Temporarily unavailable"})}
+function closePlayer(){const v=$("video");clearTimeout(miniGuideTimer);const g=$("miniGuide");if(g)g.classList.add("hidden");currentChannel=null;try{v.pause();v.removeAttribute("src");v.load()}catch(e){};$("playerScreen").classList.add("hidden");$("app").classList.remove("hidden");list()}
 function continueWatch(){const r=recent()[0];if(!r)return list();const c=channels.find(x=>x.url===r.url);if(c)play(c);else list()}
 function toggleFav(c){let f=favs();f=f.includes(c.url)?f.filter(x=>x!==c.url):[...f,c.url];localStorage.setItem("favs",JSON.stringify(f))}
 function settings(){alert(B.name+" for LG webOS\nContent refreshes automatically.")}
-window.addEventListener("keydown",e=>{if(!$("playerScreen").classList.contains("hidden")){if(e.keyCode===461||e.keyCode===8||e.key==="Escape"){e.preventDefault();closePlayer();return}if((e.keyCode===33||e.keyCode===38)&&channels.length){current=(current+1)%channels.length;play(channels[current])}if((e.keyCode===34||e.keyCode===40)&&channels.length){current=(current-1+channels.length)%channels.length;play(channels[current])}}else if(e.keyCode===461||e.keyCode===8||e.key==="Escape"){e.preventDefault();home()}});
+window.addEventListener("keydown",e=>{if(!$("playerScreen").classList.contains("hidden")){if(e.keyCode===461||e.keyCode===8||e.key==="Escape"){e.preventDefault();closePlayer();return}if(e.keyCode===13||e.keyCode===457||e.keyCode===73){e.preventDefault();showMiniGuide();return}if((e.keyCode===33||e.keyCode===38)&&channels.length){current=(current+1)%channels.length;play(channels[current]);return}if((e.keyCode===34||e.keyCode===40)&&channels.length){current=(current-1+channels.length)%channels.length;play(channels[current]);return}if((e.keyCode===403||e.keyCode===404)&&currentChannel){toggleFav(currentChannel);showMiniGuide();return}}else if(e.keyCode===461||e.keyCode===8||e.key==="Escape"){e.preventDefault();home()}});
 (async()=>{document.body.insertAdjacentHTML("beforeend",'<div id="boot"><div class="bootFlag">🇬🇷</div><div class="bootBrand">'+esc(B.name)+'</div><div class="bootSub">GREEK TELEVISION • '+esc(B.place.toUpperCase())+' • AND MORE</div></div>');initBrand();buildNav();await loadPlaylist();home();setTimeout(()=>{const b=$("boot");if(b){b.style.opacity="0";setTimeout(()=>b.remove(),320)}},650);loadEpg()})();

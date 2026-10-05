@@ -10,6 +10,6 @@
   <path android:fillColor="#FFFFFF" android:pathData="M25,105c17,7 34,8 51,3c13,-4 24,-10 34,-19c-6,15 -18,27 -34,33c-20,7 -40,6 -58,-3z"/>
   <path android:fillColor="#5AC9FF" android:pathData="M24,120c19,8 39,9 58,4c12,-4 23,-10 32,-18c-6,13 -16,23 -30,29c-21,8 -43,7 -63,-2z"/>
   <path android:fillColor="#FFFFFF" android:pathData="M88,78l29,18l-29,18z"/>
-  <path android:fillColor="#FFFFFF" android:pathData="M151,61h13v58h-13z M174,61h13v58h-13z M197,61h13v58h-13z"/>
-  <path android:fillColor="#4ABEFF" android:pathData="M230,61h13v58h-13z M253,61h13v58h-13z M276,61h13v58h-13z"/>
+  <path android:fillColor="#FFFFFF" android:pathData="M148,63h12v54h-12z M170,63h12v54h-12z M192,63h12v54h-12z"/>
+  <path android:fillColor="#4ABEFF" android:pathData="M224,63h12v54h-12z M246,63h12v54h-12z M268,63h12v54h-12z"/>
 </vector>

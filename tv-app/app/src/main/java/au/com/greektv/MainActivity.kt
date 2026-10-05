@@ -37,6 +37,7 @@ class MainActivity:Activity(){
  private var remoteConfig=JSONObject()
  private var remoteRefreshDone=false
  private var launchUpdateChecked=false
+ private var screenMode="HOME"
  private var epgLoading=false
  private var epgLoadedAt=0L
  private val epgCacheTtlMs=10*60*1000L
@@ -181,6 +182,7 @@ class MainActivity:Activity(){
  private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=21f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(30,0,24,0);stateListAnimator=null;setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,5,0,5)};setOnFocusChangeListener{v,f->background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,116,213),Color.rgb(28,151,245))).apply{cornerRadius=18f;setStroke(2,Color.argb(205,255,255,255))}else panel(card);v.animate().scaleX(if(f)1.035f else 1f).scaleY(if(f)1.035f else 1f).setDuration(110).start();v.elevation=if(f)16f else 1f}}
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
  private fun showHome(){
+  screenMode="HOME"
   previewHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
   window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 
@@ -403,6 +405,7 @@ class MainActivity:Activity(){
   return frame
  }
  private fun showTvGuide(){
+  screenMode="GUIDE"
   previewHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
   currentSection="TV GUIDE"
   val root=LinearLayout(this).apply{
@@ -486,6 +489,7 @@ class MainActivity:Activity(){
  private fun parsePlaylist(txt:String):List<Channel>{val out=mutableListOf<Channel>();var n="";var g="";var id="";txt.lines().forEach{l->if(l.startsWith("#EXTINF")){n=l.substringAfterLast(",").trim();g=l.substringAfter("group-title=\"", "").substringBefore("\"", "");id=l.substringAfter("tvg-id=\"", "").substringBefore("\"", "")}else if(l.startsWith("http")&&n.isNotBlank()){out.add(Channel(n,l.trim(),g,id));n="";g="";id=""}};return out}
  private fun loadChannels(filter:String?=null,favouritesOnly:Boolean=false){currentSection=when{favouritesOnly->"FAVOURITES";filter?.contains(placeFilter,true)==true->placeUpper;filter?.contains("ΠΑΙΔΙΚΑ",true)==true->"KIDS";filter?.contains("ΤΑΙΝΙΕΣ",true)==true->"ON DEMAND";filter?.contains("ΔΙΕΘΝΗ",true)==true->"WORLD TV";filter?.contains("ERT",true)==true->"ERT";else->"LIVE TV"};Thread{try{val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e};val out=parsePlaylist(txt).filter{(filter==null||it.group.contains(filter,true))&&(!favouritesOnly||fav.has(it.url))};runOnUiThread{channels=out;if(out.isEmpty()){showMessage(brandName,if(favouritesOnly)"No favourites yet." else "No channels found.")}else{showList()}}}catch(e:Exception){runOnUiThread{showMessage(brandName,"Unable to load right now. Check the internet connection and try again.")}}}.start()}
  private fun showList(){
+  screenMode="LIST"
   previewHandler.removeCallbacksAndMessages(null);previewPlayer?.release();previewPlayer=null
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(42,28,42,28);background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(4,20,35),Color.rgb(2,8,15)))}
 
@@ -634,7 +638,7 @@ class MainActivity:Activity(){
   list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
  }
  private fun play(i:Int){previewPlayer?.release();previewPlayer=null;window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;current=i;prefs.edit().putString("last_channel",channels[i].url).apply();recordRecent(channels[i]);player?.release();player=ExoPlayer.Builder(this).build();player!!.addListener(object:Player.Listener{override fun onPlayerError(error:PlaybackException){runOnUiThread{Toast.makeText(this@MainActivity,"Το κανάλι δεν είναι διαθέσιμο. Δοκιμάστε άλλο.",Toast.LENGTH_LONG).show();showList()}}});val frame=FrameLayout(this);val v=PlayerView(this).apply{player=this@MainActivity.player;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);keepScreenOn=true;controllerShowTimeoutMs=3000;setBackgroundColor(Color.BLACK)};frame.addView(v,FrameLayout.LayoutParams(-1,-1));overlay=TextView(this).apply{text="●  LIVE   "+channels[i].name;textSize=20f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(235,7,24,41),Color.argb(215,12,50,82))).apply{cornerRadius=14f;setStroke(1,Color.argb(95,180,215,245))};setPadding(26,14,30,14);elevation=10f};frame.addView(overlay,FrameLayout.LayoutParams(-2,-2,Gravity.START or Gravity.BOTTOM).apply{setMargins(42,0,0,42)});setContentView(frame);overlay?.postDelayed({overlay?.visibility=View.GONE},2600);player!!.setMediaItem(MediaItem.fromUri(channels[i].url));player!!.prepare();player!!.play()}
- override fun onKeyDown(k:Int,e:KeyEvent?):Boolean{if(player!=null&&channels.isNotEmpty()){when(k){KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_CHANNEL_UP->{play((current+1)%channels.size);return true};KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_CHANNEL_DOWN->{play((current-1+channels.size)%channels.size);return true};KeyEvent.KEYCODE_STAR,KeyEvent.KEYCODE_BOOKMARK->{fav.toggle(channels[current].url);Toast.makeText(this,if(fav.has(channels[current].url))"★ Προστέθηκε στα αγαπημένα" else "Αφαιρέθηκε από τα αγαπημένα",Toast.LENGTH_SHORT).show();return true};KeyEvent.KEYCODE_BACK->{player?.release();player=null;showList();return true}}};return super.onKeyDown(k,e)}
+ override fun onKeyDown(k:Int,e:KeyEvent?):Boolean{if(player!=null&&channels.isNotEmpty()){when(k){KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_CHANNEL_UP->{play((current+1)%channels.size);return true};KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_CHANNEL_DOWN->{play((current-1+channels.size)%channels.size);return true};KeyEvent.KEYCODE_STAR,KeyEvent.KEYCODE_BOOKMARK->{fav.toggle(channels[current].url);Toast.makeText(this,if(fav.has(channels[current].url))"★ Προστέθηκε στα αγαπημένα" else "Αφαιρέθηκε από τα αγαπημένα",Toast.LENGTH_SHORT).show();return true};KeyEvent.KEYCODE_BACK->{player?.release();player=null;showList();return true}}};if(k==KeyEvent.KEYCODE_BACK&&screenMode!="HOME"){showHome();return true};return super.onKeyDown(k,e)}
  private fun openBrousko(){openUri("https://www.antenna.gr/mprousko")}
  private fun openUri(u:String){val i=Intent(Intent.ACTION_VIEW,Uri.parse(u));if(i.resolveActivity(packageManager)!=null)startActivity(i)else showMessage(brandName,"Δεν βρέθηκε συμβατή εφαρμογή.")}
  private fun showMessage(t:String,m:String){AlertDialog.Builder(this).setTitle(t).setMessage(m).setPositiveButton("OK",null).show()}

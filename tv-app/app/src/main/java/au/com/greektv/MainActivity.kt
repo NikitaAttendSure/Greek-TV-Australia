@@ -124,16 +124,71 @@ class MainActivity:Activity(){
   if(android.os.Build.VERSION.SDK_INT>=28)p.longVersionCode.toInt() else p.versionCode
  }catch(_:Exception){0}
  private fun showSettings(){
+  if(isPappas){
+   val ver=try{packageManager.getPackageInfo(packageName,0).versionName}catch(_:Exception){"1.0"}
+   AlertDialog.Builder(this).setTitle("$brandName Settings")
+    .setMessage("Live content refreshes automatically.\n\nApp version $ver")
+    .setPositiveButton("Check for update"){_,_->
+     val latest=remoteConfig.optInt("latestVersionCode",currentVersionCode())
+     if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage(brandName+" "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->installAppUpdate(cfgString("updateUrl","https://ptv.up.railway.app"))}.setNegativeButton("Later",null).show()
+     else Toast.makeText(this,"$brandName is up to date.",Toast.LENGTH_SHORT).show()
+    }
+    .setNeutralButton("Refresh content"){_,_->remoteRefreshDone=false;refreshRemoteConfig();Toast.makeText(this,"Refreshing $brandName content…",Toast.LENGTH_SHORT).show()}
+    .setNegativeButton("Close",null).show()
+   return
+  }
+  screenMode="SETTINGS"
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
   val ver=try{packageManager.getPackageInfo(packageName,0).versionName}catch(_:Exception){"1.0"}
-  AlertDialog.Builder(this).setTitle("$brandName Settings")
-   .setMessage("Live content refreshes automatically.\n\nApp version $ver")
-   .setPositiveButton("Check for update"){_,_->
-    val latest=remoteConfig.optInt("latestVersionCode",currentVersionCode())
-    if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage(brandName+" "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->installAppUpdate(cfgString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}.setNegativeButton("Later",null).show()
-    else Toast.makeText(this,"$brandName is up to date.",Toast.LENGTH_SHORT).show()
+  val root=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;setPadding(54,34,54,30)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(5,26,45),Color.rgb(2,9,17)))
+  }
+  val head=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  val titleWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  titleWrap.addView(TextView(this).apply{text="Settings";textSize=34f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
+  titleWrap.addView(TextView(this).apply{text="Greek One preferences and app status";textSize=13f;setTextColor(Color.rgb(130,191,232));letterSpacing=.04f})
+  head.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
+  head.addView(button("←  Home"){activeHomeNav="Home";showHome()},LinearLayout.LayoutParams(180,58))
+  root.addView(head,LinearLayout.LayoutParams(-1,84))
+  fun settingCard(title:String,subtitle:String,action:()->Unit):LinearLayout=
+   LinearLayout(this).apply{
+    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true;setPadding(24,16,24,16)
+    background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(240,6,28,48),Color.argb(220,8,47,77))).apply{cornerRadius=18f;setStroke(1,Color.argb(90,135,198,240))}
+    val tw=LinearLayout(this@MainActivity).apply{orientation=LinearLayout.VERTICAL}
+    tw.addView(TextView(this@MainActivity).apply{text=title;textSize=20f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE)})
+    tw.addView(TextView(this@MainActivity).apply{text=subtitle;textSize=12.5f;setTextColor(Color.rgb(170,202,226));setPadding(0,4,0,0)})
+    addView(tw,LinearLayout.LayoutParams(0,-2,1f))
+    addView(TextView(this@MainActivity).apply{text="›";textSize=32f;setTextColor(Color.rgb(88,194,255));gravity=Gravity.CENTER},LinearLayout.LayoutParams(48,48))
+    setOnClickListener{action()}
+    setOnFocusChangeListener{v,f->
+     background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,103,197),Color.rgb(28,170,241))).apply{cornerRadius=18f;setStroke(2,Color.WHITE)}
+     else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(240,6,28,48),Color.argb(220,8,47,77))).apply{cornerRadius=18f;setStroke(1,Color.argb(90,135,198,240))}
+     v.animate().scaleX(if(f)1.018f else 1f).scaleY(if(f)1.018f else 1f).setDuration(145).start()
+    }
    }
-   .setNeutralButton("Refresh content"){_,_->remoteRefreshDone=false;refreshRemoteConfig();Toast.makeText(this,"Refreshing $brandName content…",Toast.LENGTH_SHORT).show()}
-   .setNegativeButton("Close",null).show()
+  root.addView(settingCard("Check for update","See whether a newer Greek One build is available"){
+   val latest=remoteConfig.optInt("latestVersionCode",currentVersionCode())
+   if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage("Greek One "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->installAppUpdate(cfgString("updateUrl","https://rtv.up.railway.app"))}.setNegativeButton("Later",null).show()
+   else Toast.makeText(this,"Greek One is up to date.",Toast.LENGTH_SHORT).show()
+  },LinearLayout.LayoutParams(-1,92).apply{setMargins(0,8,0,14)})
+  root.addView(settingCard("Refresh content","Reload channels, guide configuration and branding"){
+   prefs.edit().remove("playlist_cache").putLong("playlist_cache_at",0L).apply();remoteRefreshDone=false;refreshRemoteConfig()
+   Toast.makeText(this,"Refreshing Greek One content…",Toast.LENGTH_SHORT).show()
+  },LinearLayout.LayoutParams(-1,92).apply{setMargins(0,0,0,14)})
+  root.addView(settingCard("Playback & TV","Live streams use the TV-native Media3 player"){
+   Toast.makeText(this,"Playback is optimized for Android TV.",Toast.LENGTH_SHORT).show()
+  },LinearLayout.LayoutParams(-1,92).apply{setMargins(0,0,0,14)})
+  val info=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;setPadding(22,18,22,18)
+   background=GradientDrawable().apply{setColor(Color.argb(155,4,18,31));cornerRadius=18f;setStroke(1,Color.argb(65,120,180,225))}
+  }
+  info.addView(TextView(this).apply{text="ABOUT GREEK ONE";textSize=11f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(104,180,227))})
+  info.addView(TextView(this).apply{text="Greek television, live channels, guide, favourites, recent viewing and YouTube discovery in one TV-first experience.";textSize=14f;setTextColor(Color.rgb(220,232,242));setPadding(0,9,0,0)})
+  root.addView(info,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,8,0,0)})
+  root.addView(TextView(this).apply{text="Greek One  •  Version $ver  •  Build \${currentVersionCode()}";textSize=10f;letterSpacing=.08f;gravity=Gravity.CENTER_HORIZONTAL;setTextColor(Color.rgb(91,137,170));setPadding(0,24,0,0)})
+  setContentView(root)
+  root.post{if(root.childCount>1)root.getChildAt(1).requestFocus()}
  }
  private fun recordRecent(ch:Channel){
   try{
@@ -582,7 +637,7 @@ class MainActivity:Activity(){
    }
   }else{
    selectedHomeChannels.forEach{ch->
-    liveRow.addView(tvCard("●  "+ch.name,if(ch.group.isBlank())"LIVE TV" else ch.group,Color.rgb(16,74,132)){playRecent(ch.url)},LinearLayout.LayoutParams(0,100,1f).apply{setMargins(0,0,12,0)})
+    liveRow.addView(logoCard(ch.name,ch.name,Color.rgb(16,74,132),false,{playRecent(ch.url)},channelLogoUrl(ch)),LinearLayout.LayoutParams(0,118,1f).apply{setMargins(0,0,12,0)})
    }
   }
   main.addView(liveRow)
@@ -622,12 +677,12 @@ class MainActivity:Activity(){
    else->""
   }
  }
- private fun logoCard(mark:String,label:String,base:Int,darkText:Boolean=false,action:()->Unit):FrameLayout{
+ private fun logoCard(mark:String,label:String,base:Int,darkText:Boolean=false,action:()->Unit,logoUrlOverride:String=""):FrameLayout{
   val frame=FrameLayout(this).apply{
    isFocusable=true;isClickable=true;elevation=6f;clipToOutline=true
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(base,if(darkText)Color.rgb(222,226,232) else Color.rgb(5,18,33))).apply{cornerRadius=14f;setStroke(1,Color.argb(105,170,205,235))}
   }
-  val logoUrl=popularLogoUrl(label)
+  val logoUrl=logoUrlOverride.ifBlank{popularLogoUrl(label)}
   if(logoUrl.isNotBlank()){
    val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(14,12,14,12)}
    frame.addView(logo,FrameLayout.LayoutParams(-1,96))
@@ -859,7 +914,7 @@ class MainActivity:Activity(){
   return conn.getInputStream().bufferedReader().use{it.readText()}.also{prefs.edit().putString("playlist_cache",it).putLong("playlist_cache_at",now).apply()}
  }
  private fun parsePlaylist(txt:String):List<Channel>{val out=mutableListOf<Channel>();var n="";var g="";var id="";txt.lines().forEach{l->if(l.startsWith("#EXTINF")){n=l.substringAfterLast(",").trim();g=l.substringAfter("group-title=\"", "").substringBefore("\"", "");id=l.substringAfter("tvg-id=\"", "").substringBefore("\"", "")}else if(l.startsWith("http")&&n.isNotBlank()){out.add(Channel(n,l.trim(),g,id));n="";g="";id=""}};return out}
- private fun loadChannels(filter:String?=null,favouritesOnly:Boolean=false){currentSection=when{favouritesOnly->"FAVOURITES";filter?.contains(placeFilter,true)==true->placeUpper;filter?.contains("ΠΑΙΔΙΚΑ",true)==true->"KIDS";filter?.contains("ΤΑΙΝΙΕΣ",true)==true->"ON DEMAND";filter?.contains("ΔΙΕΘΝΗ",true)==true->"WORLD TV";filter?.contains("ERT",true)==true->"ERT";else->"LIVE TV"};Thread{try{val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e};val out=parsePlaylist(txt).filter{(filter==null||it.group.contains(filter,true))&&(!favouritesOnly||fav.has(it.url))};runOnUiThread{channels=out;if(out.isEmpty()){showEmptyState(if(favouritesOnly)"FAVOURITES" else currentSection,if(favouritesOnly)"No favourites yet. Hold OK on a channel to add one." else "Nothing is available in this section right now.")}else{showList()}}}catch(e:Exception){runOnUiThread{showMessage(brandName,"Unable to load right now. Check the internet connection and try again.")}}}.start()}
+ private fun loadChannels(filter:String?=null,favouritesOnly:Boolean=false){currentSection=when{favouritesOnly->"FAVOURITES";filter?.contains(placeFilter,true)==true->placeUpper;filter?.contains("ΠΑΙΔΙΚΑ",true)==true->"KIDS";filter?.contains("ΤΑΙΝΙΕΣ",true)==true->"ON DEMAND";filter?.contains("ΔΙΕΘΝΗ",true)==true->"WORLD TV";filter?.contains("ERT",true)==true->"ERT";else->"LIVE TV"};showLoadingState("Loading "+currentSection.lowercase().replaceFirstChar{it.uppercase()}+"…");Thread{try{val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e};val out=parsePlaylist(txt).filter{(filter==null||it.group.contains(filter,true))&&(!favouritesOnly||fav.has(it.url))};runOnUiThread{channels=out;if(out.isEmpty()){showEmptyState(if(favouritesOnly)"FAVOURITES" else currentSection,if(favouritesOnly)"No favourites yet. Hold OK on a channel to add one." else "Nothing is available in this section right now.")}else{showList()}}}catch(e:Exception){runOnUiThread{showMessage(brandName,"Unable to load right now. Check the internet connection and try again.")}}}.start()}
  private fun showList(){
   screenMode="LIST"
   previewHandler.removeCallbacksAndMessages(null);previewPlayer?.release();previewPlayer=null
@@ -1028,7 +1083,15 @@ class MainActivity:Activity(){
   recordRecent(channels[i])
   player?.release()
   player=ExoPlayer.Builder(this).build()
+  var loadingView:TextView?=null
   player!!.addListener(object:Player.Listener{
+   override fun onPlaybackStateChanged(state:Int){
+    runOnUiThread{
+     loadingView?.visibility=if(state==Player.STATE_BUFFERING||state==Player.STATE_IDLE)View.VISIBLE else View.GONE
+     loadingView?.text=if(state==Player.STATE_BUFFERING)"Buffering channel…" else "Opening channel…"
+    }
+   }
+   override fun onRenderedFirstFrame(){runOnUiThread{loadingView?.visibility=View.GONE}}
    override fun onPlayerError(error:PlaybackException){
     runOnUiThread{
      Toast.makeText(this@MainActivity,"Το κανάλι δεν είναι διαθέσιμο. Δοκιμάστε άλλο.",Toast.LENGTH_LONG).show()
@@ -1046,6 +1109,12 @@ class MainActivity:Activity(){
    setBackgroundColor(Color.BLACK)
   }
   frame.addView(v,FrameLayout.LayoutParams(-1,-1))
+  loadingView=TextView(this).apply{
+   text="Opening channel…";textSize=15f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
+   setPadding(22,12,22,12)
+   background=GradientDrawable().apply{setColor(Color.argb(220,4,18,31));cornerRadius=16f;setStroke(1,Color.argb(105,145,205,245))}
+  }
+  frame.addView(loadingView,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
 
   val ch=channels[i]
   val guide=LinearLayout(this).apply{
@@ -1125,6 +1194,17 @@ class MainActivity:Activity(){
   }
   if(k==KeyEvent.KEYCODE_BACK&&screenMode!="HOME"){showHome();return true}
   return super.onKeyDown(k,e)
+ }
+ private fun showLoadingState(message:String){
+  screenMode="LOADING"
+  val root=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER;setPadding(50,40,50,40)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(5,27,47),Color.rgb(2,9,17)))
+  }
+  root.addView(ProgressBar(this).apply{isIndeterminate=true},LinearLayout.LayoutParams(64,64))
+  root.addView(TextView(this).apply{text=message;textSize=20f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(0,22,0,5)})
+  root.addView(TextView(this).apply{text="Greek One is getting things ready";textSize=12f;setTextColor(Color.rgb(135,181,214));gravity=Gravity.CENTER})
+  setContentView(root)
  }
  private fun showEmptyState(title:String,message:String){
   screenMode="LIST"

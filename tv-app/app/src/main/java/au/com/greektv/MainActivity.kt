@@ -329,11 +329,41 @@ class MainActivity:Activity(){
   val card=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;isFocusable=true;isClickable=true;setPadding(24,18,24,18);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(39,18,64),Color.rgb(92,28,110))).apply{cornerRadius=20f;setStroke(1,Color.argb(130,190,140,225))}}
   card.addView(TextView(this).apply{text="ΜΠΡΟΥΣΚΟ";textSize=27f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
   card.addView(TextView(this).apply{text="ANT1 • Complete catalogue • Episodes 1–772";textSize=14f;setTextColor(Color.rgb(226,210,238));setPadding(0,5,0,0)})
-  card.setOnClickListener{openUri("https://www1.antenna.gr/webtv/4234/mproysko")}
+  card.setOnClickListener{showBrousko()}
   card.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(3,Color.WHITE);cornerRadius=20f}else null;v.animate().scaleX(if(f)1.018f else 1f).scaleY(if(f)1.018f else 1f).setDuration(130).start()}
   root.addView(card,LinearLayout.LayoutParams(-1,105).apply{setMargins(6,4,6,18)})
   root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(170,52).apply{setMargins(6,6,0,0)})
   setContentView(root);card.requestFocus()
+ }
+
+ private fun showBrousko(){
+  if(isPappas){showHome();return}
+  screenMode="BROUSKO"
+  val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
+  val bar=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(28,12,28,12);background=panel(Color.rgb(4,22,38),0f)}
+  bar.addView(TextView(this).apply{text="ΜΠΡΟΥΣΚΟ";textSize=24f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)},LinearLayout.LayoutParams(0,54,1f))
+  bar.addView(TextView(this).apply{text="ANT1 • Episodes 1–772";textSize=13f;setTextColor(muted);gravity=Gravity.CENTER_VERTICAL},LinearLayout.LayoutParams(220,54))
+  bar.addView(button("← Series"){showPreloadedSeries()},LinearLayout.LayoutParams(150,54))
+  root.addView(bar,LinearLayout.LayoutParams(-1,78))
+  val web=WebView(this).apply{
+   setBackgroundColor(bg);isFocusable=true;isFocusableInTouchMode=true
+   settings.javaScriptEnabled=true;settings.domStorageEnabled=true;settings.mediaPlaybackRequiresUserGesture=true;settings.cacheMode=WebSettings.LOAD_DEFAULT
+   settings.userAgentString=settings.userAgentString+" GreekOneTV/1.0"
+   webViewClient=object:WebViewClient(){
+    override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
+     val u=request?.url?.toString()?:""
+     val host=request?.url?.host?:""
+     return if(host.endsWith("antenna.gr")||host.endsWith("antennaplus.gr")) false else {openUri(u);true}
+    }
+    override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){
+     if(request?.isForMainFrame==true)Toast.makeText(this@MainActivity,"ANT1 archive could not load.",Toast.LENGTH_SHORT).show()
+    }
+   }
+  }
+  root.addView(web,LinearLayout.LayoutParams(-1,0,1f))
+  setContentView(root)
+  web.loadUrl("https://nkv.antenna.gr/minisites/brusco/videos")
+  web.requestFocus()
  }
 
  private fun showPreloadedMovies(){

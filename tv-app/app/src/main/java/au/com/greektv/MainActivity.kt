@@ -310,7 +310,310 @@ class MainActivity:Activity(){
   }.start()
  }
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
+
+ private fun showGreekOneHome(){
+  screenMode="HOME"
+  activeHomeNav="Home"
+  previewHandler.removeCallbacksAndMessages(null)
+  headerHandler.removeCallbacksAndMessages(null)
+  player?.release();player=null
+  previewPlayer?.release();previewPlayer=null
+  window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+
+  val root=FrameLayout(this).apply{setBackgroundColor(Color.rgb(2,7,13))}
+  val backdrop=ImageView(this).apply{
+   scaleType=ImageView.ScaleType.CENTER_CROP
+   alpha=.34f
+   setBackgroundColor(Color.rgb(2,8,15))
+  }
+  root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
+  val hero=cfgString("heroUrl","https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg")
+  imageCache.get(hero)?.let{backdrop.setImageBitmap(it)}?:Thread{try{
+   val bmp=URL(hero).openStream().use{BitmapFactory.decodeStream(it)}
+   if(bmp!=null)imageCache.put(hero,bmp)
+   runOnUiThread{if(screenMode=="HOME"&&bmp!=null)backdrop.setImageBitmap(bmp)}
+  }catch(_:Exception){}}.start()
+
+  root.addView(View(this).apply{
+   background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(22,2,10,18),Color.argb(180,2,8,15),Color.argb(248,1,6,12)))
+  },FrameLayout.LayoutParams(-1,-1))
+  root.addView(View(this).apply{
+   background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(220,1,9,19),Color.argb(90,1,9,19),Color.TRANSPARENT))
+  },FrameLayout.LayoutParams(520,-1))
+
+  val page=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL
+   setPadding(28,18,34,22)
+  }
+
+  // ----- masthead -----
+  val top=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL
+   gravity=Gravity.CENTER_VERTICAL
+  }
+  val brand=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  brand.addView(ImageView(this).apply{
+   setImageResource(R.drawable.greek_one_mark)
+   scaleType=ImageView.ScaleType.CENTER_INSIDE
+  },LinearLayout.LayoutParams(48,48).apply{setMargins(0,0,12,0)})
+  val brandText=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL}
+  brandText.addView(TextView(this).apply{
+   text="GREEK ONE";textSize=22f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD)
+   setTextColor(Color.WHITE);letterSpacing=.02f;setSingleLine(true)
+  })
+  brandText.addView(TextView(this).apply{
+   text="GREEK TELEVISION";textSize=7.5f;letterSpacing=.17f
+   typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL)
+   setTextColor(Color.rgb(126,184,221));setSingleLine(true)
+  })
+  brand.addView(brandText)
+  top.addView(brand,LinearLayout.LayoutParams(0,-2,1f))
+
+  fun topChip():TextView=TextView(this).apply{
+   textSize=10f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD)
+   setTextColor(Color.WHITE);gravity=Gravity.CENTER
+   setPadding(10,6,10,6)
+   background=GradientDrawable().apply{
+    setColor(Color.argb(150,5,24,42));cornerRadius=13f
+    setStroke(1,Color.argb(55,150,205,245))
+   }
+  }
+  athensInfoView=topChip()
+  dateInfoView=TextView(this).apply{
+   textSize=9.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD)
+   setTextColor(Color.rgb(218,232,243));gravity=Gravity.CENTER;setSingleLine(true)
+  }
+  sydneyInfoView=topChip()
+  top.addView(athensInfoView,LinearLayout.LayoutParams(184,52).apply{setMargins(8,0,5,0)})
+  top.addView(dateInfoView,LinearLayout.LayoutParams(96,52))
+  top.addView(sydneyInfoView,LinearLayout.LayoutParams(190,52).apply{setMargins(5,0,7,0)})
+  val settingsTop=TextView(this).apply{
+   text="⚙";textSize=18f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
+   background=GradientDrawable().apply{setColor(Color.argb(145,5,24,42));cornerRadius=12f;setStroke(1,Color.argb(55,150,205,245))}
+   setOnClickListener{activeHomeNav="Settings";showSettings()}
+   setOnFocusChangeListener{v,f->
+    v.background=GradientDrawable().apply{
+     setColor(if(f)Color.rgb(12,120,210) else Color.argb(145,5,24,42));cornerRadius=12f
+     setStroke(if(f)2 else 1,if(f)Color.WHITE else Color.argb(55,150,205,245))
+    }
+   }
+  }
+  top.addView(settingsTop,LinearLayout.LayoutParams(44,44))
+  updateHomeHeader();refreshHomeWeather();headerHandler.post(headerTick)
+  page.addView(top,LinearLayout.LayoutParams(-1,62))
+
+  // ----- body -----
+  val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+
+  val nav=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL
+   setPadding(12,10,12,10)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(248,2,13,26),Color.argb(238,3,28,47))).apply{
+    cornerRadius=22f;setStroke(1,Color.argb(66,95,170,220))
+   }
+   elevation=14f
+  }
+
+  val navItems=mutableListOf<Triple<String,String,()->Unit>>()
+  fun addNav(icon:String,label:String,action:()->Unit){navItems.add(Triple(icon,label,{activeHomeNav=label;action()}))}
+  addNav("⌂","Home"){showGreekOneHome()}
+  addNav("▣","Live TV"){loadChannels()}
+  addNav("♡","Favourites"){loadChannels(favouritesOnly=true)}
+  addNav("◷","Continue"){loadLastChannel()}
+  addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
+  addNav("◎","World TV"){loadChannels("ΔΙΕΘΝΗ")}
+  addNav("☷","Categories"){loadChannels()}
+  addNav("▦","TV Guide"){showTvGuide()}
+  addNav("▶","YouTube"){showYouTubeSearch()}
+  addNav("⌕","Search"){loadChannels()}
+  addNav("⚙","Settings"){showSettings()}
+
+  navItems.forEachIndexed{i,item->
+   val icon=item.first;val label=item.second;val action=item.third
+   val selected=label==activeHomeNav
+   val row=LinearLayout(this).apply{
+    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
+    setPadding(7,0,8,0)
+    layoutParams=LinearLayout.LayoutParams(-1,40).apply{setMargins(0,1,0,1)}
+    background=GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=12f}
+    setOnClickListener{action()}
+   }
+   val marker=View(this).apply{
+    background=GradientDrawable().apply{setColor(if(selected)Color.rgb(44,177,241) else Color.TRANSPARENT);cornerRadius=2f}
+   }
+   row.addView(marker,LinearLayout.LayoutParams(3,20).apply{setMargins(0,0,8,0)})
+   val iconView=TextView(this).apply{
+    text=icon;textSize=13f;gravity=Gravity.CENTER
+    typeface=Typeface.create("sans-serif-medium",Typeface.BOLD)
+    setTextColor(if(selected)Color.rgb(205,238,255) else Color.rgb(145,187,214))
+   }
+   row.addView(iconView,LinearLayout.LayoutParams(26,28).apply{setMargins(0,0,7,0)})
+   val labelView=TextView(this).apply{
+    text=label;textSize=12.8f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
+    setTextColor(if(selected)Color.WHITE else Color.rgb(207,222,233));setSingleLine(true)
+    ellipsize=android.text.TextUtils.TruncateAt.END
+   }
+   row.addView(labelView,LinearLayout.LayoutParams(0,-1,1f))
+   row.setOnFocusChangeListener{v,f->
+    row.background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,103,192),Color.rgb(31,165,232))).apply{
+     cornerRadius=12f;setStroke(2,Color.argb(235,235,251,255))
+    }else GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=12f}
+    marker.background=GradientDrawable().apply{setColor(if(f||selected)Color.rgb(58,199,255) else Color.TRANSPARENT);cornerRadius=2f}
+    iconView.setTextColor(if(f||selected)Color.WHITE else Color.rgb(145,187,214))
+    labelView.setTextColor(if(f||selected)Color.WHITE else Color.rgb(207,222,233))
+    labelView.typeface=Typeface.create("sans-serif-medium",if(f||selected)Typeface.BOLD else Typeface.NORMAL)
+    v.animate().translationX(if(f)2f else 0f).scaleX(if(f)1.008f else 1f).scaleY(if(f)1.012f else 1f).setDuration(120).start()
+    v.elevation=if(f)10f else 0f
+   }
+   nav.addView(row)
+   if(i==3||i==7)nav.addView(View(this).apply{setBackgroundColor(Color.argb(24,111,179,226))},LinearLayout.LayoutParams(-1,1).apply{setMargins(14,3,14,3)})
+  }
+  body.addView(nav,LinearLayout.LayoutParams(204,-1).apply{setMargins(0,6,18,0)})
+
+  val scroll=ScrollView(this).apply{isFillViewport=true;overScrollMode=View.OVER_SCROLL_NEVER}
+  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,2,26,30)}
+  scroll.addView(main,ViewGroup.LayoutParams(-1,-2))
+  body.addView(scroll,LinearLayout.LayoutParams(0,-1,1f))
+
+  fun title(t:String){
+   main.addView(TextView(this).apply{
+    text=t;textSize=19f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE)
+    setPadding(0,10,0,6);setSingleLine(true)
+   })
+  }
+
+  val cached=homeCachedChannels()
+  val featured=cached.firstOrNull{it.name.contains("ERT 1",true)||it.name.contains("ERT1",true)}?:cached.firstOrNull()
+
+  if(featured!=null){
+   val heroCard=LinearLayout(this).apply{
+    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
+    setPadding(18,12,18,12)
+    background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(245,5,31,55),Color.argb(220,7,72,113))).apply{
+     cornerRadius=18f;setStroke(1,Color.argb(90,125,198,240))
+    }
+    elevation=8f
+   }
+   val logo=ImageView(this).apply{
+    scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(7,7,7,7)
+    background=GradientDrawable().apply{setColor(Color.argb(170,7,31,52));cornerRadius=11f}
+   }
+   heroCard.addView(logo,LinearLayout.LayoutParams(76,62).apply{setMargins(0,0,16,0)})
+   val featuredLogo=channelLogoUrl(featured)
+   if(featuredLogo.isNotBlank())loadImageInto(logo,featuredLogo)
+   val text=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+   text.addView(TextView(this@MainActivity).apply{
+    this.text="FEATURED NOW";textSize=9.5f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(96,205,255))
+   })
+   text.addView(TextView(this@MainActivity).apply{
+    this.text=featured.name;textSize=19f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
+   })
+   text.addView(TextView(this@MainActivity).apply{
+    this.text=epgNow[featured.tvgId]?.let{"NOW  •  "+it}?:"LIVE  •  Greek television";textSize=11.5f;setTextColor(Color.rgb(220,235,245));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
+   })
+   heroCard.addView(text,LinearLayout.LayoutParams(0,-2,1f))
+   heroCard.addView(TextView(this).apply{
+    text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+    background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,111,205),Color.rgb(31,170,239))).apply{cornerRadius=12f}
+   },LinearLayout.LayoutParams(110,42))
+   heroCard.setOnClickListener{playRecent(featured.url)}
+   heroCard.setOnFocusChangeListener{v,f->
+    v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(3,Color.WHITE);cornerRadius=18f}else null
+    v.animate().scaleX(if(f)1.012f else 1f).scaleY(if(f)1.012f else 1f).setDuration(120).start()
+   }
+   main.addView(heroCard,LinearLayout.LayoutParams(-1,96).apply{setMargins(0,4,0,8)})
+  }
+
+  title("Popular Greek Channels")
+  val popularRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val popular=listOf(
+   arrayOf("ΕΡΤ 1","ERT 1 HD",Color.rgb(20,46,210).toString(),"0"),
+   arrayOf("ERT 2","ERT 2 HD",Color.rgb(242,244,246).toString(),"1"),
+   arrayOf("ANT1","ANT1 HD",Color.rgb(22,63,111).toString(),"0"),
+   arrayOf("A","ALPHA HD",Color.rgb(229,28,48).toString(),"0"),
+   arrayOf("ΣΚΑΪ","SKAI HD",Color.rgb(20,98,232).toString(),"0"),
+   arrayOf("MEGA","MEGA HD",Color.rgb(245,246,248).toString(),"1")
+  )
+  popular.forEachIndexed{i,a->
+   val ch=homeChannel(a[1])
+   val action={if(ch!=null)playRecent(ch.url) else if(i<2)loadChannels("ERT") else loadChannels()}
+   popularRow.addView(logoCard(a[0],a[1],a[2].toInt(),a[3]=="1",action),LinearLayout.LayoutParams(0,100,1f).apply{setMargins(0,0,9,0)})
+  }
+  main.addView(popularRow)
+
+  title("Recently Watched")
+  val recentRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val recent=try{JSONArray(prefs.getString("recent_channels","[]")?:"[]")}catch(_:Exception){JSONArray()}
+  if(recent.length()==0){
+   recentRow.addView(imageCard("Start watching","Recently watched channels will appear here","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"){loadChannels()},LinearLayout.LayoutParams(0,130,1f))
+  }else{
+   for(i in 0 until minOf(3,recent.length())){
+    val o=recent.optJSONObject(i)?:continue
+    val name=o.optString("name","Channel")
+    val url=o.optString("url","")
+    val watchedAt=o.optLong("watchedAt",0L)
+    recentRow.addView(imageCard(name,"RESUME  •  "+watchedAgo(watchedAt),"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85"){playRecent(url)},LinearLayout.LayoutParams(0,130,1f).apply{setMargins(0,0,10,0)})
+   }
+  }
+  main.addView(recentRow)
+
+  title("Browse")
+  val catRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val cats=listOf(
+   arrayOf("▣  Greek TV","All channels",Color.rgb(18,124,210).toString()),
+   arrayOf("◉  Movies","Greek & international",Color.rgb(155,26,83).toString()),
+   arrayOf("▦  TV Guide","Now & next",Color.rgb(4,116,68).toString()),
+   arrayOf("★  Kids","For the little ones",Color.rgb(225,124,5).toString()),
+   arrayOf("◎  World TV","International",Color.rgb(95,19,160).toString())
+  )
+  cats.forEach{a->
+   val action:()->Unit=when{
+    a[0].contains("Greek TV")->{ {loadChannels()} }
+    a[0].contains("Movies")->{ {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")} }
+    a[0].contains("TV Guide")->{ {showTvGuide()} }
+    a[0].contains("Kids")->{ {loadChannels("ΠΑΙΔΙΚΑ")} }
+    else->{ {loadChannels("ΔΙΕΘΝΗ")} }
+   }
+   catRow.addView(tvCard(a[0],a[1],a[2].toInt(),action),LinearLayout.LayoutParams(0,82,1f).apply{setMargins(0,0,9,0)})
+  }
+  main.addView(catRow)
+
+  title("Live Channels")
+  val liveRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val chosen=mutableListOf<Channel>()
+  listOf("ERT 1","ERT1","ANT1","ALPHA","SKAI","MEGA").forEach{name->
+   val found=cached.firstOrNull{it.name.contains(name,true)&&chosen.none{x->x.url==it.url}}
+   if(found!=null&&chosen.size<4)chosen.add(found)
+  }
+  if(chosen.size<4)cached.forEach{ch->if(chosen.size<4&&chosen.none{x->x.url==ch.url})chosen.add(ch)}
+  if(chosen.isEmpty()){
+   listOf("ERT 1","ANT1","ALPHA","MEGA").forEach{name->
+    liveRow.addView(tvCard("●  $name","Live TV",Color.rgb(16,74,132)){loadChannels()},LinearLayout.LayoutParams(0,88,1f).apply{setMargins(0,0,9,0)})
+   }
+  }else{
+   chosen.forEach{ch->
+    liveRow.addView(logoCard(ch.name,ch.name,Color.rgb(16,74,132),false,{playRecent(ch.url)},channelLogoUrl(ch)),LinearLayout.LayoutParams(0,88,1f).apply{setMargins(0,0,9,0)})
+   }
+  }
+  main.addView(liveRow)
+
+  page.addView(body,LinearLayout.LayoutParams(-1,0,1f))
+  root.addView(page)
+  setContentView(root)
+  nav.post{
+   for(i in 0 until nav.childCount){
+    val child=nav.getChildAt(i)
+    if(child.isFocusable){child.requestFocus();break}
+   }
+  }
+  if(epgNow.isEmpty()&&!epgLoading&&cached.isNotEmpty()){
+   channels=cached
+   loadEpg{if(screenMode=="HOME"&&epgNow.isNotEmpty())showGreekOneHome()}
+  }
+ }
+
  private fun showHome(){
+  if(!isPappas){showGreekOneHome();return}
   screenMode="HOME"
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
   window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY

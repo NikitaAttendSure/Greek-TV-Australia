@@ -109,7 +109,7 @@ class MainActivity:Activity(){
   AlertDialog.Builder(this)
    .setTitle("Update available")
    .setMessage("$brandName $latestName is available. Update now?")
-   .setPositiveButton("Update now"){_,_->openUri(cfgString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}
+   .setPositiveButton("Update now"){_,_->installAppUpdate(cfgString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}
    .setNegativeButton("Later",null)
    .show()
  }
@@ -123,7 +123,7 @@ class MainActivity:Activity(){
    .setMessage("Live content refreshes automatically.\n\nApp version $ver")
    .setPositiveButton("Check for update"){_,_->
     val latest=remoteConfig.optInt("latestVersionCode",currentVersionCode())
-    if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage(brandName+" "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->openUri(cfgString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}.setNegativeButton("Later",null).show()
+    if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage(brandName+" "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->installAppUpdate(cfgString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}.setNegativeButton("Later",null).show()
     else Toast.makeText(this,"$brandName is up to date.",Toast.LENGTH_SHORT).show()
    }
    .setNeutralButton("Refresh content"){_,_->remoteRefreshDone=false;refreshRemoteConfig();Toast.makeText(this,"Refreshing $brandName content…",Toast.LENGTH_SHORT).show()}
@@ -1011,6 +1011,56 @@ class MainActivity:Activity(){
   root.addView(TextView(this).apply{text=message;textSize=20f;gravity=Gravity.CENTER;setTextColor(Color.rgb(202,218,232));setPadding(40,0,40,28)})
   root.addView(button("←  Back to Home"){showHome()},LinearLayout.LayoutParams(360,72))
   setContentView(root)
+ }
+ private fun installAppUpdate(url:String){
+  if(isPappas){openUri(url);return}
+  try{
+   val dm=getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+   val req=DownloadManager.Request(Uri.parse(url)).apply{
+    setTitle("Greek One update")
+    setDescription("Downloading the latest Greek One update…")
+    setMimeType("application/vnd.android.package-archive")
+    setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+    setAllowedOverMetered(true)
+    setAllowedOverRoaming(true)
+   }
+   val id=dm.enqueue(req)
+   Toast.makeText(this,"Downloading Greek One update…",Toast.LENGTH_LONG).show()
+   Thread{
+    var done=false
+    var failed=false
+    repeat(180){
+     if(done||failed)return@repeat
+     try{
+      dm.query(DownloadManager.Query().setFilterById(id)).use{cur->
+       if(cur.moveToFirst()){
+        when(cur.getInt(cur.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))){
+         DownloadManager.STATUS_SUCCESSFUL->done=true
+         DownloadManager.STATUS_FAILED->failed=true
+        }
+       }
+      }
+     }catch(_:Exception){}
+     if(!done&&!failed)Thread.sleep(1000)
+    }
+    runOnUiThread{
+     if(done){
+      val apkUri=dm.getUriForDownloadedFile(id)
+      if(apkUri!=null){
+       val intent=Intent(Intent.ACTION_VIEW).apply{
+        setDataAndType(apkUri,"application/vnd.android.package-archive")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+       }
+       try{startActivity(intent)}catch(_:Exception){showMessage("Greek One","The update downloaded, but Android could not open the installer. Open Downloads and select the Greek One update.")}
+      }else showMessage("Greek One","The update downloaded, but Android could not open the installer.")
+     }else{
+      showMessage("Greek One","The update could not be downloaded. Please try again.")
+     }
+    }
+   }.start()
+  }catch(_:Exception){
+   showMessage("Greek One","The update could not be started. Please try again.")
+  }
  }
  private fun openBrousko(){openUri("https://www.antenna.gr/mprousko")}
  private fun openUri(u:String){val i=Intent(Intent.ACTION_VIEW,Uri.parse(u));if(i.resolveActivity(packageManager)!=null)startActivity(i)else showMessage(brandName,"Δεν βρέθηκε συμβατή εφαρμογή.")}

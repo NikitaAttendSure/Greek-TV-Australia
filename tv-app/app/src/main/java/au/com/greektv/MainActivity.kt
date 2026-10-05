@@ -346,7 +346,12 @@ class MainActivity:Activity(){
    SeriesItem("ΕΞΑΨΗ","MEGA","72 episodes","https://www.megatv.com/ekpompes/202020/eksapsi-nea-seira/"),
    SeriesItem("ΠΕΡΙ ΑΝΕΜΩΝ ΚΑΙ ΥΔΑΤΩΝ","MEGA","95 episodes • finale","https://www.megatv.com/ekpompes/43241/peri-anemn-kai-udatn/"),
    SeriesItem("ΕΙΜΑΣΤΕ ΣΤΟΝ ΑΕΡΑ","MEGA","51 episodes","https://www.megatv.com/ekpompes/43348/eimaste-ston-aera/"),
-   SeriesItem("ΦΙΛΟΔΟΞΙΕΣ","MEGA","799 episodes","https://www.megatv.com/ekpompes/43252/filodoksies/")
+   SeriesItem("ΦΙΛΟΔΟΞΙΕΣ","MEGA","799 episodes","https://www.megatv.com/ekpompes/43252/filodoksies/"),
+   SeriesItem("ΜΑΖΙ ΣΟΥ","MEGA","20 episodes","https://www.megatv.com/ekpompes/42996/mazi-sou-2/"),
+   SeriesItem("SINGLES","MEGA","21 episodes • season 1","https://www.megatv.com/ekpompes/43287/singles/"),
+   SeriesItem("SINGLES 2","MEGA","28 episodes • season 2","https://www.megatv.com/ekpompes/43292/singles-2/"),
+   SeriesItem("SINGLES 3","MEGA","final season archive","https://www.megatv.com/ekpompes/42682/singles-3-2/"),
+   SeriesItem("SAFE SEX","MEGA","43+ episode archive","https://www.megatv.com/ekpompes/43229/safe-sex/")
   )
   val scroll=ScrollView(this)
   val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(4,2,12,24)}

@@ -13,7 +13,7 @@ jobs:
       - name: Verify APK endpoint
         run: |
           set -euxo pipefail
-          URL="https://rtv.up.railway.app/GREEK-ONE-1.0.8.apk"
+          URL="https://rtv.up.railway.app/GREEK-ONE-1.0.9.apk"
           curl -fL --retry 3 --retry-delay 2 -D headers.txt -o greek-one.apk "$URL"
           cat headers.txt
           file greek-one.apk

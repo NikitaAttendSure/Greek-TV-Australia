@@ -235,7 +235,7 @@ class MainActivity:Activity(){
     val u="https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code&timezone="+java.net.URLEncoder.encode(tz,"UTF-8")
     val conn=URL(u).openConnection().apply{connectTimeout=5000;readTimeout=6000}
     val txt=conn.getInputStream().bufferedReader().use{it.readText()}
-    val cur=JSONObject(txt).optJSONObject("current")?:return@try null
+    val cur=JSONObject(txt).optJSONObject("current")?:throw IllegalStateException("No current weather")
     val temp=Math.round(cur.optDouble("temperature_2m")).toInt().toString()
     temp to weatherName(cur.optInt("weather_code",-1))
    }catch(_:Exception){null}

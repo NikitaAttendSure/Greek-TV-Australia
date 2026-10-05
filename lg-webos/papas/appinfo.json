@@ -1,1 +1,1 @@
-{"id":"au.com.papas.tv","version":"1.1.0","vendor":"Papas TV","type":"web","main":"index.html","title":"PAPAS TV","icon":"icon.svg","largeIcon":"icon.svg","backgroundColor":"#02070d","requiredPermissions":["internet"],"disableBackHistoryAPI":true}
+{"id":"au.com.papas.tv","version":"1.1.1","vendor":"Papas TV","type":"web","main":"index.html","title":"PAPAS TV","icon":"icon.svg","largeIcon":"icon.svg","backgroundColor":"#02070d","requiredPermissions":["internet"],"disableBackHistoryAPI":true}

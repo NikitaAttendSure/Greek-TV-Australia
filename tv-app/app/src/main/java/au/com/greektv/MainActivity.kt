@@ -328,6 +328,7 @@ class MainActivity:Activity(){
   root.addView(TextView(this).apply{text="Greek series library • official broadcaster archives";textSize=14f;setTextColor(muted);setPadding(7,0,0,14)})
   data class SeriesItem(val title:String,val source:String,val episodes:String,val url:String,val brousko:Boolean=false)
   val series=listOf(
+   SeriesItem("ΑΓΙΟΣ ΠΑΪΣΙΟΣ – ΑΠΟ ΤΑ ΦΑΡΑΣΑ ΣΤΟΝ ΟΥΡΑΝΟ","MEGA","2 seasons • 21 episodes • complete","https://www.megatv.com/ekpompes/576225/agios-paisios-apo-ta-farasa-ston-ourano/"),
    SeriesItem("ΜΠΡΟΥΣΚΟ","ANT1","772 episodes","https://nkv.antenna.gr/minisites/brusco/videos",true),
    SeriesItem("ΝΤΟΛΤΣΕ ΒΙΤΑ","MEGA","70 episodes","https://www.megatv.com/ekpompes/43343/ntoltse-vita/"),
    SeriesItem("ΕΥΤΥΧΙΣΜΕΝΟΙ ΜΑΖΙ","MEGA","61 episodes","https://www.megatv.com/ekpompes/43235/eutuxismenoi-mazi/"),

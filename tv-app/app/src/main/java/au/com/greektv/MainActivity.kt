@@ -319,6 +319,23 @@ class MainActivity:Activity(){
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
 
 
+ private fun showPreloadedSeries(){
+  if(isPappas){showHome();return}
+  screenMode="PRELOADED_SERIES";activeHomeNav="Preloaded Series"
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  previewPlayer?.release();previewPlayer=null;player?.release();player=null
+  val root=shell("PRELOADED SERIES")
+  root.addView(TextView(this).apply{text="Greek series library • official broadcaster archives";textSize=14f;setTextColor(muted);setPadding(7,0,0,18)})
+  val card=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;isFocusable=true;isClickable=true;setPadding(24,18,24,18);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(39,18,64),Color.rgb(92,28,110))).apply{cornerRadius=20f;setStroke(1,Color.argb(130,190,140,225))}}
+  card.addView(TextView(this).apply{text="ΜΠΡΟΥΣΚΟ";textSize=27f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
+  card.addView(TextView(this).apply{text="ANT1 • Complete catalogue • Episodes 1–772";textSize=14f;setTextColor(Color.rgb(226,210,238));setPadding(0,5,0,0)})
+  card.setOnClickListener{openUri("https://www1.antenna.gr/webtv/4234/mproysko")}
+  card.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(3,Color.WHITE);cornerRadius=20f}else null;v.animate().scaleX(if(f)1.018f else 1f).scaleY(if(f)1.018f else 1f).setDuration(130).start()}
+  root.addView(card,LinearLayout.LayoutParams(-1,105).apply{setMargins(6,4,6,18)})
+  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(170,52).apply{setMargins(6,6,0,0)})
+  setContentView(root);card.requestFocus()
+ }
+
  private fun showPreloadedMovies(){
   if(isPappas){showHome();return}
   screenMode="PRELOADED_MOVIES"
@@ -691,7 +708,7 @@ class MainActivity:Activity(){
   addNav("◆","Preloaded Movies"){showPreloadedMovies()}
   addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
   if(isPappas)addNav("●",placeName){loadChannels(placeFilter)}
-  addNav("◎","World TV"){loadChannels("ΔΙΕΘΝΗ")}
+  addNav("▥","Preloaded Series"){showPreloadedSeries()}
   addNav("☷","Categories"){loadChannels()}
   addNav("▦","TV Guide"){showTvGuide()}
   if(!isPappas)addNav("▶","YouTube"){showYouTubeSearch()}
@@ -840,7 +857,7 @@ class MainActivity:Activity(){
    arrayOf("◉  Preloaded Movies","Greek Cinema Library",Color.rgb(155,26,83).toString()),
    arrayOf("▦  TV Guide","Now & Next",Color.rgb(4,116,68).toString()),
    arrayOf("🍳  ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ","Greek Cooking",Color.rgb(225,124,5).toString()),
-   arrayOf("◎  World TV","International Channels",Color.rgb(95,19,160).toString())
+   arrayOf("▥  Preloaded Series","Greek Series Library",Color.rgb(95,19,160).toString())
   )
   if(isPappas)categoryData.add(4,arrayOf("◉  $placeName","Local Content",Color.rgb(6,132,153).toString()))
   categoryData.forEach{a->
@@ -1025,7 +1042,7 @@ class MainActivity:Activity(){
   addNav("◷","Continue"){loadLastChannel()}
   addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
   if(isPappas)addNav("●",placeName){loadChannels(placeFilter)}
-  addNav("◎","World TV"){loadChannels("ΔΙΕΘΝΗ")}
+  addNav("▥","Preloaded Series"){showPreloadedSeries()}
   addNav("☷","Categories"){loadChannels()}
   addNav("▦","TV Guide"){showTvGuide()}
   if(!isPappas)addNav("▶","YouTube"){showYouTubeSearch()}
@@ -1170,7 +1187,7 @@ class MainActivity:Activity(){
    arrayOf("◉  Movies","Greek & International",Color.rgb(155,26,83).toString()),
    arrayOf("▦  TV Guide","Now & Next",Color.rgb(4,116,68).toString()),
    arrayOf("🍳  ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ","Greek Cooking",Color.rgb(225,124,5).toString()),
-   arrayOf("◎  World TV","International Channels",Color.rgb(95,19,160).toString())
+   arrayOf("▥  Preloaded Series","Greek Series Library",Color.rgb(95,19,160).toString())
   )
   if(isPappas)categoryData.add(4,arrayOf("◉  $placeName","Local Content",Color.rgb(6,132,153).toString()))
   categoryData.forEach{a->

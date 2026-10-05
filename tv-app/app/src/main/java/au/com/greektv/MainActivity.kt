@@ -132,7 +132,7 @@ class MainActivity:Activity(){
   val mins=((System.currentTimeMillis()-ts)/60000L).coerceAtLeast(0L)
   return when{mins<1->"Watched just now";mins<60->"Watched $mins min ago";mins<1440->"Watched ${mins/60} hr ago";else->"Watched ${mins/1440} d ago"}
  }
- private fun homeCachedChannels():List<Channel>=try{prefs.getString("playlist_cache",null)?.let{parsePlaylist(it)}?:emptyList()}catch(_:Exception){emptyList()}
+ private fun homeCachedChannels():List<Channel> = try{prefs.getString("playlist_cache",null)?.let{parsePlaylist(it)}?:emptyList()}catch(_:Exception){emptyList()}
  private fun homeChannel(label:String):Channel?{
   val key=label.replace(" HD","").replace("ΕΡΤ","ERT").replace("ΣΚΑΪ","SKAI")
   return homeCachedChannels().firstOrNull{it.name.replace("ΕΡΤ","ERT").replace("ΣΚΑΪ","SKAI").contains(key,true)}

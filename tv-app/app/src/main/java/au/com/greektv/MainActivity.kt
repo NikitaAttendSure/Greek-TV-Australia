@@ -335,7 +335,7 @@ class MainActivity:Activity(){
    typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true)
   })
   titleWrap.addView(TextView(this).apply{
-   text="Greek cinema • classics to modern • ready from Greek One";textSize=11.5f
+   text="24 Greek & Greece-connected films • classics to modern • curated for Greek One";textSize=11.5f
    setTextColor(Color.rgb(142,190,222));letterSpacing=.035f;setSingleLine(true)
   })
   head.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
@@ -374,11 +374,37 @@ class MainActivity:Activity(){
   content.addView(decadeRow,LinearLayout.LayoutParams(-1,52))
 
   data class MovieItem(val title:String,val year:String,val meta:String,val url:String,val accent:Int)
+  val ertMovies="https://live.ertflix.gr/movies"
   val movies=listOf(
    MovieItem("What Fate Holds","1957","Drama • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_233117",Color.rgb(120,49,114)),
    MovieItem("Young Aphrodites","1963","Drama • Arthouse • Period Romance","https://live.ertflix.gr/details/ERT_M002468",Color.rgb(92,57,132)),
    MovieItem("Master of the Shadows","1967","Drama • Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M001452",Color.rgb(27,93,131)),
-   MovieItem("Ready","2023","Animation • Greek Cinema • Short Film","https://live.ertflix.gr/details/ERT_P000184",Color.rgb(18,115,102))
+   MovieItem("Ready","2023","Animation • Greek Short Film","https://live.ertflix.gr/details/ERT_P000184",Color.rgb(18,115,102)),
+
+   MovieItem("Minore","ERTFLIX","Greek Cinema • Drama",ertMovies,Color.rgb(88,55,128)),
+   MovieItem("The Big Shark","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(37,78,116)),
+   MovieItem("Cruise to Rhodes","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(20,104,132)),
+   MovieItem("Crime in Kolonaki","ERTFLIX","Greek Cinema • Crime",ertMovies,Color.rgb(94,47,103)),
+
+   MovieItem("My Poor Little Sparrow","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(127,70,42)),
+   MovieItem("Roza of Smyrna","ERTFLIX","Greek Cinema • Drama",ertMovies,Color.rgb(117,51,54)),
+   MovieItem("Rembetiko","ERTFLIX","Greek Cinema • Music • Drama",ertMovies,Color.rgb(80,49,112)),
+   MovieItem("The Refugee","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(38,89,122)),
+
+   MovieItem("The Big Trick","ERTFLIX","Greek Cinema • Comedy",ertMovies,Color.rgb(126,77,24)),
+   MovieItem("Journey of Love","ERTFLIX","Greek Cinema • Romance",ertMovies,Color.rgb(117,53,87)),
+   MovieItem("The Watermelon","ERTFLIX","Greek Cinema • Comedy",ertMovies,Color.rgb(26,112,83)),
+   MovieItem("The River","ERTFLIX","Greek Cinema • Drama",ertMovies,Color.rgb(30,78,113)),
+
+   MovieItem("Bouboulina","ERTFLIX","Greek Cinema • Historical",ertMovies,Color.rgb(97,59,41)),
+   MovieItem("To Fintanaki","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(68,81,112)),
+   MovieItem("The Uncle from Canada","ERTFLIX","Greek Cinema • Comedy",ertMovies,Color.rgb(23,102,111)),
+   MovieItem("The Horafa Family","ERTFLIX","Greek Cinema • Classic",ertMovies,Color.rgb(110,68,33)),
+
+   MovieItem("Gorgo","2023","Greek-Australian • Drama • SBS","https://www.sbs.com.au/ondemand/movie/gorgo/2488322115913",Color.rgb(102,39,83)),
+   MovieItem("Arcadia","2024","Greek • Fantasy Drama • SBS","https://www.sbs.com.au/ondemand/movie/arcadia/2486881347814",Color.rgb(58,63,119)),
+   MovieItem("Brando with a Glass Eye","2024","Greek • Drama • SBS","https://www.sbs.com.au/ondemand/movie/brando-with-a-glass-eye/2489640003823",Color.rgb(77,45,91)),
+   MovieItem("Two Tickets to Greece","2023","Comedy • Greece • SBS","https://www.sbs.com.au/ondemand/movie/two-tickets-to-greece/2497687107820",Color.rgb(17,102,119))
   )
 
   content.addView(TextView(this).apply{
@@ -386,8 +412,12 @@ class MainActivity:Activity(){
    setTextColor(Color.WHITE);setPadding(0,14,0,8)
   })
 
-  val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-  movies.forEach{m->
+  var movieRow:LinearLayout?=null
+  movies.forEachIndexed{i,m->
+   if(i%4==0){
+    movieRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+    content.addView(movieRow,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,0,0,12)})
+   }
    val card=LinearLayout(this).apply{
     orientation=LinearLayout.VERTICAL;gravity=Gravity.BOTTOM;isFocusable=true;isClickable=true
     setPadding(16,14,16,14)
@@ -402,24 +432,23 @@ class MainActivity:Activity(){
     setTextColor(Color.rgb(165,220,247))
    })
    card.addView(TextView(this@MainActivity).apply{
-    text=m.title;textSize=17f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD)
+    text=m.title;textSize=16f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD)
     setTextColor(Color.WHITE);setMaxLines(2);ellipsize=android.text.TextUtils.TruncateAt.END
    },LinearLayout.LayoutParams(-1,0,1f))
    card.addView(TextView(this@MainActivity).apply{
-    text=m.meta;textSize=9.5f;setTextColor(Color.rgb(216,230,239));setMaxLines(2)
+    text=m.meta;textSize=9f;setTextColor(Color.rgb(216,230,239));setMaxLines(2)
    })
    card.addView(TextView(this@MainActivity).apply{
-    text="WATCH  ▶";textSize=10.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
-    setPadding(0,6,0,0)
+    text=if(m.url==ertMovies)"OPEN IN ERTFLIX  ›" else "WATCH  ▶"
+    textSize=10f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,6,0,0)
    })
    card.setOnFocusChangeListener{v,f->
     v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=17f;setStroke(3,Color.WHITE)}else null
     v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(130).start()
     v.elevation=if(f)18f else 6f
    }
-   row.addView(card,LinearLayout.LayoutParams(0,176,1f).apply{setMargins(0,0,12,0)})
+   movieRow?.addView(card,LinearLayout.LayoutParams(0,168,1f).apply{setMargins(0,0,12,0)})
   }
-  content.addView(row)
 
   val more=LinearLayout(this).apply{
    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true

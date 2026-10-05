@@ -1,0 +1,1 @@
+window.TV_BRAND={name:"PAPAS TV",place:"Nafplio",localFilter:"ΝΑΥΠΛΙΟ",hero:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg"};

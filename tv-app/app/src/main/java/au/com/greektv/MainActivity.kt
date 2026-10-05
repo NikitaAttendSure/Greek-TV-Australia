@@ -428,35 +428,54 @@ class MainActivity:Activity(){
     content.addView(movieRow,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,0,0,12)})
    }
    val card=LinearLayout(this).apply{
-    orientation=LinearLayout.VERTICAL;gravity=Gravity.BOTTOM;isFocusable=true;isClickable=true
-    setPadding(16,14,16,14)
-    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(m.accent,Color.rgb(5,20,34))).apply{
-     cornerRadius=17f;setStroke(1,Color.argb(90,160,205,235))
+    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
+    setPadding(0,0,12,0)
+    background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(6,24,39),Color.rgb(8,34,53))).apply{
+     cornerRadius=15f;setStroke(1,Color.argb(72,150,200,232))
     }
-    elevation=6f
-    setOnClickListener{openUri(m.url)}
+    elevation=6f;setOnClickListener{openUri(m.url)}
    }
-   card.addView(TextView(this@MainActivity).apply{
-    text=m.year;textSize=9f;letterSpacing=.1f;typeface=Typeface.DEFAULT_BOLD
-    setTextColor(Color.rgb(165,220,247))
-   })
-   card.addView(TextView(this@MainActivity).apply{
-    text=m.title;textSize=14.5f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD)
+   val poster=FrameLayout(this).apply{
+    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(m.accent,Color.rgb(7,20,33))).apply{
+     cornerRadii=floatArrayOf(15f,15f,0f,0f,0f,0f,15f,15f)
+    }
+   }
+   val posterImage=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP}
+   poster.addView(posterImage,FrameLayout.LayoutParams(-1,-1))
+   poster.addView(View(this).apply{
+    background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(205,2,9,16),Color.TRANSPARENT))
+   },FrameLayout.LayoutParams(-1,-1))
+   poster.addView(TextView(this@MainActivity).apply{
+    text=m.year;textSize=8.5f;letterSpacing=.08f;typeface=Typeface.DEFAULT_BOLD
+    setTextColor(Color.WHITE);setPadding(9,0,0,8);gravity=Gravity.BOTTOM
+   },FrameLayout.LayoutParams(-1,-1))
+   card.addView(poster,LinearLayout.LayoutParams(82,-1).apply{setMargins(0,0,12,0)})
+   val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL}
+   copy.addView(TextView(this@MainActivity).apply{
+    text=m.title;textSize=13.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD)
     setTextColor(Color.WHITE);setMaxLines(2);ellipsize=android.text.TextUtils.TruncateAt.END
-   },LinearLayout.LayoutParams(-1,0,1f))
-   card.addView(TextView(this@MainActivity).apply{
-    text=m.meta;textSize=8.5f;setTextColor(Color.rgb(216,230,239));setMaxLines(2)
    })
-   card.addView(TextView(this@MainActivity).apply{
-    text=if(m.url.contains("ertflix.gr"))"OPEN IN ERTFLIX  ›" else "WATCH  ▶"
-    textSize=9f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,6,0,0)
+   copy.addView(TextView(this@MainActivity).apply{
+    text=m.meta;textSize=8.2f;setTextColor(Color.rgb(167,197,217));setMaxLines(2);setPadding(0,4,0,5)
    })
+   copy.addView(TextView(this@MainActivity).apply{
+    text=if(m.url.contains("ertflix.gr"))"ERTFLIX  ›" else "WATCH  ▶"
+    textSize=8.5f;letterSpacing=.04f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(83,194,248))
+   })
+   card.addView(copy,LinearLayout.LayoutParams(0,-1,1f))
+   val fallbackArt=listOf(
+    "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=500&q=75",
+    "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=500&q=75",
+    "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=500&q=75",
+    "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=500&q=75"
+   )[i%4]
+   loadImageInto(posterImage,fallbackArt)
    card.setOnFocusChangeListener{v,f->
-    v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=17f;setStroke(3,Color.WHITE)}else null
-    v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(130).start()
+    v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=15f;setStroke(3,Color.WHITE)}else null
+    v.animate().scaleX(if(f)1.022f else 1f).scaleY(if(f)1.022f else 1f).setDuration(125).start()
     v.elevation=if(f)18f else 6f
    }
-   movieRow?.addView(card,LinearLayout.LayoutParams(0,154,1f).apply{setMargins(0,0,12,0)})
+   movieRow?.addView(card,LinearLayout.LayoutParams(0,142,1f).apply{setMargins(0,0,12,0)})
   }
 
   root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))

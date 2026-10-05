@@ -500,6 +500,17 @@ class MainActivity:Activity(){
   }
  }
 
+ private fun showGreekCooking(){
+  if(isPappas){showHome();return}
+  screenMode="GREEK_COOKING"
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  previewPlayer?.release();previewPlayer=null;player?.release();player=null
+  activeHomeNav="ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ"
+  val root=shell("ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ")
+  root.addView(TextView(this).apply{text="Greek cooking programmes and episodes";textSize=18f;setTextColor(Color.rgb(202,218,232));setPadding(6,36,6,24)})
+  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(320,72))
+  setContentView(root)
+ }
  private fun showGreekOneHome(){
   screenMode="HOME"
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
@@ -613,7 +624,7 @@ class MainActivity:Activity(){
   addNav("▣","Live TV"){loadChannels()}
   addNav("♡","Favourites"){loadChannels(favouritesOnly=true)}
   addNav("◷","Continue"){loadLastChannel()}
-  addNav("◆","ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ"){showPreloadedMovies()}
+  addNav("◆","Preloaded Movies"){showPreloadedMovies()}\n  addNav("🍳","ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ"){showGreekCooking()}
   addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
   if(isPappas)addNav("●",placeName){loadChannels(placeFilter)}
   addNav("◎","World TV"){loadChannels("ΔΙΕΘΝΗ")}

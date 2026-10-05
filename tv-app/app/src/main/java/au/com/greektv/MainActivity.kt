@@ -325,15 +325,61 @@ class MainActivity:Activity(){
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
   previewPlayer?.release();previewPlayer=null;player?.release();player=null
   val root=shell("PRELOADED SERIES")
-  root.addView(TextView(this).apply{text="Greek series library • official broadcaster archives";textSize=14f;setTextColor(muted);setPadding(7,0,0,18)})
-  val card=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;isFocusable=true;isClickable=true;setPadding(24,18,24,18);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(39,18,64),Color.rgb(92,28,110))).apply{cornerRadius=20f;setStroke(1,Color.argb(130,190,140,225))}}
-  card.addView(TextView(this).apply{text="ΜΠΡΟΥΣΚΟ";textSize=27f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
-  card.addView(TextView(this).apply{text="ANT1 • Complete catalogue • Episodes 1–772";textSize=14f;setTextColor(Color.rgb(226,210,238));setPadding(0,5,0,0)})
-  card.setOnClickListener{showBrousko()}
-  card.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(3,Color.WHITE);cornerRadius=20f}else null;v.animate().scaleX(if(f)1.018f else 1f).scaleY(if(f)1.018f else 1f).setDuration(130).start()}
-  root.addView(card,LinearLayout.LayoutParams(-1,105).apply{setMargins(6,4,6,18)})
-  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(170,52).apply{setMargins(6,6,0,0)})
-  setContentView(root);card.requestFocus()
+  root.addView(TextView(this).apply{text="Greek series library • official broadcaster archives";textSize=14f;setTextColor(muted);setPadding(7,0,0,14)})
+  data class SeriesItem(val title:String,val source:String,val episodes:String,val url:String,val brousko:Boolean=false)
+  val series=listOf(
+   SeriesItem("ΜΠΡΟΥΣΚΟ","ANT1","772 episodes","https://nkv.antenna.gr/minisites/brusco/videos",true),
+   SeriesItem("ΝΤΟΛΤΣΕ ΒΙΤΑ","MEGA","70 episodes","https://www.megatv.com/ekpompes/43343/ntoltse-vita/"),
+   SeriesItem("ΕΥΤΥΧΙΣΜΕΝΟΙ ΜΑΖΙ","MEGA","61 episodes","https://www.megatv.com/ekpompes/43235/eutuxismenoi-mazi/"),
+   SeriesItem("ΔΥΟ ΞΕΝΟΙ","MEGA","59 episodes","https://www.megatv.com/ekpompes/43265/duo-ksenoi/"),
+   SeriesItem("ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ","MEGA","complete archive","https://www.megatv.com/ekpompes/43346/sto-para-pente/"),
+   SeriesItem("ΣΑΒΒΑΤΟΓΕΝΝΗΜΕΝΕΣ","MEGA","33 episodes","https://www.megatv.com/ekpompes/43202/savvatogennimenes/"),
+   SeriesItem("ΕΙΣΑΙ ΤΟ ΤΑΙΡΙ ΜΟΥ","MEGA","30 episodes","https://www.megatv.com/ekpompes/43098/eisai-to-tairi-mou-2/"),
+   SeriesItem("ΠΕΝΗΝΤΑ ΠΕΝΗΝΤΑ","MEGA","81 episodes","https://www.megatv.com/ekpompes/43207/peninta-peninta/"),
+   SeriesItem("ΕΘΝΙΚΗ ΕΛΛΑΔΟΣ","MEGA","15 episodes","https://www.megatv.com/ekpompes/1356374/ethniki-ellados/"),
+   SeriesItem("ΟΙ ΑΠΑΡΑΔΕΚΤΟΙ","MEGA","48 episodes","https://www.megatv.com/ekpompes/43303/aparadektoi/"),
+   SeriesItem("ΚΩΝΣΤΑΝΤΙΝΟΥ ΚΑΙ ΕΛΕΝΗΣ","ANT1","official archive","https://www.antenna.gr/webtv/3142")
+  )
+  val scroll=ScrollView(this)
+  val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(4,2,12,24)}
+  var first:View?=null
+  series.forEachIndexed{i,s->
+   val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true;setPadding(22,10,20,10);background=panel(if(i==0)Color.rgb(50,24,72) else Color.rgb(10,31,50),16f)}
+   val text=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+   text.addView(TextView(this@MainActivity).apply{this.text=s.title;textSize=19f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
+   text.addView(TextView(this@MainActivity).apply{this.text=s.source+" • "+s.episodes;textSize=12.5f;setTextColor(Color.rgb(158,195,220));setPadding(0,3,0,0)})
+   row.addView(text,LinearLayout.LayoutParams(0,-2,1f))
+   row.addView(TextView(this).apply{text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(105,207,255))})
+   row.setOnClickListener{if(s.brousko)showBrousko() else showSeriesWeb(s.title,s.url)}
+   row.setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,105,184) else if(i==0)Color.rgb(50,24,72) else Color.rgb(10,31,50));cornerRadius=16f;if(f)setStroke(2,Color.WHITE)}}
+   if(first==null)first=row
+   list.addView(row,LinearLayout.LayoutParams(-1,74).apply{setMargins(0,3,0,3)})
+  }
+  scroll.addView(list);root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(170,52).apply{setMargins(6,5,0,0)})
+  setContentView(root);first?.requestFocus()
+ }
+
+ private fun showSeriesWeb(title:String,url:String){
+  screenMode="SERIES_WEB"
+  val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
+  val bar=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(28,12,28,12);background=panel(Color.rgb(4,22,38),0f)}
+  bar.addView(TextView(this).apply{text=title;textSize=22f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)},LinearLayout.LayoutParams(0,54,1f))
+  bar.addView(button("← Series"){showPreloadedSeries()},LinearLayout.LayoutParams(150,54))
+  root.addView(bar,LinearLayout.LayoutParams(-1,78))
+  val web=WebView(this).apply{
+   setBackgroundColor(bg);isFocusable=true;isFocusableInTouchMode=true
+   settings.javaScriptEnabled=true;settings.domStorageEnabled=true;settings.mediaPlaybackRequiresUserGesture=true;settings.cacheMode=WebSettings.LOAD_DEFAULT
+   settings.userAgentString=settings.userAgentString+" GreekOneTV/1.0"
+   webViewClient=object:WebViewClient(){
+    override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
+     val u=request?.url?.toString()?:"";val host=request?.url?.host?:""
+     return if(host.endsWith("megatv.com")||host.endsWith("antenna.gr")||host.endsWith("antennaplus.gr"))false else{openUri(u);true}
+    }
+    override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){if(request?.isForMainFrame==true)Toast.makeText(this@MainActivity,"Series archive could not load.",Toast.LENGTH_SHORT).show()}
+   }
+  }
+  root.addView(web,LinearLayout.LayoutParams(-1,0,1f));setContentView(root);web.loadUrl(url);web.requestFocus()
  }
 
  private fun showBrousko(){

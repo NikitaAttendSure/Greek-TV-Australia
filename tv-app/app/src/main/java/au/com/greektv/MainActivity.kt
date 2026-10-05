@@ -642,20 +642,29 @@ class MainActivity:Activity(){
  private fun openYouTubeSearch(query:String){
   val q=query.trim()
   if(q.isBlank())return
-  val tvIntent=Intent(Intent.ACTION_SEARCH).apply{
-   setPackage("com.google.android.youtube.tv")
-   putExtra(android.app.SearchManager.QUERY,q)
-  }
-  val mobileIntent=Intent(Intent.ACTION_SEARCH).apply{
-   setPackage("com.google.android.youtube")
-   putExtra(android.app.SearchManager.QUERY,q)
-  }
   val url="https://www.youtube.com/results?search_query="+java.net.URLEncoder.encode(q,"UTF-8")
-  when{
-   tvIntent.resolveActivity(packageManager)!=null->startActivity(tvIntent)
-   mobileIntent.resolveActivity(packageManager)!=null->startActivity(mobileIntent)
-   else->openUri(url)
+  val uri=Uri.parse(url)
+  val tvPackages=listOf("com.google.android.youtube.tv","com.google.android.youtube")
+  for(pkg in tvPackages){
+   try{
+    val intent=Intent(Intent.ACTION_VIEW,uri).apply{
+     setPackage(pkg)
+     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    if(intent.resolveActivity(packageManager)!=null){
+     startActivity(intent)
+     return
+    }
+   }catch(_:Exception){}
   }
+  try{
+   val generic=Intent(Intent.ACTION_VIEW,uri).apply{addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
+   if(generic.resolveActivity(packageManager)!=null){
+    startActivity(generic)
+    return
+   }
+  }catch(_:Exception){}
+  showMessage("YouTube","YouTube is not installed on this TV. Install or enable the YouTube app, then try again.")
  }
  private fun showYouTubeSearch(){
   if(isPappas){showHome();return}

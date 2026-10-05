@@ -520,7 +520,13 @@ class MainActivity:Activity(){
    CookingShow("Γεύσεις από Ελλάδα • Επ. 7","Γάλα • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=FmpxTcbWVZs"),
    CookingShow("Γεύσεις από Ελλάδα • Επ. 8","Μανιτάρια • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=vCR3zTyEwho"),
    CookingShow("Γεύσεις από Ελλάδα • Επ. 9","Ελιά • πλήρες επεισόδιο","ΕΡΤ","https://www.youtube.com/watch?v=ySshUw411xM"),
-   CookingShow("Γεύσεις από Ελλάδα • Αβγό","17/03/2017 • Νίκος Καραθάνος","ΕΡΤ","https://www.youtube.com/watch?v=26_3zgdmqLs")
+   CookingShow("Γεύσεις από Ελλάδα • Αβγό","17/03/2017 • Νίκος Καραθάνος","ΕΡΤ","https://www.youtube.com/watch?v=26_3zgdmqLs"),
+   CookingShow("Kitchen Lab • Τονοσαλάτα με κουσκούς","Συνταγή από το επεισόδιο 04/10/2026","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/tonosalata-me-kouskous"),
+   CookingShow("Kitchen Lab • Σπιτικός γύρος κοτόπουλο","Συνταγή από το επεισόδιο 04/10/2026","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/spitikos-guros-kotopoulo"),
+   CookingShow("Kitchen Lab • Εύκολη lemon pie","Συνταγή από το επεισόδιο 04/10/2026","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/eukoli-lemon-pie"),
+   CookingShow("Kitchen Lab • Pulled beef sandwich","Συνταγή από το επεισόδιο 03/10/2026","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/pulled-beef-sandwich"),
+   CookingShow("Kitchen Lab • Ελληνική καρμπονάρα στον φούρνο","Συνταγή από το επεισόδιο 03/10/2026","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/elliniki-karmponara-ston-fourno"),
+   CookingShow("Kitchen Lab • Ατομικά banoffee με peanut crumble","Συνταγή από το επεισόδιο 03/10/2026","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/atomika-banoffe-me-peanut-crumble")
   )
   val scroll=ScrollView(this).apply{isFillViewport=true}
   val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}

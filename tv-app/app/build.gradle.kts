@@ -9,8 +9,8 @@ android {
         applicationId = "au.com.greektv"
         minSdk = 23
         targetSdk = 36
-        versionCode = 9
-        versionName = "0.9.0"
+        versionCode = 10
+        versionName = "0.9.1"
     }
     signingConfigs {
         create("reskakisRelease") {
@@ -39,8 +39,8 @@ android {
         create("pappas") {
             dimension = "brand"
             applicationId = "au.com.pappastv"
-            versionCode = 5
-            versionName = "1.4.0"
+            versionCode = 6
+            versionName = "1.4.1"
             resValue("string", "app_name", "PAPAS TV")
             signingConfig = signingConfigs.getByName("papasRelease")
         }

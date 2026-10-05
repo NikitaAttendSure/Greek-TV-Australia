@@ -181,3 +181,9 @@ https://neon.streams.gr:8081/epsilontv/index.m3u8
 https://livetv.streams.ovh:8081/kriti/index.m3u8
 #EXTINF:-1 group-title="07 🎬 ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ",SIERRA CHANNEL — TEST
 https://fr.crystalweb.net:1936/sierra/sierra/playlist.m3u8
+#EXTINF:-1 tvg-id="BlueSky.gr" group-title="03 📰 ΕΙΔΗΣΕΙΣ",Blue Sky
+https://bluesky.stream/live/playlist.m3u8
+#EXTINF:-1 tvg-id="LepantoTV.gr" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Lepanto TV
+https://raw.githubusercontent.com/azgaresncf/strm2hls/main/streams/LePanto.m3u8
+#EXTINF:-1 tvg-id="ThrakiNetTV.gr" group-title="10 🏛️ ΠΕΡΙΦΕΡΕΙΑΚΑ",Thraki Net TV
+https://cdn.onestreaming.com/thrakinettv/thrakinettv/playlist.m3u8

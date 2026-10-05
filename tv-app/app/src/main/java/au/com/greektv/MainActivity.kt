@@ -4,10 +4,14 @@ import android.app.*
 import android.content.*
 import android.graphics.Color
 import android.graphics.BitmapFactory
+import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.LruCache
 import android.util.Xml
 import android.view.*
 import android.widget.*
@@ -34,6 +38,10 @@ class MainActivity:Activity(){
  private var remoteRefreshDone=false
  private var launchUpdateChecked=false
  private var epgLoading=false
+ private var epgLoadedAt=0L
+ private val epgCacheTtlMs=10*60*1000L
+ private val previewHandler=Handler(Looper.getMainLooper())
+ private val imageCache=object:LruCache<String,Bitmap>(24){}
  private val epgNow=mutableMapOf<String,String>()
  private val epgNext=mutableMapOf<String,String>()
  private lateinit var fav:Favourites
@@ -46,7 +54,7 @@ class MainActivity:Activity(){
   refreshRemoteConfig()
  }
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
- override fun onStop(){super.onStop();player?.release();player=null;previewPlayer?.release();previewPlayer=null}
+ override fun onStop(){super.onStop();previewHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null}
  private fun panel(c:Int,r:Float=22f)=GradientDrawable().apply{setColor(c);cornerRadius=r;setStroke(1,Color.argb(58,138,190,232))}
  private fun cfgString(key:String,default:String)=remoteConfig.optString(key,default).ifBlank{default}
  private fun refreshRemoteConfig(){
@@ -125,12 +133,21 @@ class MainActivity:Activity(){
  }
  private fun loadImageInto(view:ImageView,url:String){
   if(url.isBlank())return
-  Thread{try{val bmp=URL(url).openStream().use{BitmapFactory.decodeStream(it)};runOnUiThread{view.setImageBitmap(bmp)}}catch(_:Exception){}}.start()
+  imageCache.get(url)?.let{view.setImageBitmap(it);return}
+  Thread{try{
+   val bmp=URL(url).openStream().use{BitmapFactory.decodeStream(it)}
+   if(bmp!=null)imageCache.put(url,bmp)
+   runOnUiThread{if(bmp!=null)view.setImageBitmap(bmp)}
+  }catch(_:Exception){}}.start()
  }
  private fun parseXmltvDate(v:String):Long=try{SimpleDateFormat("yyyyMMddHHmmss Z",Locale.US).parse(v.trim())?.time?:0L}catch(_:Exception){0L}
  private fun loadEpg(onDone:(()->Unit)?=null){
-  if(epgLoading||channels.none{it.tvgId.isNotBlank()})return
+  if(channels.none{it.tvgId.isNotBlank()})return
+  val nowMs=System.currentTimeMillis()
+  if(epgNow.isNotEmpty()&&nowMs-epgLoadedAt<epgCacheTtlMs){onDone?.invoke();return}
+  if(epgLoading)return
   epgLoading=true
+  epgNow.clear();epgNext.clear()
   val wanted=channels.map{it.tvgId}.filter{it.isNotBlank()}.toSet()
   Thread{try{
    val parser=Xml.newPullParser()
@@ -159,21 +176,22 @@ class MainActivity:Activity(){
     event=parser.next()
    }
    input.close()
-  }catch(_:Exception){}finally{epgLoading=false;runOnUiThread{onDone?.invoke()}}}.start()
+  }catch(_:Exception){}finally{epgLoadedAt=System.currentTimeMillis();epgLoading=false;runOnUiThread{onDone?.invoke()}}}.start()
  }
  private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=21f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(30,0,24,0);stateListAnimator=null;setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,5,0,5)};setOnFocusChangeListener{v,f->background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,116,213),Color.rgb(28,151,245))).apply{cornerRadius=18f;setStroke(2,Color.argb(205,255,255,255))}else panel(card);v.animate().scaleX(if(f)1.035f else 1f).scaleY(if(f)1.035f else 1f).setDuration(110).start();v.elevation=if(f)16f else 1f}}
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
  private fun showHome(){
-  player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  previewHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
   window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 
   val root=FrameLayout(this).apply{setBackgroundColor(bg)}
   val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.82f;setBackgroundColor(Color.rgb(2,8,15))}
   root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
-  Thread{try{
-   val hero=cfgString("heroUrl",if(isPappas)"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg" else "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg")
+  val hero=cfgString("heroUrl",if(isPappas)"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg" else "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg")
+  imageCache.get(hero)?.let{backdrop.setImageBitmap(it)}?:Thread{try{
    val bmp=URL(hero).openStream().use{BitmapFactory.decodeStream(it)}
-   runOnUiThread{backdrop.setImageBitmap(bmp)}
+   if(bmp!=null)imageCache.put(hero,bmp)
+   runOnUiThread{if(bmp!=null)backdrop.setImageBitmap(bmp)}
   }catch(_:Exception){}}.start()
   root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(28,1,6,12),Color.argb(132,1,8,15),Color.argb(238,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
   root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,intArrayOf(Color.argb(118,246,106,28),Color.argb(42,248,149,65),Color.TRANSPARENT,Color.TRANSPARENT))},FrameLayout.LayoutParams(-1,230))
@@ -373,7 +391,7 @@ class MainActivity:Activity(){
   val frame=FrameLayout(this).apply{isFocusable=true;isClickable=true;background=panel(Color.rgb(8,20,34),16f);elevation=5f;clipToOutline=true}
   val img=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.rgb(16,30,44))}
   frame.addView(img,FrameLayout.LayoutParams(-1,-1))
-  Thread{try{val bmp=URL(url).openStream().use{BitmapFactory.decodeStream(it)};runOnUiThread{img.setImageBitmap(bmp)}}catch(_:Exception){}}.start()
+  loadImageInto(img,url)
   val shade=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(242,2,8,14),Color.argb(118,2,8,14),Color.argb(24,2,8,14)))}
   frame.addView(shade,FrameLayout.LayoutParams(-1,-1))
   val textWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(12,8,12,8)}
@@ -385,7 +403,7 @@ class MainActivity:Activity(){
   return frame
  }
  private fun showTvGuide(){
-  player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  previewHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
   currentSection="TV GUIDE"
   val root=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
@@ -456,11 +474,19 @@ class MainActivity:Activity(){
   }catch(_:Exception){runOnUiThread{status.text="Unable to load TV guide";render()}}}.start()
  }
  private fun loadLastChannel(){val u=prefs.getString("last_channel",null);if(u==null){loadChannels();return};Thread{try{val all=parsePlaylist(fetchPlaylist());runOnUiThread{channels=all;val i=all.indexOfFirst{it.url==u};if(i>=0)play(i)else showList()}}catch(e:Exception){runOnUiThread{loadChannels()}}}.start()}
- private fun fetchPlaylist():String{val u=URL("https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/greek-tv.m3u");val c=u.openConnection().apply{connectTimeout=8000;readTimeout=12000};return c.getInputStream().bufferedReader().use{it.readText()}.also{prefs.edit().putString("playlist_cache",it).apply()}}
+ private fun fetchPlaylist():String{
+  val cached=prefs.getString("playlist_cache",null)
+  val cachedAt=prefs.getLong("playlist_cache_at",0L)
+  val now=System.currentTimeMillis()
+  if(cached!=null&&now-cachedAt<5*60*1000L)return cached
+  val u=URL("https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/greek-tv.m3u")
+  val conn=u.openConnection().apply{connectTimeout=5000;readTimeout=8000}
+  return conn.getInputStream().bufferedReader().use{it.readText()}.also{prefs.edit().putString("playlist_cache",it).putLong("playlist_cache_at",now).apply()}
+ }
  private fun parsePlaylist(txt:String):List<Channel>{val out=mutableListOf<Channel>();var n="";var g="";var id="";txt.lines().forEach{l->if(l.startsWith("#EXTINF")){n=l.substringAfterLast(",").trim();g=l.substringAfter("group-title=\"", "").substringBefore("\"", "");id=l.substringAfter("tvg-id=\"", "").substringBefore("\"", "")}else if(l.startsWith("http")&&n.isNotBlank()){out.add(Channel(n,l.trim(),g,id));n="";g="";id=""}};return out}
  private fun loadChannels(filter:String?=null,favouritesOnly:Boolean=false){currentSection=when{favouritesOnly->"FAVOURITES";filter?.contains(placeFilter,true)==true->placeUpper;filter?.contains("ΠΑΙΔΙΚΑ",true)==true->"KIDS";filter?.contains("ΤΑΙΝΙΕΣ",true)==true->"ON DEMAND";filter?.contains("ΔΙΕΘΝΗ",true)==true->"WORLD TV";filter?.contains("ERT",true)==true->"ERT";else->"LIVE TV"};Thread{try{val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e};val out=parsePlaylist(txt).filter{(filter==null||it.group.contains(filter,true))&&(!favouritesOnly||fav.has(it.url))};runOnUiThread{channels=out;if(out.isEmpty()){showMessage(brandName,if(favouritesOnly)"No favourites yet." else "No channels found.")}else{showList()}}}catch(e:Exception){runOnUiThread{showMessage(brandName,"Unable to load right now. Check the internet connection and try again.")}}}.start()}
  private fun showList(){
-  previewPlayer?.release();previewPlayer=null
+  previewHandler.removeCallbacksAndMessages(null);previewPlayer?.release();previewPlayer=null
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(42,28,42,28);background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(4,20,35),Color.rgb(2,8,15)))}
 
   val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
@@ -585,7 +611,15 @@ class MainActivity:Activity(){
    row.setOnFocusChangeListener{v,hasFocus->
     v.background=if(hasFocus)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,104,198),Color.rgb(34,155,246))).apply{cornerRadius=12f;setStroke(2,Color.argb(220,255,255,255))} else panel(Color.rgb(10,31,50),12f)
     v.animate().scaleX(if(hasFocus)1.015f else 1f).scaleY(if(hasFocus)1.015f else 1f).setDuration(90).start()
-    if(hasFocus)startPreview(i)
+    previewHandler.removeCallbacksAndMessages(null)
+    if(hasFocus){
+     current=i
+     previewTitle.text=ch.name
+     val guideNow=epgNow[ch.tvgId]
+     val guideNext=epgNext[ch.tvgId]
+     previewMeta.text=if(guideNow!=null)"NOW  •  $guideNow"+(if(guideNext!=null)"\nNEXT •  $guideNext" else "") else (if(ch.group.isBlank())"GREEK TV" else ch.group.uppercase())+"   •   LIVE NOW"
+     previewHandler.postDelayed({if(v.hasFocus)startPreview(i)},350)
+    }
    }
    list.addView(row)
   }

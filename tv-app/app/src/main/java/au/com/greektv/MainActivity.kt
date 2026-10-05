@@ -448,7 +448,7 @@ class MainActivity:Activity(){
     text=m.meta;textSize=9f;setTextColor(Color.rgb(216,230,239));setMaxLines(2)
    })
    card.addView(TextView(this@MainActivity).apply{
-    text=if(m.url==ertMovies)"OPEN IN ERTFLIX  ›" else "WATCH  ▶"
+    text=if(m.url.contains("ertflix.gr"))"OPEN IN ERTFLIX  ›" else "WATCH  ▶"
     textSize=10f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(0,6,0,0)
    })
    card.setOnFocusChangeListener{v,f->
@@ -483,7 +483,17 @@ class MainActivity:Activity(){
 
   root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
   setContentView(root)
-  row.post{if(row.childCount>0)row.getChildAt(0).requestFocus()}
+  content.post{
+   for(i in 0 until content.childCount){
+    val group=content.getChildAt(i)
+    if(group is LinearLayout){
+     for(j in 0 until group.childCount){
+      val child=group.getChildAt(j)
+      if(child.isFocusable){child.requestFocus();return@post}
+     }
+    }
+   }
+  }
  }
 
  private fun showGreekOneHome(){

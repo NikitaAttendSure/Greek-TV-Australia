@@ -618,7 +618,7 @@ class MainActivity:Activity(){
      val guideNow=epgNow[ch.tvgId]
      val guideNext=epgNext[ch.tvgId]
      previewMeta.text=if(guideNow!=null)"NOW  •  $guideNow"+(if(guideNext!=null)"\nNEXT •  $guideNext" else "") else (if(ch.group.isBlank())"GREEK TV" else ch.group.uppercase())+"   •   LIVE NOW"
-     previewHandler.postDelayed({if(v.hasFocus)startPreview(i)},350)
+     previewHandler.postDelayed({if(v.hasFocus())startPreview(i)},350)
     }
    }
    list.addView(row)

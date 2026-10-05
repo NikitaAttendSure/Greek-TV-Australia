@@ -1,0 +1,72 @@
+name: Build LG webOS TV Apps
+
+on:
+  push:
+    paths:
+      - "lg-webos/**"
+      - ".github/workflows/lg-webos.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lg-webos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install current webOS CLI
+        run: npm install -g @webos-tools/cli
+
+      - name: Prepare branded apps
+        run: |
+          mkdir -p build/reskakis build/papas dist
+          cp lg-webos/base/* build/reskakis/
+          cp lg-webos/base/* build/papas/
+          cp lg-webos/reskakis/appinfo.json build/reskakis/appinfo.json
+          cp lg-webos/reskakis/brand.js build/reskakis/brand.js
+          cp lg-webos/papas/appinfo.json build/papas/appinfo.json
+          cp lg-webos/papas/brand.js build/papas/brand.js
+          ares-config --profile tv
+          ares-package -o dist build/reskakis
+          ares-package -o dist build/papas
+          ls -lah dist
+
+      - name: Normalize package names
+        run: |
+          RESKAKIS_IPK=$(find dist -maxdepth 1 -name 'au.com.reskakis.tv_*.ipk' | head -n 1)
+          PAPAS_IPK=$(find dist -maxdepth 1 -name 'au.com.papas.tv_*.ipk' | head -n 1)
+          test -n "$RESKAKIS_IPK"
+          test -n "$PAPAS_IPK"
+          cp "$RESKAKIS_IPK" dist/RESKAKIS-TV-LG.ipk
+          cp "$PAPAS_IPK" dist/PAPAS-TV-LG.ipk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lg-webos-tv-apps
+          path: |
+            dist/RESKAKIS-TV-LG.ipk
+            dist/PAPAS-TV-LG.ipk
+
+      - name: Publish RESKAKIS LG latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view reskakis-lg-latest >/dev/null 2>&1 || gh release create reskakis-lg-latest --title "RESKAKIS TV for LG" --notes "Latest LG webOS build"
+          gh release upload reskakis-lg-latest dist/RESKAKIS-TV-LG.ipk --clobber
+
+      - name: Publish PAPAS LG latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view papas-lg-latest >/dev/null 2>&1 || gh release create papas-lg-latest --title "PAPAS TV for LG" --notes "Latest LG webOS build"
+          gh release upload papas-lg-latest dist/PAPAS-TV-LG.ipk --clobber

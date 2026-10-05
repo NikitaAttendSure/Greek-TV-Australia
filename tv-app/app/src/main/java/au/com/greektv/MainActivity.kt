@@ -525,7 +525,7 @@ class MainActivity:Activity(){
 
   val page=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
-   setPadding(42,22,48,30)
+   setPadding(52,24,72,32)
   }
 
   // ----- masthead -----
@@ -566,9 +566,9 @@ class MainActivity:Activity(){
    setTextColor(Color.rgb(218,232,243));gravity=Gravity.CENTER;setSingleLine(true)
   }
   sydneyInfoView=topChip()
-  top.addView(athensInfoView,LinearLayout.LayoutParams(156,44).apply{setMargins(8,0,5,0)})
-  top.addView(dateInfoView,LinearLayout.LayoutParams(82,44))
-  top.addView(sydneyInfoView,LinearLayout.LayoutParams(160,44).apply{setMargins(5,0,7,0)})
+  top.addView(athensInfoView,LinearLayout.LayoutParams(132,42).apply{setMargins(8,0,4,0)})
+  top.addView(dateInfoView,LinearLayout.LayoutParams(70,42))
+  top.addView(sydneyInfoView,LinearLayout.LayoutParams(136,42).apply{setMargins(4,0,8,0)})
   val settingsTop=TextView(this).apply{
    text="⚙";textSize=18f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
    background=GradientDrawable().apply{setColor(Color.argb(145,5,24,42));cornerRadius=12f;setStroke(1,Color.argb(55,150,205,245))}
@@ -632,7 +632,7 @@ class MainActivity:Activity(){
    }
    row.addView(iconView,LinearLayout.LayoutParams(26,28).apply{setMargins(0,0,7,0)})
    val labelView=TextView(this).apply{
-    text=label;textSize=11.7f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
+    text=label;textSize=12.4f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
     setTextColor(if(selected)Color.WHITE else Color.rgb(207,222,233));setSingleLine(true)
     ellipsize=android.text.TextUtils.TruncateAt.END
    }
@@ -651,7 +651,7 @@ class MainActivity:Activity(){
    nav.addView(row)
    if(i==3||i==7)nav.addView(View(this).apply{setBackgroundColor(Color.argb(24,111,179,226))},LinearLayout.LayoutParams(-1,1).apply{setMargins(14,3,14,3)})
   }
-  body.addView(nav,LinearLayout.LayoutParams(232,-1).apply{setMargins(0,6,18,0)})
+  body.addView(nav,LinearLayout.LayoutParams(286,-1).apply{setMargins(0,6,22,0)})
 
   val scroll=ScrollView(this).apply{isFillViewport=true;overScrollMode=View.OVER_SCROLL_NEVER}
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,2,8,36)}
@@ -790,7 +790,7 @@ class MainActivity:Activity(){
     a[0].contains("Kids")->{ {loadChannels("ΠΑΙΔΙΚΑ")} }
     else->{ {loadChannels("ΔΙΕΘΝΗ")} }
    }
-   catRow.addView(tvCard(a[0],a[1],a[2].toInt(),action),LinearLayout.LayoutParams(0,72,1f).apply{setMargins(0,0,9,0)})
+   catRow.addView(tvCard(a[0],a[1],a[2].toInt(),action),LinearLayout.LayoutParams(0,84,1f).apply{setMargins(0,0,10,0)})
   }
   main.addView(catRow)
 
@@ -1203,8 +1203,8 @@ class MainActivity:Activity(){
  }
  private fun tvCard(title:String,subtitle:String="",base:Int=card,action:()->Unit):LinearLayout{
   return LinearLayout(this).apply{
-   orientation=LinearLayout.VERTICAL;gravity=Gravity.BOTTOM;isFocusable=true;isClickable=true
-   setPadding(12,7,12,7)
+   orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
+   setPadding(14,8,14,8)
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(base,Color.rgb(7,18,31))).apply{cornerRadius=14f;setStroke(1,Color.argb(90,150,195,230))}
    addView(TextView(this@MainActivity).apply{text=title;textSize=15f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
    if(subtitle.isNotBlank())addView(TextView(this@MainActivity).apply{text=subtitle;textSize=10f;setTextColor(Color.rgb(218,228,238));setPadding(0,2,0,0);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})

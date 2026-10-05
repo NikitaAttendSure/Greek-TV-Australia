@@ -612,7 +612,8 @@ class MainActivity:Activity(){
   addNav("⌂","Home"){showGreekOneHome()}
   addNav("▣","Live TV"){loadChannels()}
   addNav("♡","Favourites"){loadChannels(favouritesOnly=true)}
-  addNav("◷","Continue"){loadLastChannel()}\n  addNav("◆","Preloaded Movies"){showPreloadedMovies()}
+  addNav("◷","Continue"){loadLastChannel()}
+  addNav("◆","Preloaded Movies"){showPreloadedMovies()}
   addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
   if(isPappas)addNav("●",placeName){loadChannels(placeFilter)}
   addNav("◎","World TV"){loadChannels("ΔΙΕΘΝΗ")}

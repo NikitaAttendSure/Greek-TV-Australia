@@ -42,6 +42,16 @@ class MainActivity:Activity(){
  private var epgLoadedAt=0L
  private val epgCacheTtlMs=10*60*1000L
  private val previewHandler=Handler(Looper.getMainLooper())
+ private val headerHandler=Handler(Looper.getMainLooper())
+ private var athensInfoView:TextView?=null
+ private var sydneyInfoView:TextView?=null
+ private var dateInfoView:TextView?=null
+ private var athensTemp="--"
+ private var athensCondition="Weather"
+ private var sydneyTemp="--"
+ private var sydneyCondition="Weather"
+ private var weatherLoadedAt=0L
+ private val weatherCacheTtlMs=30*60*1000L
  private val imageCache=object:LruCache<String,Bitmap>(24){}
  private val epgNow=mutableMapOf<String,String>()
  private val epgNext=mutableMapOf<String,String>()
@@ -56,7 +66,7 @@ class MainActivity:Activity(){
   Handler(Looper.getMainLooper()).postDelayed({if(player==null)showHome()},650)
  }
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
- override fun onStop(){super.onStop();previewHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null}
+ override fun onStop(){super.onStop();previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null}
  private fun panel(c:Int,r:Float=22f)=GradientDrawable().apply{setColor(c);cornerRadius=r;setStroke(1,Color.argb(58,138,190,232))}
  private fun showLaunchScreen(){
   val root=FrameLayout(this).apply{setBackgroundColor(Color.rgb(2,7,13))}
@@ -206,10 +216,41 @@ class MainActivity:Activity(){
   }catch(_:Exception){}finally{epgLoadedAt=System.currentTimeMillis();epgLoading=false;runOnUiThread{onDone?.invoke()}}}.start()
  }
  private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=21f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(30,0,24,0);stateListAnimator=null;setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,5,0,5)};setOnFocusChangeListener{v,f->background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,116,213),Color.rgb(28,151,245))).apply{cornerRadius=18f;setStroke(2,Color.argb(205,255,255,255))}else panel(card);v.animate().scaleX(if(f)1.035f else 1f).scaleY(if(f)1.035f else 1f).setDuration(110).start();v.elevation=if(f)16f else 1f}}
+ private fun weatherName(code:Int)=when(code){
+  0->"Clear";1,2->"Mostly clear";3->"Cloudy";45,48->"Fog";51,53,55,56,57->"Drizzle";61,63,65,66,67,80,81,82->"Rain";71,73,75,77,85,86->"Snow";95,96,99->"Storm";else->"Weather"
+ }
+ private fun timeAt(zone:String):String=SimpleDateFormat("HH:mm",Locale.getDefault()).apply{timeZone=TimeZone.getTimeZone(zone)}.format(Date())
+ private fun updateHomeHeader(){
+  athensInfoView?.text="🇬🇷  ATHENS\n${timeAt("Europe/Athens")}  •  $athensTemp°C  •  $athensCondition"
+  sydneyInfoView?.text="🇦🇺  SYDNEY\n${timeAt("Australia/Sydney")}  •  $sydneyTemp°C  •  $sydneyCondition"
+  dateInfoView?.text=SimpleDateFormat("EEE d MMM",Locale.getDefault()).format(Date()).uppercase()
+ }
+ private val headerTick=object:Runnable{override fun run(){if(screenMode=="HOME"){updateHomeHeader();headerHandler.postDelayed(this,30000)}}}
+ private fun refreshHomeWeather(){
+  if(isPappas)return
+  val now=System.currentTimeMillis()
+  if(now-weatherLoadedAt<weatherCacheTtlMs){updateHomeHeader();return}
+  Thread{
+   fun getWeather(lat:String,lon:String,tz:String):Pair<String,String>?=try{
+    val u="https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code&timezone="+java.net.URLEncoder.encode(tz,"UTF-8")
+    val conn=URL(u).openConnection().apply{connectTimeout=5000;readTimeout=6000}
+    val txt=conn.getInputStream().bufferedReader().use{it.readText()}
+    val cur=JSONObject(txt).optJSONObject("current")?:return@try null
+    val temp=Math.round(cur.optDouble("temperature_2m")).toInt().toString()
+    temp to weatherName(cur.optInt("weather_code",-1))
+   }catch(_:Exception){null}
+   val a=getWeather("37.9838","23.7275","Europe/Athens")
+   val s=getWeather("-33.8688","151.2093","Australia/Sydney")
+   if(a!=null){athensTemp=a.first;athensCondition=a.second}
+   if(s!=null){sydneyTemp=s.first;sydneyCondition=s.second}
+   if(a!=null||s!=null)weatherLoadedAt=System.currentTimeMillis()
+   runOnUiThread{if(screenMode=="HOME")updateHomeHeader()}
+  }.start()
+ }
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
  private fun showHome(){
   screenMode="HOME"
-  previewHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
   window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 
   val root=FrameLayout(this).apply{setBackgroundColor(bg)}
@@ -239,7 +280,7 @@ class MainActivity:Activity(){
    },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
   }else{
    identity.addView(ImageView(this).apply{
-    setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_CROP
+    setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(5,5,5,5)
     background=GradientDrawable().apply{setColor(Color.rgb(3,15,32));cornerRadius=10f;setStroke(1,Color.argb(120,255,255,255))}
     elevation=8f
    },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
@@ -253,34 +294,79 @@ class MainActivity:Activity(){
   })
   identity.addView(wordmark)
   top.addView(identity,LinearLayout.LayoutParams(0,-2,1f))
-  top.addView(TextView(this).apply{
-   text=cfgString("tagline",if(isPappas)"From Nafplio to the World" else "From Chios to the World").replace(" to the World","\nto the World");textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
-  })
-  top.addView(TextView(this).apply{
-   text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
-  })
+  if(isPappas){
+   top.addView(TextView(this).apply{
+    text=cfgString("tagline","From Nafplio to the World").replace(" to the World","\nto the World");textSize=25f;typeface=Typeface.create("cursive",Typeface.ITALIC);setTextColor(Color.WHITE);gravity=Gravity.CENTER;setPadding(18,0,34,0);setShadowLayer(8f,0f,3f,Color.argb(120,0,0,0))
+   })
+   top.addView(TextView(this).apply{
+    text=SimpleDateFormat("HH:mm   |   EEE d MMM",Locale.getDefault()).format(Date())+"   ⚙";textSize=14f;setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL or Gravity.END;setSingleLine(true)
+   })
+  }else{
+   fun infoChip():TextView=TextView(this).apply{
+    textSize=12.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
+    setPadding(18,9,18,9)
+    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(185,5,22,39),Color.argb(160,10,50,82))).apply{cornerRadius=18f;setStroke(1,Color.argb(85,150,205,245))}
+    elevation=6f
+   }
+   athensInfoView=infoChip()
+   dateInfoView=TextView(this).apply{
+    textSize=12f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(226,236,245));gravity=Gravity.CENTER;letterSpacing=.06f
+    setPadding(16,0,16,0)
+   }
+   sydneyInfoView=infoChip()
+   top.addView(athensInfoView,LinearLayout.LayoutParams(250,76).apply{setMargins(12,0,8,0)})
+   top.addView(dateInfoView,LinearLayout.LayoutParams(145,76))
+   top.addView(sydneyInfoView,LinearLayout.LayoutParams(258,76).apply{setMargins(8,0,8,0)})
+   top.addView(TextView(this).apply{
+    text="⚙";textSize=24f;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+    background=GradientDrawable().apply{setColor(Color.argb(150,5,24,42));cornerRadius=18f;setStroke(1,Color.argb(75,150,205,245))}
+   },LinearLayout.LayoutParams(62,62).apply{gravity=Gravity.CENTER_VERTICAL})
+   updateHomeHeader()
+   refreshHomeWeather()
+   headerHandler.post(headerTick)
+  }
   page.addView(top,LinearLayout.LayoutParams(-1,124))
 
   val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
 
-  // Glass left rail.
+  // Premium glass navigation rail.
   val nav=LinearLayout(this).apply{
-   orientation=LinearLayout.VERTICAL;setPadding(10,12,10,10)
-   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(242,1,11,22),Color.argb(226,3,22,39))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
-   elevation=8f
+   orientation=LinearLayout.VERTICAL;setPadding(if(isPappas)10 else 12,if(isPappas)12 else 14,if(isPappas)10 else 12,10)
+   background=if(isPappas)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(242,1,11,22),Color.argb(226,3,22,39))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
+   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(248,2,13,27),Color.argb(236,4,29,51),Color.argb(246,2,16,31))).apply{cornerRadius=22f;setStroke(1,Color.argb(105,112,183,236))}
+   elevation=if(isPappas)8f else 14f
+  }
+  if(!isPappas){
+   nav.addView(TextView(this).apply{
+    text="GREEK ONE";textSize=9.5f;letterSpacing=.16f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(114,190,246));gravity=Gravity.CENTER_VERTICAL;setPadding(13,0,0,5)
+   },LinearLayout.LayoutParams(-1,30))
+   nav.addView(View(this).apply{setBackgroundColor(Color.argb(65,110,185,235))},LinearLayout.LayoutParams(-1,1).apply{setMargins(8,0,8,8)})
   }
   val navItems=listOf<Pair<String,()->Unit>>(
-   "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♥   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
-   "▤   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"◉   $placeName" to {loadChannels(placeFilter)},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},
+   "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♡   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
+   "▤   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"●   $placeName" to {loadChannels(placeFilter)},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},
    "☷   Categories" to {loadChannels()},"▦   TV Guide" to {showTvGuide()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showSettings()}
   )
   navItems.forEachIndexed{i,it->
-   nav.addView(button(it.first,it.second).apply{
-    textSize=14f;setPadding(16,0,8,0);setSingleLine(true);layoutParams=LinearLayout.LayoutParams(-1,50).apply{setMargins(0,2,0,2)}
-    background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(11,129,231),Color.rgb(29,151,247))).apply{cornerRadius=12f;setStroke(1,Color.argb(180,255,255,255))} else panel(Color.argb(122,6,26,44),12f)
-   })
+   val nb=button(it.first,it.second).apply{
+    textSize=if(isPappas)14f else 14.5f
+    typeface=Typeface.create("sans-serif-medium",if(i==0)Typeface.BOLD else Typeface.NORMAL)
+    setPadding(if(isPappas)16 else 18,0,8,0);setSingleLine(true)
+    layoutParams=LinearLayout.LayoutParams(-1,if(isPappas)50 else 53).apply{setMargins(0,if(isPappas)2 else 3,0,if(isPappas)2 else 3)}
+    background=if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,112,210),Color.rgb(30,164,247))).apply{cornerRadius=if(isPappas)12f else 15f;setStroke(if(isPappas)1 else 2,Color.argb(210,225,247,255))}
+    else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(132,7,29,50),Color.argb(88,10,44,72))).apply{cornerRadius=15f;setStroke(1,Color.argb(50,130,190,230))}
+    if(!isPappas)setOnFocusChangeListener{v,focused->
+     background=if(focused)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,118,216),Color.rgb(31,170,248))).apply{cornerRadius=15f;setStroke(2,Color.WHITE)}
+     else if(i==0)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,112,210),Color.rgb(30,164,247))).apply{cornerRadius=15f;setStroke(2,Color.argb(210,225,247,255))}
+     else GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(132,7,29,50),Color.argb(88,10,44,72))).apply{cornerRadius=15f;setStroke(1,Color.argb(50,130,190,230))}
+     v.animate().scaleX(if(focused)1.025f else 1f).scaleY(if(focused)1.025f else 1f).setDuration(100).start()
+     v.elevation=if(focused)18f else 2f
+    }
+   }
+   nav.addView(nb)
+   if(!isPappas&&(i==3||i==8))nav.addView(View(this).apply{setBackgroundColor(Color.argb(45,120,185,230))},LinearLayout.LayoutParams(-1,1).apply{setMargins(12,4,12,4)})
   }
-  body.addView(nav,LinearLayout.LayoutParams(224,-1).apply{setMargins(0,8,18,0)})
+  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 232,-1).apply{setMargins(0,8,if(isPappas)18 else 20,0)})
 
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,0)}
   fun sectionTitle(t:String){

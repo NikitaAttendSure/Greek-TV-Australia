@@ -9,8 +9,8 @@ android {
         applicationId = "au.com.greektv"
         minSdk = 23
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.0.1"
+        versionCode = 13
+        versionName = "1.0.2"
     }
     signingConfigs {
         create("reskakisRelease") {
@@ -33,7 +33,7 @@ android {
         create("reskakis") {
             dimension = "brand"
             applicationId = "au.com.greektv"
-            resValue("string", "app_name", "RESKAKIS TV")
+            resValue("string", "app_name", "GREEK ONE")
             signingConfig = signingConfigs.getByName("reskakisRelease")
         }
         create("pappas") {

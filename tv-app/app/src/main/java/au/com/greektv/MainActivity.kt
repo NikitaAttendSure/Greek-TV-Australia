@@ -342,7 +342,11 @@ class MainActivity:Activity(){
    SeriesItem("Η ΝΤΑΝΤΑ","MEGA","70 episodes","https://www.megatv.com/ekpompes/43294/i-ntanta/"),
    SeriesItem("ΕΜΕΙΣ ΚΑΙ ΕΜΕΙΣ","MEGA","139 episodes","https://www.megatv.com/ekpompes/42594/emeis-kai-emeis-2/"),
    SeriesItem("ΛΑΤΡΕΜΕΝΟΙ ΜΟΥ ΓΕΙΤΟΝΕΣ","MEGA","53 episodes","https://www.megatv.com/ekpompes/42963/latremenoi-mou-geitones/"),
-   SeriesItem("ΜΑΥΡΑ ΜΕΣΑΝΥΧΤΑ","MEGA","48 episodes","https://www.megatv.com/ekpompes/43238/maura-mesanuxta/")
+   SeriesItem("ΜΑΥΡΑ ΜΕΣΑΝΥΧΤΑ","MEGA","48 episodes","https://www.megatv.com/ekpompes/43238/maura-mesanuxta/"),
+   SeriesItem("ΕΞΑΨΗ","MEGA","72 episodes","https://www.megatv.com/ekpompes/202020/eksapsi-nea-seira/"),
+   SeriesItem("ΠΕΡΙ ΑΝΕΜΩΝ ΚΑΙ ΥΔΑΤΩΝ","MEGA","95 episodes • finale","https://www.megatv.com/ekpompes/43241/peri-anemn-kai-udatn/"),
+   SeriesItem("ΕΙΜΑΣΤΕ ΣΤΟΝ ΑΕΡΑ","MEGA","51 episodes","https://www.megatv.com/ekpompes/43348/eimaste-ston-aera/"),
+   SeriesItem("ΦΙΛΟΔΟΞΙΕΣ","MEGA","799 episodes","https://www.megatv.com/ekpompes/43252/filodoksies/")
   )
   val scroll=ScrollView(this)
   val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(4,2,12,24)}

@@ -553,21 +553,21 @@ class MainActivity:Activity(){
    bt.addView(TextView(this@MainActivity).apply{
     text="GREEK TELEVISION";textSize=8.5f;letterSpacing=.18f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(145,195,229));setSingleLine(true)
    })
-   brand.addView(bt,LinearLayout.LayoutParams(210,-2))
+   brand.addView(bt,LinearLayout.LayoutParams(250,-2))
    top.addView(brand,LinearLayout.LayoutParams(0,-2,1f))
    fun infoChip():TextView=TextView(this).apply{
-    textSize=11.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
+    textSize=10.8f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
     setPadding(12,7,12,7)
     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(190,4,22,39),Color.argb(170,8,48,79))).apply{cornerRadius=15f;setStroke(1,Color.argb(80,144,203,242))}
    }
    athensInfoView=infoChip()
    dateInfoView=TextView(this).apply{
-    textSize=10.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(222,235,245));gravity=Gravity.CENTER;letterSpacing=.05f;setSingleLine(true)
+    textSize=10f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(222,235,245));gravity=Gravity.CENTER;letterSpacing=.05f;setSingleLine(true)
    }
    sydneyInfoView=infoChip()
-   top.addView(athensInfoView,LinearLayout.LayoutParams(166,60).apply{setMargins(8,0,6,0)})
-   top.addView(dateInfoView,LinearLayout.LayoutParams(92,60))
-   top.addView(sydneyInfoView,LinearLayout.LayoutParams(170,60).apply{setMargins(6,0,6,0)})
+   top.addView(athensInfoView,LinearLayout.LayoutParams(188,60).apply{setMargins(8,0,6,0)})
+   top.addView(dateInfoView,LinearLayout.LayoutParams(102,60))
+   top.addView(sydneyInfoView,LinearLayout.LayoutParams(192,60).apply{setMargins(6,0,6,0)})
    val settingsChip=TextView(this).apply{
     text="⚙";textSize=20f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
     background=GradientDrawable().apply{setColor(Color.argb(165,5,24,42));cornerRadius=14f;setStroke(1,Color.argb(75,150,205,245))}
@@ -628,11 +628,11 @@ class MainActivity:Activity(){
    val selected=!isPappas&&label==activeHomeNav
    val row=LinearLayout(this).apply{
     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
-    setPadding(8,0,10,0)
+    setPadding(10,0,12,0)
     layoutParams=LinearLayout.LayoutParams(-1,if(isPappas)50 else 43).apply{setMargins(0,1,0,1)}
     background=if(selected)GradientDrawable().apply{
-     setColor(Color.argb(76,25,142,220));cornerRadius=13f
-    }else GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=13f}
+     setColor(Color.argb(76,25,142,220));cornerRadius=15f;setStroke(1,Color.argb(80,83,184,238))
+    }else GradientDrawable().apply{setColor(Color.argb(24,7,42,67));cornerRadius=15f}
     setOnClickListener{action()}
    }
    val marker=View(this).apply{
@@ -653,7 +653,7 @@ class MainActivity:Activity(){
     row.background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,104,198),Color.rgb(31,177,246))).apply{
      cornerRadius=13f;setStroke(2,Color.argb(245,232,250,255))
     }else if(selected)GradientDrawable().apply{setColor(Color.argb(76,25,142,220));cornerRadius=13f}
-     else GradientDrawable().apply{setColor(Color.TRANSPARENT);cornerRadius=13f}
+     else GradientDrawable().apply{setColor(Color.argb(24,7,42,67));cornerRadius=15f}
     marker.background=GradientDrawable().apply{setColor(if(f||selected)Color.rgb(62,205,255) else Color.TRANSPARENT);cornerRadius=3f}
     iconView.setTextColor(if(f||selected)Color.WHITE else Color.rgb(150,193,222))
     labelView.setTextColor(if(f||selected)Color.WHITE else Color.rgb(210,226,237))
@@ -762,7 +762,7 @@ class MainActivity:Activity(){
   val cats=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val categoryData=mutableListOf<Array<String>>(
    arrayOf("▣  Greek TV","All Greek Channels",Color.rgb(18,124,210).toString()),
-   arrayOf("◉  Movies","Greek & International",Color.rgb(155,26,83).toString()),
+   arrayOf("◉  Preloaded Movies","Greek Cinema Library",Color.rgb(155,26,83).toString()),
    arrayOf("▦  TV Guide","Now & Next",Color.rgb(4,116,68).toString()),
    arrayOf("★  Kids","For the Little Ones",Color.rgb(225,124,5).toString()),
    arrayOf("◎  World TV","International Channels",Color.rgb(95,19,160).toString())
@@ -771,7 +771,7 @@ class MainActivity:Activity(){
   categoryData.forEach{a->
    val action:()->Unit=when{
     a[0].contains("Greek TV")->{ {loadChannels()} }
-    a[0].contains("Movies")->{ {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")} }
+    a[0].contains("Movies")->{ {showPreloadedMovies()} }
     a[0].contains("TV Guide")->{ {showTvGuide()} }
     a[0].contains("Kids")->{ {loadChannels("ΠΑΙΔΙΚΑ")} }
     a[0].contains(placeName)->{ {loadChannels(placeFilter)} }

@@ -342,11 +342,14 @@ class MainActivity:Activity(){
    },LinearLayout.LayoutParams(-1,30))
    nav.addView(View(this).apply{setBackgroundColor(Color.argb(65,110,185,235))},LinearLayout.LayoutParams(-1,1).apply{setMargins(8,0,8,8)})
   }
-  val navItems=listOf<Pair<String,()->Unit>>(
+  val navItems=mutableListOf<Pair<String,()->Unit>>(
    "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♡   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},
    "▤   On Demand" to {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")},"●   $placeName" to {loadChannels(placeFilter)},"◎   World TV" to {loadChannels("ΔΙΕΘΝΗ")},
-   "☷   Categories" to {loadChannels()},"▦   TV Guide" to {showTvGuide()},"⌕   Search" to {loadChannels()},"⚙   Settings" to {showSettings()}
+   "☷   Categories" to {loadChannels()},"▦   TV Guide" to {showTvGuide()}
   )
+  if(!isPappas)navItems.add("▶   YouTube" to {showYouTubeSearch()})
+  navItems.add("⌕   Search" to {loadChannels()})
+  navItems.add("⚙   Settings" to {showSettings()})
   navItems.forEachIndexed{i,it->
    val nb=button(it.first,it.second).apply{
     textSize=if(isPappas)14f else 15f
@@ -636,6 +639,92 @@ class MainActivity:Activity(){
    }
   }catch(_:Exception){runOnUiThread{status.text="Unable to load TV guide";render()}}}.start()
  }
+ private fun openYouTubeSearch(query:String){
+  val q=query.trim()
+  if(q.isBlank())return
+  val tvIntent=Intent(Intent.ACTION_SEARCH).apply{
+   setPackage("com.google.android.youtube.tv")
+   putExtra(android.app.SearchManager.QUERY,q)
+  }
+  val mobileIntent=Intent(Intent.ACTION_SEARCH).apply{
+   setPackage("com.google.android.youtube")
+   putExtra(android.app.SearchManager.QUERY,q)
+  }
+  val url="https://www.youtube.com/results?search_query="+java.net.URLEncoder.encode(q,"UTF-8")
+  when{
+   tvIntent.resolveActivity(packageManager)!=null->startActivity(tvIntent)
+   mobileIntent.resolveActivity(packageManager)!=null->startActivity(mobileIntent)
+   else->openUri(url)
+  }
+ }
+ private fun showYouTubeSearch(){
+  if(isPappas){showHome();return}
+  screenMode="YOUTUBE"
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);previewPlayer?.release();previewPlayer=null
+  val root=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL
+   setPadding(54,34,54,30)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(5,25,44),Color.rgb(2,9,17)))
+  }
+  val head=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  val titleWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  titleWrap.addView(TextView(this).apply{
+   text="YouTube";textSize=34f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)
+  })
+  titleWrap.addView(TextView(this).apply{
+   text="Search YouTube from Greek One";textSize=13f;setTextColor(Color.rgb(129,190,235));letterSpacing=.04f
+  })
+  head.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
+  head.addView(button("←  Home"){showHome()},LinearLayout.LayoutParams(180,58))
+  root.addView(head,LinearLayout.LayoutParams(-1,82))
+
+  val searchPanel=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(18,14,18,14)
+   background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(245,5,23,40),Color.argb(232,8,48,78))).apply{cornerRadius=20f;setStroke(1,Color.argb(95,145,205,245))}
+   elevation=10f
+  }
+  val input=EditText(this).apply{
+   hint="Search videos, channels or topics…"
+   setHintTextColor(Color.rgb(145,172,195));setTextColor(Color.WHITE);textSize=20f
+   isSingleLine=true
+   inputType=android.text.InputType.TYPE_CLASS_TEXT
+   background=GradientDrawable().apply{setColor(Color.argb(185,2,14,26));cornerRadius=15f;setStroke(1,Color.argb(75,125,185,225))}
+   setPadding(20,0,20,0);isFocusable=true;isFocusableInTouchMode=true
+   setOnEditorActionListener{_,_,_->if(text.toString().isNotBlank()){openYouTubeSearch(text.toString());true}else false}
+  }
+  searchPanel.addView(input,LinearLayout.LayoutParams(0,64,1f).apply{setMargins(0,0,14,0)})
+  searchPanel.addView(button("Search ▶"){openYouTubeSearch(input.text.toString())},LinearLayout.LayoutParams(190,64))
+  root.addView(searchPanel,LinearLayout.LayoutParams(-1,96))
+
+  root.addView(TextView(this).apply{
+   text="Popular searches";textSize=22f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(2,24,0,12)
+  })
+
+  val quick1=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val quick2=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val quick=listOf(
+   "Greek News" to "Greek news live",
+   "Greek Music" to "Greek music",
+   "Chios" to "Chios Greece",
+   "Greek Cooking" to "Greek cooking recipes",
+   "Documentaries" to "Greece documentary",
+   "Greek Kids" to "Greek kids cartoons"
+  )
+  quick.forEachIndexed{i,(label,q)->
+   val card=tvCard("▶  $label","Search YouTube",when(i){0->Color.rgb(163,25,38);1->Color.rgb(101,36,155);2->Color.rgb(16,117,185);3->Color.rgb(16,123,92);4->Color.rgb(77,91,111);else->Color.rgb(214,120,16)}){openYouTubeSearch(q)}
+   val row=if(i<3)quick1 else quick2
+   row.addView(card,LinearLayout.LayoutParams(0,104,1f).apply{setMargins(0,0,14,0)})
+  }
+  root.addView(quick1)
+  root.addView(quick2,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,14,0,0)})
+
+  root.addView(TextView(this).apply{
+   text="Search stays inside Greek One until you choose a result. Playback opens in the official YouTube TV app when available."
+   textSize=12f;setTextColor(Color.rgb(145,176,201));setPadding(4,22,0,0)
+  })
+  setContentView(root)
+  input.requestFocus()
+ } 
  private fun loadLastChannel(){val u=prefs.getString("last_channel",null);if(u==null){loadChannels();return};Thread{try{val all=parsePlaylist(fetchPlaylist());runOnUiThread{channels=all;val i=all.indexOfFirst{it.url==u};if(i>=0)play(i)else showList()}}catch(e:Exception){runOnUiThread{loadChannels()}}}.start()}
  private fun fetchPlaylist():String{
   val cached=prefs.getString("playlist_cache",null)

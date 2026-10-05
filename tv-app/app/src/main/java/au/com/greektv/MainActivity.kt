@@ -29,7 +29,7 @@ data class Channel(val name:String,val url:String,val group:String,val tvgId:Str
 class MainActivity:Activity(){
  private val bg=Color.rgb(2,7,13);private val card=Color.rgb(12,25,40);private val focus=Color.rgb(27,105,190);private val muted=Color.rgb(158,180,201);private val accent=Color.rgb(64,151,255)
  private val isPappas get()=packageName=="au.com.pappastv"
- private val brandName get()=if(isPappas)"PAPAS TV" else "RESKAKIS TV"
+ private val brandName get()=if(isPappas)"PAPAS TV" else "GREEK ONE"
  private val placeName get()=if(isPappas)"Nafplio" else "Chios"
  private val placeUpper get()=placeName.uppercase()
  private val placeFilter get()=if(isPappas)"ΝΑΥΠΛΙΟ" else "ΧΙΟΣ"
@@ -63,8 +63,12 @@ class MainActivity:Activity(){
   val glow=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(3,29,56),Color.rgb(5,62,115),Color.rgb(2,7,13)))}
   root.addView(glow,FrameLayout.LayoutParams(-1,-1))
   val wrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER}
-  wrap.addView(TextView(this).apply{text="🇬🇷";textSize=58f;gravity=Gravity.CENTER})
-  wrap.addView(TextView(this).apply{text=brandName;textSize=46f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER;letterSpacing=.035f})
+  if(isPappas){
+   wrap.addView(TextView(this).apply{text="🇬🇷";textSize=58f;gravity=Gravity.CENTER})
+   wrap.addView(TextView(this).apply{text=brandName;textSize=46f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER;letterSpacing=.035f})
+  }else{
+   wrap.addView(ImageView(this).apply{setImageResource(R.drawable.greek_one_logo);scaleType=ImageView.ScaleType.CENTER_INSIDE},LinearLayout.LayoutParams(360,360))
+  }
   wrap.addView(TextView(this).apply{text="GREEK TELEVISION  •  $placeUpper  •  AND MORE";textSize=13f;setTextColor(Color.rgb(175,211,241));gravity=Gravity.CENTER;letterSpacing=.08f;setPadding(0,10,0,0)})
   root.addView(wrap,FrameLayout.LayoutParams(-1,-1))
   setContentView(root)
@@ -228,10 +232,18 @@ class MainActivity:Activity(){
   // Full-width premium masthead, matching the locked reference.
   val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
   val identity=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
-  identity.addView(TextView(this).apply{
-   text="🇬🇷";textSize=44f;gravity=Gravity.CENTER;background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(12,86,190),Color.rgb(8,55,132))).apply{cornerRadius=10f;setStroke(1,Color.argb(120,255,255,255))}
-   elevation=8f
-  },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
+  if(isPappas){
+   identity.addView(TextView(this).apply{
+    text="🇬🇷";textSize=44f;gravity=Gravity.CENTER;background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(12,86,190),Color.rgb(8,55,132))).apply{cornerRadius=10f;setStroke(1,Color.argb(120,255,255,255))}
+    elevation=8f
+   },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
+  }else{
+   identity.addView(ImageView(this).apply{
+    setImageResource(R.drawable.greek_one_logo);scaleType=ImageView.ScaleType.CENTER_CROP
+    background=GradientDrawable().apply{setColor(Color.rgb(3,15,32));cornerRadius=10f;setStroke(1,Color.argb(120,255,255,255))}
+    elevation=8f
+   },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
+  }
   val wordmark=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   wordmark.addView(TextView(this).apply{
    text=brandName;textSize=44f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.012f;setSingleLine(true);setShadowLayer(10f,0f,3f,Color.argb(110,0,0,0))

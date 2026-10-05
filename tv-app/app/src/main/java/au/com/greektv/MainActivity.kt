@@ -14,6 +14,7 @@ import android.os.Looper
 import android.util.LruCache
 import android.util.Xml
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -802,13 +803,65 @@ class MainActivity:Activity(){
    orientation=LinearLayout.VERTICAL
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(5,25,44),Color.rgb(2,9,17)))
   }
-  val bar=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(30,14,30,14);background=GradientDrawable().apply{setColor(Color.argb(245,3,17,30));setStroke(1,Color.argb(75,130,190,230))}}
-  bar.addView(TextView(this).apply{text="YouTube  •  $q";textSize=20f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END},LinearLayout.LayoutParams(0,54,1f))
-  bar.addView(button("← Search"){showYouTubeSearch()},LinearLayout.LayoutParams(170,54))
-  root.addView(bar,LinearLayout.LayoutParams(-1,82))
-  val web=WebView(this).apply{
-   setBackgroundColor(Color.rgb(2,8,15));isFocusable=true;isFocusableInTouchMode=true
-   settings.javaScriptEnabled=true;settings.domStorageEnabled=true;settings.mediaPlaybackRequiresUserGesture=true;settings.cacheMode=WebSettings.LOAD_DEFAULT
+
+  lateinit var web:WebView
+  val bar=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
+   setPadding(22,12,22,12)
+   background=GradientDrawable().apply{setColor(Color.argb(248,3,17,30));setStroke(1,Color.argb(80,130,190,230))}
+  }
+
+  val input=EditText(this).apply{
+   setText(q);setSelection(text.length)
+   hint="Search YouTube…"
+   setHintTextColor(Color.rgb(135,166,190));setTextColor(Color.WHITE);textSize=18f
+   isSingleLine=true;inputType=android.text.InputType.TYPE_CLASS_TEXT
+   setPadding(18,0,18,0)
+   background=GradientDrawable().apply{setColor(Color.argb(210,3,23,40));cornerRadius=14f;setStroke(1,Color.argb(95,125,190,230))}
+   isFocusable=true;isFocusableInTouchMode=true
+   setOnFocusChangeListener{v,f->
+    background=GradientDrawable().apply{
+     setColor(if(f)Color.argb(235,5,38,63) else Color.argb(210,3,23,40))
+     cornerRadius=14f
+     setStroke(if(f)2 else 1,if(f)Color.rgb(89,201,255) else Color.argb(95,125,190,230))
+    }
+   }
+  }
+
+  fun runSearch(){
+   val next=input.text.toString().trim()
+   if(next.isBlank())return
+   val url="https://www.youtube.com/results?search_query="+java.net.URLEncoder.encode(next,"UTF-8")
+   try{
+    web.loadUrl(url)
+    input.clearFocus()
+    web.requestFocus()
+   }catch(_:Exception){openYouTubeExternal(url)}
+  }
+  input.setOnEditorActionListener{_,_,_->runSearch();true}
+  input.setOnKeyListener{_,key,event->
+   if(event.action==KeyEvent.ACTION_UP&&(key==KeyEvent.KEYCODE_ENTER||key==KeyEvent.KEYCODE_DPAD_CENTER)){runSearch();true}else false
+  }
+  input.setOnClickListener{
+   input.requestFocus()
+   (getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager)?.showSoftInput(input,InputMethodManager.SHOW_IMPLICIT)
+  }
+
+  bar.addView(TextView(this).apply{
+   text="YouTube";textSize=19f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER_VERTICAL
+  },LinearLayout.LayoutParams(118,54).apply{setMargins(0,0,12,0)})
+  bar.addView(input,LinearLayout.LayoutParams(0,56,1f).apply{setMargins(0,0,12,0)})
+  bar.addView(button("Search ▶"){runSearch()},LinearLayout.LayoutParams(150,56).apply{setMargins(0,0,10,0)})
+  bar.addView(button("← Back"){showYouTubeSearch()},LinearLayout.LayoutParams(132,56))
+  root.addView(bar,LinearLayout.LayoutParams(-1,80))
+
+  web=WebView(this).apply{
+   setBackgroundColor(Color.rgb(2,8,15))
+   isFocusable=true;isFocusableInTouchMode=true
+   settings.javaScriptEnabled=true
+   settings.domStorageEnabled=true
+   settings.mediaPlaybackRequiresUserGesture=true
+   settings.cacheMode=WebSettings.LOAD_DEFAULT
    webViewClient=object:WebViewClient(){
     override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
      val u=request?.url?.toString()?:""
@@ -822,8 +875,12 @@ class MainActivity:Activity(){
   }
   root.addView(web,LinearLayout.LayoutParams(-1,0,1f))
   setContentView(root)
+
   val url="https://www.youtube.com/results?search_query="+java.net.URLEncoder.encode(q,"UTF-8")
-  try{web.loadUrl(url);web.requestFocus()}catch(_:Exception){openYouTubeExternal(url)}
+  try{
+   web.loadUrl(url)
+   web.requestFocus()
+  }catch(_:Exception){openYouTubeExternal(url)}
  }
  private fun openYouTubeSearch(query:String){showYouTubeResults(query)}
  private fun showYouTubeSearch(){

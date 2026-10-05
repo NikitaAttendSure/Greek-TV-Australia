@@ -613,7 +613,7 @@ class MainActivity:Activity(){
   addNav("▣","Live TV"){loadChannels()}
   addNav("♡","Favourites"){loadChannels(favouritesOnly=true)}
   addNav("◷","Continue"){loadLastChannel()}
-  addNav("◆","Preloaded Movies"){showPreloadedMovies()}
+  addNav("◆","ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ"){showPreloadedMovies()}
   addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
   if(isPappas)addNav("●",placeName){loadChannels(placeFilter)}
   addNav("◎","World TV"){loadChannels("ΔΙΕΘΝΗ")}

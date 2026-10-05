@@ -393,18 +393,18 @@ class MainActivity:Activity(){
    MovieItem("The Refugee","1969","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M001256",Color.rgb(45,76,118)),
 
    MovieItem("Athens – Istanbul","2008","Drama • Adventure • Greek Cinema","https://live.ertflix.gr/details/ERT_M002494",Color.rgb(26,99,119)),
-   MovieItem("Almond Tree in Bloom","Classic","Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M000294",Color.rgb(118,70,52)),
+   MovieItem("Almond Tree in Bloom","1959","Romance • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M000294",Color.rgb(118,70,52),"https://m.media-amazon.com/images/M/MV5BMWUwMDQ5MmMtMTcxZS00ZmFiLTkxZTQtNmI3MDAxMDNmNDk2XkEyXkFqcGc@._V1_.jpg"),
    MovieItem("Blood Ties","2012","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M001448",Color.rgb(104,49,68)),
    MovieItem("The Poor Boy","Classic","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M001392",Color.rgb(59,76,112)),
 
    MovieItem("My Poor Little Sparrow","Classic","Drama • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M002279",Color.rgb(126,64,86)),
-   MovieItem("The Hook","1976","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000567",Color.rgb(67,61,113)),
-   MovieItem("Lefteris Dimakopoulos","1993","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000031",Color.rgb(39,82,117)),
+   MovieItem("The Hook","1976","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000567",Color.rgb(67,61,113),"https://image.tmdb.org/t/p/w500/rkK4qXErHyXou729KVVL7bkrl8a.jpg"),
+   MovieItem("Lefteris Dimakopoulos","1993","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000031",Color.rgb(39,82,117),"https://m.media-amazon.com/images/M/MV5BMGU3OWZkMzctZDI2Mi00YmZjLTg1MTYtODJjN2JiMDZhNDVlXkEyXkFqcGc@._V1_.jpg"),
    MovieItem("Exotic Vitamins","Classic","Comedy • Old Greek Cinema","https://live.ertflix.gr/details/ERT_M002272",Color.rgb(25,105,95)),
 
    MovieItem("Liubi","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000372",Color.rgb(81,53,112)),
-   MovieItem("Roza of Smyrna","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000440",Color.rgb(118,53,61)),
-   MovieItem("The King","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000029",Color.rgb(56,75,112)),
+   MovieItem("Roza of Smyrna","2016","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000440",Color.rgb(118,53,61),"https://media.interactive.netuse.gr/filesystem/images/20161221/low/pegasus_LARGE_t_1581_107302039.JPG"),
+   MovieItem("The King","2002","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_P000029",Color.rgb(56,75,112),"https://m.media-amazon.com/images/M/MV5BZGNjNjU2OTMtMzVkMy00MGFkLWFmZGQtM2EwMGFlMGUzZTI3XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg"),
    MovieItem("The Seventh Sun of Love","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000886",Color.rgb(111,60,85)),
 
    MovieItem("Drift","Greek Cinema","Drama • Greek Cinema","https://live.ertflix.gr/details/ERT_M000807",Color.rgb(38,87,118)),

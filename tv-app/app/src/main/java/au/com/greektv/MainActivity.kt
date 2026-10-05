@@ -624,7 +624,7 @@ class MainActivity:Activity(){
   addNav("▣","Live TV"){loadChannels()}
   addNav("♡","Favourites"){loadChannels(favouritesOnly=true)}
   addNav("◷","Continue"){loadLastChannel()}
-  addNav("◆","Preloaded Movies"){showPreloadedMovies()}\n  addNav("🍳","ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ"){showGreekCooking()}
+  addNav("◆","Preloaded Movies"){showPreloadedMovies()}
   addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
   if(isPappas)addNav("●",placeName){loadChannels(placeFilter)}
   addNav("◎","World TV"){loadChannels("ΔΙΕΘΝΗ")}
@@ -775,7 +775,7 @@ class MainActivity:Activity(){
    arrayOf("▣  Greek TV","All Greek Channels",Color.rgb(18,124,210).toString()),
    arrayOf("◉  Preloaded Movies","Greek Cinema Library",Color.rgb(155,26,83).toString()),
    arrayOf("▦  TV Guide","Now & Next",Color.rgb(4,116,68).toString()),
-   arrayOf("★  Kids","For the Little Ones",Color.rgb(225,124,5).toString()),
+   arrayOf("🍳  ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ","Greek Cooking",Color.rgb(225,124,5).toString()),
    arrayOf("◎  World TV","International Channels",Color.rgb(95,19,160).toString())
   )
   if(isPappas)categoryData.add(4,arrayOf("◉  $placeName","Local Content",Color.rgb(6,132,153).toString()))
@@ -784,7 +784,7 @@ class MainActivity:Activity(){
     a[0].contains("Greek TV")->{ {loadChannels()} }
     a[0].contains("Movies")->{ {showPreloadedMovies()} }
     a[0].contains("TV Guide")->{ {showTvGuide()} }
-    a[0].contains("Kids")->{ {loadChannels("ΠΑΙΔΙΚΑ")} }
+    a[0].contains("ΜΑΓΕΙΡΙΚΗ")->{ {showGreekCooking()} }
     a[0].contains(placeName)->{ {loadChannels(placeFilter)} }
     else->{ {loadChannels("ΔΙΕΘΝΗ")} }
    }
@@ -1105,7 +1105,7 @@ class MainActivity:Activity(){
    arrayOf("▣  Greek TV","All Greek Channels",Color.rgb(18,124,210).toString()),
    arrayOf("◉  Movies","Greek & International",Color.rgb(155,26,83).toString()),
    arrayOf("▦  TV Guide","Now & Next",Color.rgb(4,116,68).toString()),
-   arrayOf("★  Kids","For the Little Ones",Color.rgb(225,124,5).toString()),
+   arrayOf("🍳  ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ","Greek Cooking",Color.rgb(225,124,5).toString()),
    arrayOf("◎  World TV","International Channels",Color.rgb(95,19,160).toString())
   )
   if(isPappas)categoryData.add(4,arrayOf("◉  $placeName","Local Content",Color.rgb(6,132,153).toString()))
@@ -1114,7 +1114,7 @@ class MainActivity:Activity(){
     a[0].contains("Greek TV")->{ {loadChannels()} }
     a[0].contains("Movies")->{ {loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")} }
     a[0].contains("TV Guide")->{ {showTvGuide()} }
-    a[0].contains("Kids")->{ {loadChannels("ΠΑΙΔΙΚΑ")} }
+    a[0].contains("ΜΑΓΕΙΡΙΚΗ")->{ {showGreekCooking()} }
     a[0].contains(placeName)->{ {loadChannels(placeFilter)} }
     else->{ {loadChannels("ΔΙΕΘΝΗ")} }
    }

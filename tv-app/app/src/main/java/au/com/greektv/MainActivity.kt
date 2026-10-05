@@ -77,7 +77,7 @@ class MainActivity:Activity(){
    wrap.addView(TextView(this).apply{text="🇬🇷";textSize=58f;gravity=Gravity.CENTER})
    wrap.addView(TextView(this).apply{text=brandName;textSize=46f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER;letterSpacing=.035f})
   }else{
-   wrap.addView(ImageView(this).apply{setImageResource(R.drawable.greek_one_icon);scaleType=ImageView.ScaleType.CENTER_INSIDE},LinearLayout.LayoutParams(360,360))
+   wrap.addView(ImageView(this).apply{setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE},LinearLayout.LayoutParams(360,360))
   }
   wrap.addView(TextView(this).apply{text="GREEK TELEVISION  •  $placeUpper  •  AND MORE";textSize=13f;setTextColor(Color.rgb(175,211,241));gravity=Gravity.CENTER;letterSpacing=.08f;setPadding(0,10,0,0)})
   root.addView(wrap,FrameLayout.LayoutParams(-1,-1))
@@ -280,7 +280,7 @@ class MainActivity:Activity(){
    },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})
   }else{
    identity.addView(ImageView(this).apply{
-    setImageResource(R.drawable.greek_one_icon);scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(5,5,5,5)
+    setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(5,5,5,5)
     background=GradientDrawable().apply{setColor(Color.rgb(3,15,32));cornerRadius=10f;setStroke(1,Color.argb(120,255,255,255))}
     elevation=8f
    },LinearLayout.LayoutParams(92,76).apply{setMargins(0,0,16,0)})

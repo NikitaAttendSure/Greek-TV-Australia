@@ -507,9 +507,34 @@ class MainActivity:Activity(){
   previewPlayer?.release();previewPlayer=null;player?.release();player=null
   activeHomeNav="ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ"
   val root=shell("ΕΛΛΗΝΙΚΗ ΜΑΓΕΙΡΙΚΗ")
-  root.addView(TextView(this).apply{text="Greek cooking programmes and episodes";textSize=18f;setTextColor(Color.rgb(202,218,232));setPadding(6,36,6,24)})
-  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(320,72))
+  root.addView(TextView(this).apply{text="Ελληνικές εκπομπές μαγειρικής • επίσημες πηγές";textSize=14f;setTextColor(Color.rgb(142,190,222));setPadding(6,16,6,18)})
+  data class CookingShow(val title:String,val subtitle:String,val source:String,val url:String)
+  val shows=listOf(
+   CookingShow("ΠΟΠ Μαγειρική","Ανδρέας Λαγός • Ελληνικά προϊόντα & συνταγές","ERTFLIX","https://www.ertflix.gr/vod/vod.179854"),
+   CookingShow("Kitchen Lab","Άκης Πετρετζίκης • Σεζόν 2026–2027","ΣΚΑΪ","https://www.skai.gr/tv/show/psuchagogia/kitchen-lab-2/sezon-2026-2027"),
+   CookingShow("Kitchen Lab • 04/10/2026","Πλήρες επεισόδιο • 3 συνταγές","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/kitchen-lab-04102026"),
+   CookingShow("Kitchen Lab • 03/10/2026","Πλήρες επεισόδιο • πρεμιέρα σεζόν","ΣΚΑΪ","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/kitchen-lab-03102026")
+  )
+  val scroll=ScrollView(this).apply{isFillViewport=true}
+  val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  shows.forEach{m->
+   val row=LinearLayout(this).apply{
+    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true;setPadding(22,12,22,12)
+    background=panel(Color.rgb(10,31,50),16f);setOnClickListener{openUri(m.url)}
+    setOnFocusChangeListener{v,f->v.background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,104,198),Color.rgb(34,155,246))).apply{cornerRadius=16f;setStroke(2,Color.WHITE)}else panel(Color.rgb(10,31,50),16f);v.animate().scaleX(if(f)1.012f else 1f).scaleY(if(f)1.012f else 1f).setDuration(100).start()}
+   }
+   val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+   copy.addView(TextView(this@MainActivity).apply{text=m.title;textSize=20f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
+   copy.addView(TextView(this@MainActivity).apply{text=m.subtitle;textSize=12f;setTextColor(Color.rgb(175,205,225));setPadding(0,3,0,0)})
+   row.addView(copy,LinearLayout.LayoutParams(0,-2,1f))
+   row.addView(TextView(this).apply{text=m.source+"  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(83,194,248))})
+   list.addView(row,LinearLayout.LayoutParams(-1,82).apply{setMargins(0,0,0,10)})
+  }
+  scroll.addView(list)
+  root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(320,62))
   setContentView(root)
+  list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
  }
  private fun showGreekOneHome(){
   screenMode="HOME"

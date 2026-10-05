@@ -33,7 +33,7 @@ class MainActivity:Activity(){
  private val placeName get()=if(isPappas)"Nafplio" else "Chios"
  private val placeUpper get()=placeName.uppercase()
  private val placeFilter get()=if(isPappas)"ΝΑΥΠΛΙΟ" else "ΧΙΟΣ"
- private var player:ExoPlayer?=null;private var previewPlayer:ExoPlayer?=null;private var channels=listOf<Channel>();private var current=0;private var overlay:TextView?=null;private var currentSection="LIVE TV"
+ private var player:ExoPlayer?=null;private var previewPlayer:ExoPlayer?=null;private var channels=listOf<Channel>();private var current=0;private var overlay:TextView?=null;private var miniGuide:View?=null;private var currentSection="LIVE TV"
  private var remoteConfig=JSONObject()
  private var remoteRefreshDone=false
  private var launchUpdateChecked=false
@@ -700,8 +700,122 @@ class MainActivity:Activity(){
   loadEpg()
   list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
  }
- private fun play(i:Int){previewPlayer?.release();previewPlayer=null;window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;current=i;prefs.edit().putString("last_channel",channels[i].url).apply();recordRecent(channels[i]);player?.release();player=ExoPlayer.Builder(this).build();player!!.addListener(object:Player.Listener{override fun onPlayerError(error:PlaybackException){runOnUiThread{Toast.makeText(this@MainActivity,"Το κανάλι δεν είναι διαθέσιμο. Δοκιμάστε άλλο.",Toast.LENGTH_LONG).show();showList()}}});val frame=FrameLayout(this);val v=PlayerView(this).apply{player=this@MainActivity.player;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);keepScreenOn=true;controllerShowTimeoutMs=3000;setBackgroundColor(Color.BLACK)};frame.addView(v,FrameLayout.LayoutParams(-1,-1));overlay=TextView(this).apply{text="●  LIVE   "+channels[i].name;textSize=20f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(235,7,24,41),Color.argb(215,12,50,82))).apply{cornerRadius=14f;setStroke(1,Color.argb(95,180,215,245))};setPadding(26,14,30,14);elevation=10f};frame.addView(overlay,FrameLayout.LayoutParams(-2,-2,Gravity.START or Gravity.BOTTOM).apply{setMargins(42,0,0,42)});setContentView(frame);overlay?.postDelayed({overlay?.visibility=View.GONE},2600);player!!.setMediaItem(MediaItem.fromUri(channels[i].url));player!!.prepare();player!!.play()}
- override fun onKeyDown(k:Int,e:KeyEvent?):Boolean{if(player!=null&&channels.isNotEmpty()){when(k){KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_CHANNEL_UP->{play((current+1)%channels.size);return true};KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_CHANNEL_DOWN->{play((current-1+channels.size)%channels.size);return true};KeyEvent.KEYCODE_STAR,KeyEvent.KEYCODE_BOOKMARK->{fav.toggle(channels[current].url);Toast.makeText(this,if(fav.has(channels[current].url))"★ Προστέθηκε στα αγαπημένα" else "Αφαιρέθηκε από τα αγαπημένα",Toast.LENGTH_SHORT).show();return true};KeyEvent.KEYCODE_BACK->{player?.release();player=null;showList();return true}}};if(k==KeyEvent.KEYCODE_BACK&&screenMode!="HOME"){showHome();return true};return super.onKeyDown(k,e)}
+ private fun showMiniGuide(){
+  val g=miniGuide?:return
+  g.visibility=View.VISIBLE
+  g.alpha=0f
+  g.animate().alpha(1f).setDuration(140).start()
+  g.removeCallbacks(hideMiniGuide)
+  g.postDelayed(hideMiniGuide,5000)
+ }
+ private val hideMiniGuide=Runnable{miniGuide?.animate()?.alpha(0f)?.setDuration(180)?.withEndAction{miniGuide?.visibility=View.GONE}?.start()}
+ private fun play(i:Int){
+  previewHandler.removeCallbacksAndMessages(null)
+  previewPlayer?.release();previewPlayer=null
+  window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+  current=i
+  prefs.edit().putString("last_channel",channels[i].url).apply()
+  recordRecent(channels[i])
+  player?.release()
+  player=ExoPlayer.Builder(this).build()
+  player!!.addListener(object:Player.Listener{
+   override fun onPlayerError(error:PlaybackException){
+    runOnUiThread{
+     Toast.makeText(this@MainActivity,"Το κανάλι δεν είναι διαθέσιμο. Δοκιμάστε άλλο.",Toast.LENGTH_LONG).show()
+     showList()
+    }
+   }
+  })
+
+  val frame=FrameLayout(this).apply{setBackgroundColor(Color.BLACK)}
+  val v=PlayerView(this).apply{
+   player=this@MainActivity.player
+   useController=false
+   setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+   keepScreenOn=true
+   setBackgroundColor(Color.BLACK)
+  }
+  frame.addView(v,FrameLayout.LayoutParams(-1,-1))
+
+  val ch=channels[i]
+  val guide=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL
+   gravity=Gravity.CENTER_VERTICAL
+   setPadding(24,18,26,18)
+   background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(244,5,20,35),Color.argb(236,8,42,70),Color.argb(220,4,14,27))).apply{
+    cornerRadius=18f
+    setStroke(1,Color.argb(105,175,215,245))
+   }
+   elevation=18f
+  }
+  val logoUrl=channelLogoUrl(ch)
+  if(logoUrl.isNotBlank()){
+   val logo=ImageView(this).apply{
+    scaleType=ImageView.ScaleType.CENTER_INSIDE
+    setPadding(5,5,5,5)
+    background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=10f}
+   }
+   guide.addView(logo,LinearLayout.LayoutParams(64,50).apply{setMargins(0,0,18,0)})
+   loadImageInto(logo,logoUrl)
+  }else{
+   guide.addView(TextView(this).apply{
+    text="TV";gravity=Gravity.CENTER;textSize=13f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
+    background=GradientDrawable().apply{setColor(Color.rgb(20,95,180));cornerRadius=10f}
+   },LinearLayout.LayoutParams(64,50).apply{setMargins(0,0,18,0)})
+  }
+
+  val info=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  info.addView(TextView(this).apply{
+   text=ch.name;textSize=21f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setSingleLine(true)
+  })
+  val nowTitle=epgNow[ch.tvgId]
+  val nextTitle=epgNext[ch.tvgId]
+  info.addView(TextView(this).apply{
+   text=if(nowTitle!=null)"NOW  •  $nowTitle" else (if(ch.group.isBlank())"LIVE TV" else ch.group.uppercase())
+   textSize=14f;setTextColor(Color.rgb(210,228,243));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
+  })
+  info.addView(TextView(this).apply{
+   text=if(nextTitle!=null)"NEXT •  $nextTitle" else "Live channel"
+   textSize=12f;setTextColor(Color.rgb(145,190,225));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END;setPadding(0,3,0,0)
+  })
+  guide.addView(info,LinearLayout.LayoutParams(0,-2,1f))
+
+  val right=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.END}
+  right.addView(TextView(this).apply{
+   text=SimpleDateFormat("HH:mm",Locale.getDefault()).format(Date());textSize=18f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.END
+  })
+  right.addView(TextView(this).apply{
+   text=(if(fav.has(ch.url))"★ Favourite" else "☆ Add favourite")+"   •   ▲▼ Change channel"
+   textSize=11f;setTextColor(Color.rgb(173,205,230));gravity=Gravity.END;setPadding(0,4,0,0)
+  })
+  guide.addView(right,LinearLayout.LayoutParams(-2,-2).apply{setMargins(24,0,0,0)})
+  frame.addView(guide,FrameLayout.LayoutParams(-1,-2,Gravity.START or Gravity.BOTTOM).apply{setMargins(34,0,34,34)})
+  miniGuide=guide
+  setContentView(frame)
+  showMiniGuide()
+
+  player!!.setMediaItem(MediaItem.fromUri(ch.url))
+  player!!.prepare()
+  player!!.play()
+ }
+ override fun onKeyDown(k:Int,e:KeyEvent?):Boolean{
+  if(player!=null&&channels.isNotEmpty()){
+   when(k){
+    KeyEvent.KEYCODE_DPAD_CENTER,KeyEvent.KEYCODE_ENTER,KeyEvent.KEYCODE_INFO,KeyEvent.KEYCODE_MENU->{showMiniGuide();return true}
+    KeyEvent.KEYCODE_DPAD_UP,KeyEvent.KEYCODE_CHANNEL_UP->{play((current+1)%channels.size);return true}
+    KeyEvent.KEYCODE_DPAD_DOWN,KeyEvent.KEYCODE_CHANNEL_DOWN->{play((current-1+channels.size)%channels.size);return true}
+    KeyEvent.KEYCODE_STAR,KeyEvent.KEYCODE_BOOKMARK->{
+     fav.toggle(channels[current].url)
+     Toast.makeText(this,if(fav.has(channels[current].url))"★ Προστέθηκε στα αγαπημένα" else "Αφαιρέθηκε από τα αγαπημένα",Toast.LENGTH_SHORT).show()
+     play(current)
+     return true
+    }
+    KeyEvent.KEYCODE_BACK->{player?.release();player=null;miniGuide=null;showList();return true}
+   }
+  }
+  if(k==KeyEvent.KEYCODE_BACK&&screenMode!="HOME"){showHome();return true}
+  return super.onKeyDown(k,e)
+ }
  private fun showEmptyState(title:String,message:String){
   screenMode="LIST"
   val root=shell(title)

@@ -343,28 +343,30 @@ class MainActivity:Activity(){
   }
   if(!isPappas){
    val brandWrap=LinearLayout(this).apply{
-    orientation=LinearLayout.VERTICAL
-    setPadding(14,2,12,10)
+    orientation=LinearLayout.HORIZONTAL
+    gravity=Gravity.CENTER_VERTICAL
+    setPadding(10,2,8,8)
    }
-   brandWrap.addView(TextView(this).apply{
-    text="GREEK";textSize=18f;letterSpacing=.05f
+   brandWrap.addView(ImageView(this).apply{
+    setImageResource(R.drawable.greek_one_mark)
+    scaleType=ImageView.ScaleType.CENTER_INSIDE
+   },LinearLayout.LayoutParams(52,52).apply{setMargins(0,0,10,0)})
+   val brandText=LinearLayout(this).apply{
+    orientation=LinearLayout.VERTICAL
+    gravity=Gravity.CENTER_VERTICAL
+   }
+   brandText.addView(TextView(this).apply{
+    text="GREEK ONE";textSize=16.5f;letterSpacing=.055f
     typeface=Typeface.create("sans-serif",Typeface.BOLD)
     setTextColor(Color.WHITE)
-   },LinearLayout.LayoutParams(-1,25))
-   brandWrap.addView(TextView(this).apply{
-    text="ONE";textSize=18f;letterSpacing=.12f
-    typeface=Typeface.create("sans-serif",Typeface.BOLD)
-    setTextColor(Color.rgb(43,184,255))
-   },LinearLayout.LayoutParams(-1,25))
-   brandWrap.addView(TextView(this).apply{
-    text="GREEK TELEVISION";textSize=8f;letterSpacing=.20f
+   },LinearLayout.LayoutParams(-1,24))
+   brandText.addView(TextView(this).apply{
+    text="GREEK TELEVISION";textSize=7.5f;letterSpacing=.16f
     typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL)
-    setTextColor(Color.rgb(136,178,207))
-   },LinearLayout.LayoutParams(-1,20))
-   brandWrap.addView(View(this).apply{
-    background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(38,181,255),Color.argb(20,38,181,255))).apply{cornerRadius=2f}
-   },LinearLayout.LayoutParams(-1,2).apply{setMargins(0,2,20,0)})
-   nav.addView(brandWrap,LinearLayout.LayoutParams(-1,86))
+    setTextColor(Color.rgb(126,184,221))
+   },LinearLayout.LayoutParams(-1,18))
+   brandWrap.addView(brandText,LinearLayout.LayoutParams(0,52,1f))
+   nav.addView(brandWrap,LinearLayout.LayoutParams(-1,68))
   }
   val navItems=mutableListOf<Pair<String,()->Unit>>(
    "⌂   Home" to {showHome()},"▣   Live TV" to {loadChannels()},"♡   Favourites" to {loadChannels(favouritesOnly=true)},"◷   Continue" to {loadLastChannel()},

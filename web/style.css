@@ -174,3 +174,10 @@ main{min-width:0}
 .media-rail>.card.visual{background-color:#0a2234!important;background-size:cover!important;background-position:center!important}
 .media-rail>.card.visual:before{background:linear-gradient(180deg,rgba(0,0,0,0) 18%,rgba(0,0,0,.12) 48%,rgba(0,5,10,.94) 100%)!important}
 .media-rail>.card.visual h4,.media-rail>.card.visual p{z-index:3!important}
+
+/* Actual cover images — not CSS placeholders */
+.card.visual{padding:0!important;display:flex!important;position:relative!important;background:#071522!important}
+.cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0;transition:transform .35s ease,filter .35s ease}
+.card.visual:hover .cover-img{transform:scale(1.055);filter:brightness(1.06)}
+.card-copy{position:relative;z-index:3;margin-top:auto;width:100%;padding:22px 18px 18px;background:linear-gradient(180deg,transparent,rgba(1,7,12,.82) 35%,rgba(1,6,11,.98))}
+.card.visual .card-copy h4{margin:0 0 7px!important}.card.visual .card-copy p{margin:0!important;padding:0 0 17px!important}

@@ -163,3 +163,9 @@ main{min-width:0}
 #grid .series-rail>.card,#grid .food-rail>.card{min-height:285px!important}
 #grid .home-block{display:block;visibility:visible;opacity:1}
 #grid .continue-block[style*="none"]{display:none!important}
+
+/* Cover-first catalogue presentation */
+.movie-rail,.series-rail,.food-rail{display:flex!important;min-height:320px!important}
+.movie-rail>.card,.series-rail>.card,.food-rail>.card{display:flex!important;flex:0 0 230px!important;width:230px!important;min-height:310px!important;background-size:cover!important;background-position:center!important}
+.movie-rail>.card:before,.series-rail>.card:before,.food-rail>.card:before{background:linear-gradient(180deg,rgba(0,0,0,.02) 28%,rgba(0,6,12,.35) 57%,rgba(0,5,10,.96) 100%)!important;transform:none!important}
+.movie-rail>.card h4,.series-rail>.card h4,.food-rail>.card h4{margin-top:auto!important;font-size:18px!important;text-shadow:0 2px 10px #000}

@@ -142,3 +142,8 @@ main{min-width:0}
 .topline{position:sticky;top:0;z-index:20;padding:10px 0;background:linear-gradient(180deg,rgba(1,7,13,.96),rgba(1,7,13,.72) 75%,transparent);backdrop-filter:blur(12px)}
 .media-rail::-webkit-scrollbar{height:4px}.media-rail::-webkit-scrollbar-thumb{background:rgba(122,211,255,.28);border-radius:8px}
 @media(max-width:1200px){#hero{min-height:330px;padding:40px}#hero h3{font-size:44px}.media-rail{grid-auto-columns:220px}}
+
+.movie-rail .card{background-position:center 18%!important}.series-rail .card{background-position:center!important}
+.movie-rail .card:after{content:"ERTFLIX • FILM"}.series-rail .card:after{content:"SERIES"}.food-rail .card:after{content:"GREEK KITCHEN"}
+.home-head{border-bottom:1px solid rgba(255,255,255,.055);padding-bottom:11px}
+.home-head button{transition:.18s ease}.home-head button:hover{color:#fff;transform:translateX(3px)}

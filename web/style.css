@@ -181,3 +181,19 @@ main{min-width:0}
 .card.visual:hover .cover-img{transform:scale(1.055);filter:brightness(1.06)}
 .card-copy{position:relative;z-index:3;margin-top:auto;width:100%;padding:22px 18px 18px;background:linear-gradient(180deg,transparent,rgba(1,7,12,.82) 35%,rgba(1,6,11,.98))}
 .card.visual .card-copy h4{margin:0 0 7px!important}.card.visual .card-copy p{margin:0!important;padding:0 0 17px!important}
+
+/* Premium catalogue pages */
+.catalogue-grid{display:grid!important;gap:18px!important}
+.poster-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))!important}
+.poster-grid>.card{min-height:330px!important}
+.series-grid{grid-template-columns:repeat(auto-fill,minmax(235px,1fr))!important}
+.series-grid>.card{min-height:285px!important}
+.cooking-grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))!important}
+.cooking-grid>.card{min-height:250px!important}
+.live-grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important}
+.catalogue-grid>.card.visual{display:flex!important;padding:0!important}
+.catalogue-grid .cover-img{filter:saturate(.96) contrast(1.03)}
+.catalogue-grid>.card:hover .cover-img{transform:scale(1.07)}
+.poster-grid>.card .card-copy{padding-top:70px}
+.home-grid .home-block{overflow:hidden}
+.home-grid .media-rail{padding-bottom:22px}

@@ -29,7 +29,17 @@ const MOVIE_ART={"Me, Myself and I":"https://image.tmdb.org/t/p/w500/1JysIlTfbtQ
 "The King":"https://m.media-amazon.com/images/M/MV5BZGNjNjU2OTMtMzVkMy00MGFkLWFmZGQtM2EwMGFlMGUzZTI3XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
 "The Seventh Sun of Love":"https://m.media-amazon.com/images/M/MV5BMGY2ODdhMDctZGUzNy00MGRlLWJhZWEtZmEwM2ExNTcyZjMyXkEyXkFqcGc@._V1_.jpg",
 "Young Aphrodites":"https://m.media-amazon.com/images/M/MV5BZWNjYjZiNjItMjZmOS00N2ZmLTg4NDktZGYxM2EyZGZiZDkxXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-"Coat Fitting":"https://m.media-amazon.com/images/M/MV5BZjIxZTczYmItMjBhOS00YTFlLTkyYTEtODJlMmQ3NzU4ZjY1XkEyXkFqcGc@._V1_.jpg"};
+"Coat Fitting":"https://m.media-amazon.com/images/M/MV5BZjIxZTczYmItMjBhOS00YTFlLTkyYTEtODJlMmQ3NzU4ZjY1XkEyXkFqcGc@._V1_.jpg",
+"The Poor Boy":"https://live.ertflix.gr/cached-images/536cedf73b724c75.webp",
+"Drift":"https://live.ertflix.gr/cached-images/999f5c3121887f13.webp",
+"Love Under the Date Tree":"https://live.ertflix.gr/cached-images/93dec416687621e4.webp",
+"Invincible Lovers":"https://live.ertflix.gr/cached-images/361c152562ba0f67.webp",
+"Such a Long Absence":"https://live.ertflix.gr/cached-images/806484c381c944a1.webp",
+"The Photographers":"https://www.filmy.gr/wp-content/uploads/2026/05/The-Photographers-1998-51.jpg",
+"Riviera":"https://greekfilmfestival.com.au/img/slide/films/620/137.png",
+"Crows":"https://live.ertflix.gr/cached-images/34aa33fc4c69a5ee.webp",
+"The Tears of the Mountain":"https://live.ertflix.gr/cached-images/5f3874922e441120.webp",
+"Meteor and Shadow":"https://live.ertflix.gr/cached-images/5942a6d07c85a662.webp"};
 const SERIES_ART={
 "ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ":"https://www.megatv.com/wp-content/uploads/2020/09/%CE%A3%CE%A4%CE%9F-%CE%A0%CE%91%CE%A1%CE%91-%CE%A0%CE%95%CE%9D%CE%A4%CE%95.jpg",
 "ΕΥΤΥΧΙΣΜΕΝΟΙ ΜΑΖΙ":"https://www.megatv.com/wp-content/uploads/2020/09/Image_eytixismenoimazi_960X600_b.jpg",

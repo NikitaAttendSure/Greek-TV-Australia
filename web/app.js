@@ -102,24 +102,129 @@ function card(name,meta,action,img,type="item",url=""){
 function openTracked(name,type,url,img,meta){remember(name,type,url,img,meta);window.open(url,"_blank","noopener,noreferrer")}
 function openSeries(x){openTracked(x.title,"series",x.url,SERIES_ART[x.title]||ART.series,x.source+" • "+x.episodes)}
 let activeHls=null;function playChannel(ch){remember(ch.name,"live",ch.url,LOGOS[ch.name]||ART.live,"Live stream");if(activeHls){activeHls.destroy();activeHls=null}hero.innerHTML='<p>LIVE TV</p><h3>'+ch.name+'</h3><div class="playerShell"><div class="loadingMsg">Connecting to live stream…</div><video id="player" controls autoplay playsinline preload="metadata"></video></div><p class="muted">Live stream • Greek One</p>';const v=document.getElementById("player"),msg=hero.querySelector(".loadingMsg");const ready=()=>{msg.style.display="none"};v.addEventListener("playing",ready,{once:true});v.addEventListener("loadedmetadata",ready,{once:true});if(window.Hls&&Hls.isSupported()&&ch.url.includes(".m3u8")){activeHls=new Hls({enableWorker:true,lowLatencyMode:true,backBufferLength:30,maxBufferLength:12,maxMaxBufferLength:20,startLevel:-1,capLevelToPlayerSize:true});activeHls.loadSource(ch.url);activeHls.attachMedia(v);activeHls.on(Hls.Events.MANIFEST_PARSED,()=>v.play().catch(()=>{}));activeHls.on(Hls.Events.ERROR,(_,data)=>{if(data.fatal){msg.textContent="This channel is slow or unavailable in a browser.";msg.style.display="block"}})}else{v.src=ch.url;v.play().catch(()=>{})}window.scrollTo({top:0,behavior:"smooth"})}function historyCard(h){let action=()=>{};if(h.type==="live"){const c=CHANNELS.find(x=>x.name===h.name);action=()=>c&&playChannel(c)}else action=()=>openTracked(h.name,h.type,h.url,h.img,h.meta);return card(h.name,h.meta||h.type,action,h.img,h.type,h.url)}
-function render(view){state.view=view;state.q="";const si=document.getElementById("search");if(si)si.value="";grid.innerHTML="";const labels={home:"Greek One",live:"Live TV",series:"Preloaded Series",movies:"Preloaded Movies",cooking:"Greek Cooking",favourites:"Favourites",continue:"Continue Watching",guide:"TV Guide"};title.textContent=labels[view]||"Greek One";
-if(view==="home"){grid.className="home-grid";hero.innerHTML='<p>GREEK ONE ORIGINAL EXPERIENCE</p><h3>Η Ελλάδα. Ζωντανά. Παντού.</h3><p class="muted">Live television, timeless Greek cinema, iconic series and the flavours of home.</p><button class="hero-cta" onclick="render(\'live\')">▶ WATCH LIVE</button>';grid.innerHTML=`
+
+let featuredTimer=null;
+const EPG_URL="https://greektvapp.github.io/api/epg.xml";
+const EPG_IDS={
+"Action 24":"digea.action24.gr","Alert":"digea.alert.gr","Alpha TV":"digea.alpha.gr","Center TV":"digea.centertv.gr",
+"Skai TV":"digea.skai.gr","Star Channel International":"digea.star.gr","STAR HD":"digea.star.gr",
+"Hellenic Parliament TV":"ert.vouli.gr","Kontra Channel":"digea.kontra.gr","Vergina TV":"digea.bergina.gr",
+"TV KOSMOS — ΡΟΔΟΣ":"digea.kosmos.gr","AIGAIO TV — ΚΑΛΥΜΝΟΣ":"digea.aigaiotv.gr",
+"Blue Sky":"digea.bluesky.gr","Lepanto TV":"digea.lepanto.gr","Thraki Net":"digea.thrakinet.gr"
+};
+let epgCache=null;
+function xmltvDate(v){
+ const m=String(v||"").match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\s*([+-])(\d{2})(\d{2})/);
+ if(!m)return new Date(v);
+ const utc=Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]);
+ const off=(+m[8]*60 + +m[9])*60000*(m[7]==="+"?1:-1);
+ return new Date(utc-off);
+}
+async function loadEPG(){
+ if(epgCache)return epgCache;
+ const r=await fetch(EPG_URL,{cache:"no-store"});
+ if(!r.ok)throw new Error("EPG unavailable");
+ const xml=new DOMParser().parseFromString(await r.text(),"application/xml");
+ const out={};
+ xml.querySelectorAll("programme").forEach(p=>{
+   const id=p.getAttribute("channel"); if(!id)return;
+   (out[id]||(out[id]=[])).push({
+     start:xmltvDate(p.getAttribute("start")),stop:xmltvDate(p.getAttribute("stop")),
+     title:(p.querySelector("title")?.textContent||"Programme").trim(),
+     desc:(p.querySelector("desc")?.textContent||"").trim()
+   });
+ });
+ Object.values(out).forEach(a=>a.sort((x,y)=>x.start-y.start));
+ epgCache=out; return out;
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function fmtTime(d){return new Intl.DateTimeFormat("en-AU",{hour:"numeric",minute:"2-digit"}).format(d)}
+function movieSynopsis(m){const bits=m[1].split("•").map(x=>x.trim());return `A Greek cinema title from ${bits[0]||"the Greek One collection"}, presented from the official ERTFLIX catalogue. ${bits.slice(1).length?"Genres: "+bits.slice(1).join(", ")+".":""}`}
+function seriesSynopsis(x){return `An official ${x.source} archive title available through Greek One, with ${x.episodes}. Open the broadcaster archive to continue watching the series.`}
+function showMovieDetail(m){
+ if(featuredTimer){clearInterval(featuredTimer);featuredTimer=null}
+ state.view="detail";title.textContent=m[0];grid.className="detail-grid";grid.innerHTML="";
+ const img=MOVIE_ART[m[0]]||ART.movies;
+ hero.className="detail-hero";hero.style.backgroundImage=`linear-gradient(90deg,rgba(1,8,14,.98) 0%,rgba(2,15,24,.88) 44%,rgba(2,10,17,.35) 100%),url("${img}")`;
+ hero.innerHTML=`<div class="detail-copy"><p>GREEK CINEMA • ERTFLIX</p><h3>${esc(m[0])}</h3><div class="detail-meta">${esc(m[1])}</div><h4>Synopsis</h4><p class="muted">${esc(movieSynopsis(m))}</p><div class="detail-actions"><button class="hero-cta" id="detailWatch">▶ WATCH</button><button class="detail-back" onclick="render('movies')">← BACK TO MOVIES</button></div></div>`;
+ document.getElementById("detailWatch").onclick=()=>openTracked(m[0],"movie",m[2],img,m[1]);
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function showSeriesDetail(x){
+ if(featuredTimer){clearInterval(featuredTimer);featuredTimer=null}
+ state.view="detail";title.textContent=x.title;grid.className="detail-grid";grid.innerHTML="";
+ const img=SERIES_ART[x.title]||ART.series;
+ hero.className="detail-hero";hero.style.backgroundImage=`linear-gradient(90deg,rgba(1,8,14,.98) 0%,rgba(2,15,24,.88) 44%,rgba(2,10,17,.35) 100%),url("${img}")`;
+ hero.innerHTML=`<div class="detail-copy"><p>${esc(x.source)} • SERIES</p><h3>${esc(x.title)}</h3><div class="detail-meta">${esc(x.episodes)}</div><h4>Synopsis</h4><p class="muted">${esc(seriesSynopsis(x))}</p><div class="detail-actions"><button class="hero-cta" id="detailWatch">▶ WATCH SERIES</button><button class="detail-back" onclick="render('series')">← BACK TO SERIES</button></div></div>`;
+ document.getElementById("detailWatch").onclick=()=>openTracked(x.title,"series",x.url,img,x.source+" • "+x.episodes);
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function mixedCard(item){
+ if(item.kind==="movie"){const m=item.data,img=MOVIE_ART[m[0]]||ART.movies;return card(m[0],m[1],()=>showMovieDetail(m),img,"movie",m[2])}
+ if(item.kind==="series"){const x=item.data,img=SERIES_ART[x.title]||ART.series;return card(x.title,x.source+" • "+x.episodes,()=>showSeriesDetail(x),img,"series",x.url)}
+ const c=item.data,img=cookingArt(c);return card(c[0],c[2],()=>openTracked(c[0],"cooking",c[3],img,c[1]+" • "+c[2]),img,"cooking",c[3]);
+}
+function renderFeatured(){
+ const live=CHANNELS.find(x=>x.name==="Alpha TV")||CHANNELS[0];
+ const film=MOVIES.find(x=>x[0]==="Rembetiko")||MOVIES[0];
+ const series=SERIES.find(x=>x.title==="ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ")||SERIES[0];
+ const picks=[
+   {eyebrow:"FEATURED TONIGHT • LIVE",title:live.name,copy:"Greek television, live now on Greek One.",img:"https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=1800&q=85",action:()=>playChannel(live),cta:"▶ WATCH LIVE"},
+   {eyebrow:"FEATURED TONIGHT • GREEK CINEMA",title:film[0],copy:film[1],img:MOVIE_ART[film[0]]||ART.movies,action:()=>showMovieDetail(film),cta:"VIEW FILM"},
+   {eyebrow:"FEATURED TONIGHT • ICONIC SERIES",title:series.title,copy:series.source+" • "+series.episodes,img:SERIES_ART[series.title]||ART.series,action:()=>showSeriesDetail(series),cta:"VIEW SERIES"}
+ ];
+ let i=0;
+ const paint=()=>{const p=picks[i%picks.length];hero.className="featured-hero";hero.style.backgroundImage=`linear-gradient(90deg,rgba(1,12,21,.96) 0%,rgba(3,28,46,.72) 48%,rgba(3,20,34,.18) 100%),url("${p.img}")`;hero.innerHTML=`<p>${p.eyebrow}</p><h3>${esc(p.title)}</h3><p class="muted">${esc(p.copy)}</p><button class="hero-cta" id="featuredAction">${p.cta}</button><div class="hero-dots"><span class="${i%3===0?"active":""}"></span><span class="${i%3===1?"active":""}"></span><span class="${i%3===2?"active":""}"></span></div>`;document.getElementById("featuredAction").onclick=p.action;i++};
+ paint(); if(featuredTimer)clearInterval(featuredTimer);featuredTimer=setInterval(()=>{if(state.view==="home")paint()},9000);
+}
+async function hydrateGuide(){
+ try{
+   const epg=await loadEPG(),now=new Date();
+   document.querySelectorAll(".epg-card[data-epg]").forEach(el=>{
+     const id=el.dataset.epg,items=(epg[id]||[]).filter(p=>p.stop>now).slice(0,3);
+     const body=el.querySelector(".epg-lines");
+     if(!items.length){body.innerHTML='<div class="epg-empty">Schedule unavailable</div>';return}
+     body.innerHTML=items.map((p,j)=>`<div class="epg-line ${j===0?"now":""}"><span>${j===0?"NOW":fmtTime(p.start)}</span><b>${esc(p.title)}</b></div>`).join("");
+   });
+ }catch(e){
+   document.querySelectorAll(".epg-lines").forEach(x=>x.innerHTML='<div class="epg-empty">Live guide temporarily unavailable</div>');
+ }
+}
+function render(view){if(view!=="home"&&featuredTimer){clearInterval(featuredTimer);featuredTimer=null}hero.className="";hero.style.backgroundImage="";state.view=view;state.q="";const si=document.getElementById("search");if(si)si.value="";grid.innerHTML="";const labels={home:"Greek One",live:"Live TV",series:"Preloaded Series",movies:"Preloaded Movies",cooking:"Greek Cooking",favourites:"Favourites",continue:"Continue Watching",guide:"TV Guide"};title.textContent=labels[view]||"Greek One";
+if(view==="home"){grid.className="home-grid";renderFeatured();grid.innerHTML=`
 <div class="home-block continue-block" style="display:${HISTORY.length?'block':'none'}"><div class="home-head"><h3>Continue Watching</h3><span class="eyebrow">YOUR GREEK ONE</span></div><div class="media-rail continue-rail"></div></div>
 <div class="home-block"><div class="home-head"><h3>Live Now</h3><button onclick="render('live')">View all 94 →</button></div><div class="media-rail live-rail"></div></div>
 <div class="home-block"><div class="home-head"><h3>Greek Cinema</h3><button onclick="render('movies')">Explore films →</button></div><div class="media-rail movie-rail"></div></div>
 <div class="home-block"><div class="home-head"><h3>Iconic Greek Series</h3><button onclick="render('series')">View series →</button></div><div class="media-rail series-rail"></div></div>
-<div class="home-block"><div class="home-head"><h3>Greek Kitchen</h3><button onclick="render('cooking')">Explore cooking →</button></div><div class="media-rail food-rail"></div></div>`;
+<div class="home-block"><div class="home-head"><h3>Greek Kitchen</h3><button onclick="render('cooking')">Explore cooking →</button></div><div class="media-rail food-rail"></div></div>
+<div class="home-block"><div class="home-head"><h3>Popular in Greece</h3><span class="eyebrow">CURATED</span></div><div class="media-rail popular-rail"></div></div>
+<div class="home-block"><div class="home-head"><h3>Greek Classics</h3><span class="eyebrow">TIMELESS</span></div><div class="media-rail classics-rail"></div></div>
+<div class="home-block"><div class="home-head"><h3>Family & Home</h3><span class="eyebrow">TOGETHER</span></div><div class="media-rail family-rail"></div></div>`;
 const cr=grid.querySelector(".continue-rail");if(cr)HISTORY.slice(0,8).forEach(h=>cr.appendChild(historyCard(h)));
 const lr=grid.querySelector(".live-rail");CHANNELS.slice(0,8).forEach(c=>{const x=card(c.name,"LIVE",()=>playChannel(c));x.classList.add("mini-media");const logo=LOGOS[c.name];x.insertAdjacentHTML("afterbegin",logo?`<span class="channel-logo"><img src="${logo}" alt=""></span>`:`<span class="channel-logo fallback">${c.name.split(/\\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase()}</span>`);lr.appendChild(x)});
-const mr=grid.querySelector(".movie-rail");MOVIES.slice(0,7).forEach((m,i)=>{const img=MOVIE_ART[m[0]]||COVER_ART[i%COVER_ART.length];mr.appendChild(card(m[0],m[1],()=>openTracked(m[0],"movie",m[2],img,m[1]),img,"movie",m[2]))});
-const sr=grid.querySelector(".series-rail");SERIES.slice(0,7).forEach((x,i)=>{const img=SERIES_ART[x.title]||COVER_ART[(i+2)%COVER_ART.length];sr.appendChild(card(x.title,x.source+" • "+x.episodes,()=>openSeries(x),img,"series",x.url))});
-const fr=grid.querySelector(".food-rail");COOKING.slice(0,7).forEach(c=>{const img=cookingArt(c);fr.appendChild(card(c[0],c[2],()=>openTracked(c[0],"cooking",c[3],img,c[1]+" • "+c[2]),img,"cooking",c[3]))});return}
+const mr=grid.querySelector(".movie-rail");MOVIES.slice(0,7).forEach((m,i)=>{const img=MOVIE_ART[m[0]]||COVER_ART[i%COVER_ART.length];mr.appendChild(card(m[0],m[1],()=>showMovieDetail(m),img,"movie",m[2]))});
+const sr=grid.querySelector(".series-rail");SERIES.slice(0,7).forEach((x,i)=>{const img=SERIES_ART[x.title]||COVER_ART[(i+2)%COVER_ART.length];sr.appendChild(card(x.title,x.source+" • "+x.episodes,()=>showSeriesDetail(x),img,"series",x.url))});
+const fr=grid.querySelector(".food-rail");COOKING.slice(0,7).forEach(c=>{const img=cookingArt(c);fr.appendChild(card(c[0],c[2],()=>openTracked(c[0],"cooking",c[3],img,c[1]+" • "+c[2]),img,"cooking",c[3]))});
+const popular=grid.querySelector(".popular-rail"),classics=grid.querySelector(".classics-rail"),family=grid.querySelector(".family-rail");
+[
+ {kind:"series",data:SERIES.find(x=>x.title==="ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ")},
+ {kind:"series",data:SERIES.find(x=>x.title==="ΕΥΤΥΧΙΣΜΕΝΟΙ ΜΑΖΙ")},
+ {kind:"series",data:SERIES.find(x=>x.title==="ΕΙΣΑΙ ΤΟ ΤΑΙΡΙ ΜΟΥ")},
+ {kind:"movie",data:MOVIES.find(x=>x[0]==="Rembetiko")},
+ {kind:"series",data:SERIES.find(x=>x.title==="ΚΩΝΣΤΑΝΤΙΝΟΥ ΚΑΙ ΕΛΕΝΗΣ")}
+].filter(x=>x.data).forEach(x=>popular.appendChild(mixedCard(x)));
+MOVIES.filter(m=>/195|196|1976|Classic/.test(m[1])).slice(0,7).forEach(m=>classics.appendChild(mixedCard({kind:"movie",data:m})));
+[
+ ...COOKING.slice(0,4).map(c=>({kind:"cooking",data:c})),
+ {kind:"series",data:SERIES.find(x=>x.title==="ΕΥΤΥΧΙΣΜΕΝΟΙ ΜΑΖΙ")},
+ {kind:"series",data:SERIES.find(x=>x.title==="Η ΝΤΑΝΤΑ")}
+].filter(x=>x.data).forEach(x=>family.appendChild(mixedCard(x)));return}
 if(view==="favourites"){grid.className="catalogue-grid";hero.innerHTML='<p>YOUR GREEK ONE</p><h3>Favourites</h3><p class="muted">Saved across live TV, films, series and cooking on this device.</p>';if(!FAVOURITES.length){grid.innerHTML='<div class="empty-state"><h3>No favourites yet</h3><p>Tap the heart on any card to save it here.</p></div>';return}FAVOURITES.forEach(x=>grid.appendChild(historyCard(x)));return}
 if(view==="continue"){grid.className="catalogue-grid";hero.innerHTML='<p>YOUR HISTORY</p><h3>Continue Watching</h3><p class="muted">Your recently opened Greek One content on this device.</p>';if(!HISTORY.length){grid.innerHTML='<div class="empty-state"><h3>Nothing here yet</h3><p>Start watching something and it will appear here.</p></div>';return}HISTORY.forEach(x=>grid.appendChild(historyCard(x)));return}
-if(view==="guide"){grid.className="catalogue-grid live-grid";hero.innerHTML='<p>LIVE CHANNEL GUIDE</p><h3>TV Guide</h3><p class="muted">Choose a Greek One live channel. Programme schedule data is not currently available for every station.</p>';CHANNELS.forEach(c=>{const x=card(c.name,"Live now",()=>playChannel(c),LOGOS[c.name]||"", "live", c.url);x.classList.add("channel-card");grid.appendChild(x)});return}
+if(view==="guide"){grid.className="guide-grid";hero.innerHTML='<p>REAL PROGRAMME GUIDE</p><h3>TV Guide</h3><p class="muted">Live programme data for supported Greek channels, refreshed from public broadcaster/Digea listings.</p>';CHANNELS.forEach(c=>{const id=EPG_IDS[c.name];if(!id)return;const x=document.createElement("article");x.className="epg-card";x.dataset.epg=id;x.innerHTML='<div class="epg-channel"><span class="channel-logo '+(LOGOS[c.name]?"":"fallback")+'">'+(LOGOS[c.name]?'<img src="'+LOGOS[c.name]+'" alt="">':esc(c.name.slice(0,2)))+'</span><div><h4>'+esc(c.name)+'</h4><button type="button">Watch live</button></div></div><div class="epg-lines"><div class="epg-empty">Loading programme guide…</div></div>';x.querySelector("button").onclick=()=>playChannel(c);grid.appendChild(x)});hydrateGuide();return}
 if(view==="cooking"){grid.className="catalogue-grid cooking-grid";hero.innerHTML='<p>43 ITEMS</p><h3>Greek Cooking</h3><p class="muted">Recipes, full episodes and Greek food programmes.</p>';COOKING.forEach(c=>{const img=cookingArt(c);grid.appendChild(card(c[0],c[1]+" • "+c[2],()=>openTracked(c[0],"cooking",c[3],img,c[1]+" • "+c[2]),img,"cooking",c[3]))});return}
-if(view==="movies"){grid.className="catalogue-grid poster-grid";hero.innerHTML='<p>32 FILMS</p><h3>Preloaded Movies</h3><p class="muted">Greek cinema from the Greek One library.</p>';MOVIES.forEach(m=>{const img=MOVIE_ART[m[0]]||ART.movies;grid.appendChild(card(m[0],m[1]+" • ERTFLIX",()=>openTracked(m[0],"movie",m[2],img,m[1]+" • ERTFLIX"),img,"movie",m[2]))});return}
-if(view==="series"){grid.className="catalogue-grid series-grid";hero.innerHTML='<p>30 SERIES</p><h3>Preloaded Series</h3><p class="muted">Complete and official Greek television archives.</p>';SERIES.forEach(x=>{const img=SERIES_ART[x.title]||ART.series;grid.appendChild(card(x.title,x.source+" • "+x.episodes,()=>openSeries(x),img,"series",x.url))});return}
+if(view==="movies"){grid.className="catalogue-grid poster-grid";hero.innerHTML='<p>32 FILMS</p><h3>Preloaded Movies</h3><p class="muted">Greek cinema from the Greek One library.</p>';MOVIES.forEach(m=>{const img=MOVIE_ART[m[0]]||ART.movies;grid.appendChild(card(m[0],m[1]+" • ERTFLIX",()=>showMovieDetail(m),img,"movie",m[2]))});return}
+if(view==="series"){grid.className="catalogue-grid series-grid";hero.innerHTML='<p>30 SERIES</p><h3>Preloaded Series</h3><p class="muted">Complete and official Greek television archives.</p>';SERIES.forEach(x=>{const img=SERIES_ART[x.title]||ART.series;grid.appendChild(card(x.title,x.source+" • "+x.episodes,()=>showSeriesDetail(x),img,"series",x.url))});return}
 if(view==="live"){grid.className="catalogue-grid live-grid";CHANNELS.filter(c=>c.name.toLowerCase().includes(state.q)).forEach(c=>{const x=card(c.name,"Live stream",()=>playChannel(c),LOGOS[c.name]||"","live",c.url);x.classList.add("channel-card");const logo=LOGOS[c.name];x.insertAdjacentHTML("afterbegin",logo?`<span class="channel-logo"><img src="${logo}" alt=""></span>`:`<span class="channel-logo fallback">${c.name.split(/\\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase()}</span>`);grid.appendChild(x)});return}}
 document.querySelectorAll("aside button").forEach(b=>b.onclick=()=>render(b.dataset.view));document.getElementById("search").oninput=e=>{const q=e.target.value.toLowerCase();document.querySelectorAll("#grid>.card").forEach(x=>x.style.display=x.textContent.toLowerCase().includes(q)?"":"none")};render("home");
 

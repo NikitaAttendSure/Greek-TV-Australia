@@ -73,3 +73,21 @@ aside button:before{display:none}
 .card:hover,.card:focus{background:linear-gradient(145deg,rgba(12,48,72,.94),rgba(4,23,36,.97));border-color:rgba(117,213,255,.42);box-shadow:0 28px 70px rgba(0,0,0,.43);transform:translateY(-5px)}
 .playerShell{border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 70px rgba(0,0,0,.45)}
 @media(min-width:1500px){.mast,.shell{padding-left:72px;padding-right:72px}.shell{gap:38px}aside{width:276px;flex-basis:276px}#grid{grid-template-columns:repeat(4,minmax(220px,1fr))}}
+
+/* Rich visual pass — eliminate empty dashboard feel */
+main{position:relative}
+main:before{content:"";position:absolute;inset:62px -10px auto -10px;height:520px;pointer-events:none;background:radial-gradient(ellipse at 55% 20%,rgba(0,142,220,.16),transparent 52%)}
+#hero{min-height:300px;background:linear-gradient(90deg,rgba(1,14,25,.97) 0%,rgba(3,40,66,.76) 46%,rgba(3,30,49,.28) 100%),url('https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=1800&q=85') center 46%/cover no-repeat}
+#hero h3{font-size:46px;max-width:720px;text-shadow:0 4px 24px rgba(0,0,0,.45)}
+#hero .muted{font-size:14px;color:#d1dde5}
+#content{position:relative;padding-bottom:50px}
+#grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.card{min-height:205px;padding:24px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,rgba(4,27,43,.38),rgba(2,14,24,.96));border-radius:18px}
+.card:nth-child(4n+1){background:linear-gradient(180deg,rgba(0,117,183,.36),rgba(2,18,31,.98)),radial-gradient(circle at 75% 10%,rgba(88,211,255,.2),transparent 36%)}
+.card:nth-child(4n+2){background:linear-gradient(180deg,rgba(20,63,91,.38),rgba(2,16,27,.98)),radial-gradient(circle at 20% 0%,rgba(41,140,206,.18),transparent 40%)}
+.card:nth-child(4n+3){background:linear-gradient(180deg,rgba(11,84,119,.34),rgba(2,16,27,.98)),radial-gradient(circle at 80% 15%,rgba(91,198,239,.16),transparent 35%)}
+.card:nth-child(4n){background:linear-gradient(180deg,rgba(14,49,73,.35),rgba(2,15,25,.98)),radial-gradient(circle at 40% 0%,rgba(31,114,166,.17),transparent 38%)}
+.card h4{font-size:20px;margin-bottom:8px}.card p{font-size:12px}.card:after{bottom:auto;top:20px;left:24px;padding:6px 8px;border:1px solid rgba(106,211,255,.23);border-radius:999px;background:rgba(1,13,23,.45)}
+.section-title{font-size:22px;margin-top:30px}
+@media(min-width:1300px){#hero{min-height:330px}#grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1100px){#grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

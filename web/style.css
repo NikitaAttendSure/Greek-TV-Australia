@@ -91,3 +91,14 @@ main:before{content:"";position:absolute;inset:62px -10px auto -10px;height:520p
 .section-title{font-size:22px;margin-top:30px}
 @media(min-width:1300px){#hero{min-height:330px}#grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:1100px){#grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Million-dollar media treatment */
+.card.visual{min-height:250px;background-size:cover!important;background-position:center!important;overflow:hidden;justify-content:flex-end;text-align:left}
+.card.visual h4{font-size:22px;text-shadow:0 2px 14px rgba(0,0,0,.85)}
+.card.visual p{color:#d6e2e8;text-shadow:0 2px 10px rgba(0,0,0,.85)}
+.card.visual:after{background:rgba(2,13,22,.72);backdrop-filter:blur(10px);border-color:rgba(255,255,255,.16)}
+.card.visual:hover,.card.visual:focus{background-size:108%!important;transform:translateY(-7px) scale(1.01);border-color:rgba(135,221,255,.55);box-shadow:0 34px 80px rgba(0,0,0,.52)}
+#hero{position:relative;overflow:hidden}
+#hero>*{position:relative;z-index:2}
+#hero:before{z-index:2}
+#hero:after{z-index:1}

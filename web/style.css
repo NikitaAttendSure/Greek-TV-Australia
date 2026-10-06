@@ -197,3 +197,7 @@ main{min-width:0}
 .poster-grid>.card .card-copy{padding-top:70px}
 .home-grid .home-block{overflow:hidden}
 .home-grid .media-rail{padding-bottom:22px}
+
+/* Poster fidelity */
+.poster-grid .cover-img,.movie-rail .cover-img{object-fit:cover!important;object-position:center top!important}
+.poster-grid>.card,.movie-rail>.card{background:#05090d!important}

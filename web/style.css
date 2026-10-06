@@ -112,3 +112,16 @@ main:before{content:"";position:absolute;inset:62px -10px auto -10px;height:520p
 .mast-info #athens,.mast-info #sydney{min-width:150px;line-height:1.35}
 .mast-info #athens b,.mast-info #sydney b{font-size:12px;margin-right:8px}
 .mast-info #athens i,.mast-info #sydney i{font-size:11px;font-style:normal;color:#a9dfff;white-space:nowrap}
+
+/* Premium streaming homepage structure */
+#grid:has(.home-block){display:block}
+.home-block{margin:0 0 34px}
+.home-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 13px}
+.home-head h3{font-size:21px;margin:0;letter-spacing:-.35px}
+.home-head button{border:0;background:none;color:#8edcff;font-size:11px;font-weight:700;cursor:pointer}
+.media-rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);grid-template-columns:none!important;gap:13px;overflow-x:auto;padding:3px 3px 17px;scrollbar-width:thin}
+.media-rail .card{width:220px;min-height:245px}
+.live-rail .card{min-height:170px;padding-top:83px}
+.hero-cta{margin-top:22px;width:max-content;padding:12px 18px;border:1px solid rgba(255,255,255,.28);border-radius:9px;background:#f4f8fa;color:#07111a;font-size:11px;font-weight:850;letter-spacing:.8px;cursor:pointer;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.hero-cta:hover{transform:translateY(-2px);background:#fff}
+#sectionTitle{display:none}

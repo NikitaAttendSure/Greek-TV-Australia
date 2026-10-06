@@ -108,3 +108,7 @@ main:before{content:"";position:absolute;inset:62px -10px auto -10px;height:520p
 .channel-logo img{max-width:100%;max-height:100%;object-fit:contain}
 .channel-logo.fallback{background:linear-gradient(145deg,#0b75b7,#073d6d);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;padding:0}
 .channel-card h4{font-size:18px}
+
+.mast-info #athens,.mast-info #sydney{min-width:150px;line-height:1.35}
+.mast-info #athens b,.mast-info #sydney b{font-size:12px;margin-right:8px}
+.mast-info #athens i,.mast-info #sydney i{font-size:11px;font-style:normal;color:#a9dfff;white-space:nowrap}

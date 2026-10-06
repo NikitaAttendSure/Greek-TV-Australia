@@ -201,3 +201,11 @@ main{min-width:0}
 /* Poster fidelity */
 .poster-grid .cover-img,.movie-rail .cover-img{object-fit:cover!important;object-position:center top!important}
 .poster-grid>.card,.movie-rail>.card{background:#05090d!important}
+
+/* Saved content controls */
+.card{position:relative}
+.fav-btn{position:absolute;top:10px;right:10px;z-index:8;width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(2,9,16,.62);backdrop-filter:blur(12px);color:#fff;font-size:20px;line-height:30px;cursor:pointer;opacity:.9;transition:.18s ease}
+.fav-btn:hover,.fav-btn:focus{transform:scale(1.08);background:rgba(9,83,140,.9);outline:none}
+.fav-btn.active{background:rgba(7,107,177,.94);color:#fff}
+.empty-state{grid-column:1/-1;padding:44px 26px;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:linear-gradient(145deg,rgba(8,28,45,.84),rgba(3,12,20,.72));text-align:center}
+.empty-state h3{margin:0 0 8px;font-size:24px}.empty-state p{margin:0;color:rgba(220,235,245,.7)}

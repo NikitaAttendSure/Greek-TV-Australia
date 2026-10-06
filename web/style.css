@@ -102,3 +102,9 @@ main:before{content:"";position:absolute;inset:62px -10px auto -10px;height:520p
 #hero>*{position:relative;z-index:2}
 #hero:before{z-index:2}
 #hero:after{z-index:1}
+
+.channel-card{min-height:220px;align-items:flex-start;position:relative;padding-top:90px}
+.channel-logo{position:absolute;left:22px;top:22px;width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;padding:8px;box-shadow:0 10px 28px rgba(0,0,0,.32)}
+.channel-logo img{max-width:100%;max-height:100%;object-fit:contain}
+.channel-logo.fallback{background:linear-gradient(145deg,#0b75b7,#073d6d);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;padding:0}
+.channel-card h4{font-size:18px}

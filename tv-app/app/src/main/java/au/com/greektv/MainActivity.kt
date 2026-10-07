@@ -470,7 +470,7 @@ class MainActivity:Activity(){
 
  private fun showPreloadedSeries(){
   if(isPappas){showHome();return}
-  screenMode="PRELOADED_SERIES";activeHomeNav="Preloaded Series"
+  screenMode="PRELOADED_SERIES";activeHomeNav="Series"
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
   previewPlayer?.release();previewPlayer=null;player?.release();player=null
   val root=shell("PRELOADED SERIES")
@@ -623,7 +623,7 @@ class MainActivity:Activity(){
   headerHandler.removeCallbacksAndMessages(null)
   previewPlayer?.release();previewPlayer=null
   player?.release();player=null
-  activeHomeNav="Preloaded Movies"
+  activeHomeNav="Movies"
   window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 
   val root=LinearLayout(this).apply{
@@ -958,8 +958,8 @@ class MainActivity:Activity(){
   )
   cats.chunked(3).forEach{group->
    val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-   group.forEach{item->row.addView(tvCard(item.first,item.second,item.third.first,item.third.second),LinearLayout.LayoutParams(0,120,1f).apply{setMargins(0,0,14,14)})}
-   repeat(3-group.size){row.addView(View(this),LinearLayout.LayoutParams(0,120,1f).apply{setMargins(0,0,14,14)})}
+   group.forEach{item->row.addView(tvCard(item.first,item.second,item.third.first,item.third.second),LinearLayout.LayoutParams(0,112,1f).apply{setMargins(0,0,14,14)})}
+   repeat(3-group.size){row.addView(View(this),LinearLayout.LayoutParams(0,112,1f).apply{setMargins(0,0,14,14)})}
    grid.addView(row)
   }
   scroll.addView(grid);root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
@@ -1159,7 +1159,7 @@ class MainActivity:Activity(){
 
   val lowerVeil=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.TRANSPARENT,Color.argb(95,1,8,15),Color.argb(185,1,7,13)))}
   root.addView(lowerVeil,FrameLayout.LayoutParams(-1,-1).apply{topMargin=150})
-  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(84,20,80,30);clipToPadding=false}
+  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(92,20,88,30);clipToPadding=false}
 
   // TV-safe masthead: compact brand, generous safe margins, no clipped right edge.
   val top=LinearLayout(this).apply{
@@ -1187,13 +1187,13 @@ class MainActivity:Activity(){
    },LinearLayout.LayoutParams(58,58).apply{setMargins(0,0,12,0)})
    val bt=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
    bt.addView(TextView(this@MainActivity).apply{
-    text="GREEK ONE";textSize=24f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.02f;setSingleLine(true)
+    text="GREEK ONE";textSize=21f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.02f;setSingleLine(true)
    })
    bt.addView(TextView(this@MainActivity).apply{
-    text="GREEK TELEVISION  •  CHIOS → WORLD";textSize=8.5f;letterSpacing=.11f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(145,195,229));setSingleLine(true)
+    text="GREEK TELEVISION";textSize=8f;letterSpacing=.11f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(145,195,229));setSingleLine(true)
    })
-   brand.addView(bt,LinearLayout.LayoutParams(220,-2))
-   top.addView(brand,LinearLayout.LayoutParams(0,-2,1.5f))
+   brand.addView(bt,LinearLayout.LayoutParams(170,-2))
+   top.addView(brand,LinearLayout.LayoutParams(0,-2,1.15f))
    fun infoChip():TextView=TextView(this).apply{
     textSize=10.2f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
     setPadding(8,6,8,6)
@@ -1204,9 +1204,9 @@ class MainActivity:Activity(){
     textSize=10f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(222,235,245));gravity=Gravity.CENTER;letterSpacing=.05f;setSingleLine(true)
    }
    sydneyInfoView=infoChip()
-   top.addView(athensInfoView,LinearLayout.LayoutParams(154,54).apply{setMargins(6,0,4,0)})
-   top.addView(dateInfoView,LinearLayout.LayoutParams(82,54))
-   top.addView(sydneyInfoView,LinearLayout.LayoutParams(158,54).apply{setMargins(4,0,4,0)})
+   top.addView(athensInfoView,LinearLayout.LayoutParams(140,52).apply{setMargins(4,0,3,0)})
+   top.addView(dateInfoView,LinearLayout.LayoutParams(72,52))
+   top.addView(sydneyInfoView,LinearLayout.LayoutParams(144,52).apply{setMargins(3,0,3,0)})
    val settingsChip=TextView(this).apply{
     text="⚙";textSize=22f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
     background=GradientDrawable().apply{setColor(Color.argb(165,5,24,42));cornerRadius=14f;setStroke(1,Color.argb(75,150,205,245))}
@@ -1217,7 +1217,7 @@ class MainActivity:Activity(){
     text="●  LIVE";textSize=9.2f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(255,129,139));gravity=Gravity.CENTER
     background=GradientDrawable().apply{setColor(Color.argb(145,34,8,14));cornerRadius=13f;setStroke(1,Color.argb(110,255,95,105))}
    }
-   top.addView(liveStatus,LinearLayout.LayoutParams(62,36).apply{setMargins(2,0,8,0)})
+   top.addView(liveStatus,LinearLayout.LayoutParams(56,34).apply{setMargins(2,0,6,0)})
    top.addView(settingsChip,LinearLayout.LayoutParams(50,50))
    updateHomeHeader();refreshHomeWeather();headerHandler.post(headerTick)
   }
@@ -1257,10 +1257,10 @@ class MainActivity:Activity(){
   addNav("▣","Live TV"){loadChannels()}
   addNav("♡","Favourites"){loadChannels(favouritesOnly=true)}
   addNav("◷","Continue"){loadLastChannel()}
-  addNav("◆","Preloaded Movies"){showPreloadedMovies()}
+  addNav("◆","Movies"){showPreloadedMovies()}
   addNav("▤","On Demand"){showOnDemand()}
   if(isPappas)addNav("●",placeName){loadChannels(placeFilter)}
-  addNav("▥","Preloaded Series"){showPreloadedSeries()}
+  addNav("▥","Series"){showPreloadedSeries()}
   addNav("☷","Categories"){showCategories()}
   addNav("▦","TV Guide"){showTvGuide()}
   if(!isPappas)addNav("▶","YouTube"){showYouTubeSearch()}
@@ -1269,7 +1269,7 @@ class MainActivity:Activity(){
 
   navItems.forEachIndexed{i,item->
    val icon=item.first;val label=item.second;val action=item.third
-   val selected=!isPappas&&label==activeHomeNav
+   val selected=!isPappas&&(label==activeHomeNav|| (label=="Movies"&&activeHomeNav=="Preloaded Movies") || (label=="Series"&&activeHomeNav=="Preloaded Series"))
    val row=LinearLayout(this).apply{
     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
     setPadding(10,0,12,0)
@@ -1289,7 +1289,7 @@ class MainActivity:Activity(){
    }
    row.addView(iconView,LinearLayout.LayoutParams(28,32).apply{setMargins(0,0,8,0)})
    val labelView=TextView(this).apply{
-    text=label;textSize=12.8f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
+    text=label;textSize=12.2f;typeface=Typeface.create("sans-serif-medium",if(selected)Typeface.BOLD else Typeface.NORMAL)
     setTextColor(if(selected)Color.WHITE else Color.rgb(210,226,237));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
    }
    row.addView(labelView,LinearLayout.LayoutParams(0,-1,1f))
@@ -1311,7 +1311,7 @@ class MainActivity:Activity(){
    }
   }
 
-  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 256,-1).apply{
+  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 242,-1).apply{
    setMargins(0,6,if(isPappas)18 else 22,0)
   })
 
@@ -1325,10 +1325,10 @@ class MainActivity:Activity(){
    },LinearLayout.LayoutParams(5,28).apply{setMargins(0,0,10,0)})
    val tw=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
    tw.addView(TextView(this@MainActivity).apply{
-    text=t;textSize=21f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))
+    text=t;textSize=19.5f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))
    })
    if(sub.isNotBlank())tw.addView(TextView(this@MainActivity).apply{
-    text=sub;textSize=10f;setTextColor(Color.rgb(130,183,220));setPadding(0,1,0,0)
+    text=sub;textSize=9.5f;setTextColor(Color.rgb(130,183,220));setPadding(0,1,0,0)
    })
    wrap.addView(tw,LinearLayout.LayoutParams(0,-2,1f))
    main.addView(wrap)
@@ -1364,7 +1364,7 @@ class MainActivity:Activity(){
     }
     heroText.addView(livePill,LinearLayout.LayoutParams(-2,28))
     heroText.addView(TextView(this@MainActivity).apply{
-     this.text=featured.name;textSize=25f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,5,0,0)
+     this.text=featured.name;textSize=23f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,5,0,0)
     })
     val metaRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
     listOf("LIVE","GREEK TV","HD").forEachIndexed{i,label->
@@ -1388,9 +1388,9 @@ class MainActivity:Activity(){
     watch.addView(TextView(this).apply{
      text="WATCH  ▶";textSize=14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
      background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,119,221),Color.rgb(36,194,255))).apply{cornerRadius=15f}
-    },LinearLayout.LayoutParams(140,50))
+    },LinearLayout.LayoutParams(126,48))
     watch.addView(TextView(this).apply{text="Full screen";textSize=9f;setTextColor(Color.rgb(166,205,232));gravity=Gravity.CENTER;setPadding(0,5,0,0)})
-    heroInner.addView(watch,LinearLayout.LayoutParams(158,-2))
+    heroInner.addView(watch,LinearLayout.LayoutParams(144,-2))
     heroCard.addView(heroInner,FrameLayout.LayoutParams(-1,-1))
     heroCard.setOnClickListener{if(featured.url.isNotBlank())playRecent(featured.url) else loadChannels("ERT")}
     heroCard.setOnFocusChangeListener{v,f->
@@ -1401,12 +1401,12 @@ class MainActivity:Activity(){
 
     val quick=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(0,2,0,2)}
     val quickData=listOf(
-     Triple("▣  WATCH LIVE","All Greek channels",{loadChannels()}),
+     Triple("▣  LIVE TV","All Greek channels",{loadChannels()}),
      Triple("◆  MOVIES","32 Greek films",{showPreloadedMovies()}),
      Triple("▥  SERIES","30 Greek series",{showPreloadedSeries()}),
-     Triple("🍳  COOKING","43 shows & recipes",{showGreekCooking()}),
-     Triple("▦  TV GUIDE","Live preview + Now/Next",{showTvGuide()}),
-     Triple("⌕  SEARCH","Search everything",{showSearchScreen()})
+     Triple("🍳  COOKING","43 shows",{showGreekCooking()}),
+     Triple("▦  TV GUIDE","Now & Next",{showTvGuide()}),
+     Triple("⌕  SEARCH","Find anything",{showSearchScreen()})
     )
     quickData.forEachIndexed{i,item->
      val base=when(i){0->Color.rgb(11,100,183);1->Color.rgb(132,26,76);2->Color.rgb(83,29,143);3->Color.rgb(191,101,8);4->Color.rgb(8,103,73);else->Color.rgb(54,72,110)}
@@ -1418,19 +1418,19 @@ class MainActivity:Activity(){
     val featuredCollections=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
     featuredCollections.addView(
      imageCard("Greek Cinema","32 films • classics to modern","https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=88"){showPreloadedMovies()},
-     LinearLayout.LayoutParams(0,160,1f).apply{setMargins(0,0,12,0)}
+     LinearLayout.LayoutParams(0,150,1f).apply{setMargins(0,0,12,0)}
     )
     featuredCollections.addView(
      imageCard("Greek Series","30 shows • broadcaster archives","https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=88"){showPreloadedSeries()},
-     LinearLayout.LayoutParams(0,160,1f).apply{setMargins(0,0,12,0)}
+     LinearLayout.LayoutParams(0,150,1f).apply{setMargins(0,0,12,0)}
     )
     featuredCollections.addView(
      imageCard("Greek Cooking","43 shows & recipes","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=88"){showGreekCooking()},
-     LinearLayout.LayoutParams(0,160,1f).apply{setMargins(0,0,12,0)}
+     LinearLayout.LayoutParams(0,150,1f).apply{setMargins(0,0,12,0)}
     )
     featuredCollections.addView(
      imageCard("Live TV Guide","Live preview • Now & Next","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=88"){showTvGuide()},
-     LinearLayout.LayoutParams(0,160,1f)
+     LinearLayout.LayoutParams(0,150,1f)
     )
     main.addView(featuredCollections)
    }
@@ -1455,7 +1455,7 @@ class MainActivity:Activity(){
    val action={if(ch!=null)playRecent(ch.url) else if(i<2)loadChannels("ERT") else loadChannels()}
    channelRow.addView(
     logoCard(a[0],sub,a[2].toInt(),a[3]=="1",action),
-    LinearLayout.LayoutParams(0,120,1f).apply{setMargins(0,0,12,0)}
+    LinearLayout.LayoutParams(0,112,1f).apply{setMargins(0,0,12,0)}
    )
   }
   val channelGlass=LinearLayout(this).apply{
@@ -1482,7 +1482,7 @@ class MainActivity:Activity(){
     "SERIES"->{ {showPreloadedSeries()} }
     else->{ {showGreekCooking()} }
    }
-   tonightRow.addView(imageCard(item[0],item[1],item[2],action),LinearLayout.LayoutParams(0,176,1f).apply{setMargins(0,0,12,0)})
+   tonightRow.addView(imageCard(item[0],item[1],item[2],action),LinearLayout.LayoutParams(0,166,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(tonightRow)
 

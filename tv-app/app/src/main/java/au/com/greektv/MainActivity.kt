@@ -224,7 +224,7 @@ class MainActivity:Activity(){
   info.addView(TextView(this).apply{text="ABOUT GREEK ONE";textSize=11f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(104,180,227))})
   info.addView(TextView(this).apply{text="Greek television, live channels, guide, favourites, recent viewing and YouTube discovery in one TV-first experience.";textSize=14f;setTextColor(Color.rgb(220,232,242));setPadding(0,9,0,0)})
   root.addView(info,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,8,0,0)})
-  root.addView(TextView(this).apply{text="Greek One  •  Version $ver  •  Build \${currentVersionCode()}";textSize=10f;letterSpacing=.08f;gravity=Gravity.CENTER_HORIZONTAL;setTextColor(Color.rgb(91,137,170));setPadding(0,24,0,0)})
+  root.addView(TextView(this).apply{text="Greek One  •  Version $ver  •  Build ${currentVersionCode()}";textSize=10f;letterSpacing=.08f;gravity=Gravity.CENTER_HORIZONTAL;setTextColor(Color.rgb(91,137,170));setPadding(0,24,0,0)})
   setContentView(root)
   root.post{if(root.childCount>1)root.getChildAt(1).requestFocus()}
  }

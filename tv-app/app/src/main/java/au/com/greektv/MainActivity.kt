@@ -294,41 +294,72 @@ class MainActivity:Activity(){
  }
  private fun parseXmltvDate(v:String):Long=try{SimpleDateFormat("yyyyMMddHHmmss Z",Locale.US).parse(v.trim())?.time?:0L}catch(_:Exception){0L}
  private fun loadEpg(onDone:(()->Unit)?=null){
-  if(channels.none{it.tvgId.isNotBlank()})return
+  if(channels.none{it.tvgId.isNotBlank()}){onDone?.invoke();return}
   val nowMs=System.currentTimeMillis()
   if(epgNow.isNotEmpty()&&nowMs-epgLoadedAt<epgCacheTtlMs){onDone?.invoke();return}
   if(epgLoading)return
   epgLoading=true
   epgNow.clear();epgNext.clear()
-  val wanted=channels.map{it.tvgId}.filter{it.isNotBlank()}.toSet()
-  Thread{try{
+
+  fun normId(raw:String):String{
+   var s=raw.trim().lowercase(Locale.ROOT)
+   s=s.substringBefore("@")
+   s=s.replace("skaitv.gr","skai.gr")
+    .replace("alphatv.gr","alpha.gr")
+    .replace("megachannel.gr","mega.gr")
+    .replace("opentv.gr","open.gr")
+    .replace("starchannel.gr","star.gr")
+   return s.replace(Regex("[^a-z0-9α-ωάέήίόύώϊϋΐΰ.]"),"")
+  }
+  val wanted=channels.mapNotNull{ch->ch.tvgId.takeIf{it.isNotBlank()}?.let{normId(it) to ch.tvgId}}.toMap()
+
+  fun parseGuide(stream:java.io.InputStream){
    val parser=Xml.newPullParser()
-   val input=URL(cfgString("epgUrl","https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml")).openConnection().apply{connectTimeout=7000;readTimeout=12000}.getInputStream()
-   parser.setInput(input,"UTF-8")
+   parser.setInput(stream,"UTF-8")
    val now=System.currentTimeMillis()
    var event=parser.eventType
    while(event!=XmlPullParser.END_DOCUMENT){
     if(event==XmlPullParser.START_TAG&&parser.name=="programme"){
-     val id=parser.getAttributeValue(null,"channel")?:""
+     val rawId=parser.getAttributeValue(null,"channel")?:""
+     val canonical=wanted[normId(rawId)]
      val start=parseXmltvDate(parser.getAttributeValue(null,"start")?:"")
      val stop=parseXmltvDate(parser.getAttributeValue(null,"stop")?:"")
-     if(id in wanted){
-      var title=""
-      var inner=parser.next()
-      while(!(inner==XmlPullParser.END_TAG&&parser.name=="programme")){
-       if(inner==XmlPullParser.START_TAG&&parser.name=="title")title=parser.nextText()
-       inner=parser.next()
-      }
-      if(title.isNotBlank()){
-       if(start<=now&&stop>now)epgNow[id]=title
-       else if(start>now&&!epgNext.containsKey(id))epgNext[id]=title
-      }
+     var title=""
+     var inner=parser.next()
+     while(!(inner==XmlPullParser.END_TAG&&parser.name=="programme")){
+      if(inner==XmlPullParser.START_TAG&&parser.name=="title")title=parser.nextText()
+      inner=parser.next()
+     }
+     if(canonical!=null&&title.isNotBlank()){
+      if(start<=now&&stop>now)epgNow[canonical]=title
+      else if(start>now&&!epgNext.containsKey(canonical))epgNext[canonical]=title
      }
     }
     event=parser.next()
    }
-   input.close()
-  }catch(_:Exception){}finally{epgLoadedAt=System.currentTimeMillis();epgLoading=false;runOnUiThread{onDone?.invoke()}}}.start()
+  }
+
+  Thread{
+   try{
+    val sources=listOf(
+     "https://epgshare01.online/epgshare01/epg_ripper_GR1.xml.gz" to true,
+     cfgString("epgUrl","https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml") to false
+    )
+    for((url,gz) in sources){
+     if(epgNow.isNotEmpty()||epgNext.isNotEmpty())break
+     try{
+      val conn=URL(url).openConnection().apply{connectTimeout=7000;readTimeout=15000}
+      val base=conn.getInputStream()
+      val input:java.io.InputStream=if(gz)java.util.zip.GZIPInputStream(base) else base
+      input.use{parseGuide(it)}
+     }catch(_:Exception){}
+    }
+   }finally{
+    epgLoadedAt=System.currentTimeMillis()
+    epgLoading=false
+    runOnUiThread{onDone?.invoke()}
+   }
+  }.start()
  }
  private fun button(t:String,a:()->Unit)=Button(this).apply{text=t;textSize=21f;gravity=Gravity.CENTER_VERTICAL;isAllCaps=false;typeface=Typeface.create("sans-serif-medium",0);setTextColor(Color.WHITE);background=panel(card);isFocusable=true;setPadding(30,0,24,0);stateListAnimator=null;setOnClickListener{a()};layoutParams=LinearLayout.LayoutParams(-1,72).apply{setMargins(0,5,0,5)};setOnFocusChangeListener{v,f->background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,116,213),Color.rgb(28,151,245))).apply{cornerRadius=18f;setStroke(2,Color.argb(205,255,255,255))}else panel(card);v.animate().scaleX(if(f)1.035f else 1f).scaleY(if(f)1.035f else 1f).setDuration(145).start();v.elevation=if(f)16f else 1f}}
  private fun weatherName(code:Int)=when(code){
@@ -1524,65 +1555,125 @@ class MainActivity:Activity(){
  }
  private fun showTvGuide(){
   screenMode="GUIDE"
-  previewHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  player?.release();player=null;previewPlayer?.release();previewPlayer=null
   currentSection="TV GUIDE"
+
   val root=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
-   setPadding(42,28,42,28)
+   setPadding(42,26,42,26)
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(4,20,35),Color.rgb(2,8,15)))
   }
   val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
   val titleWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   titleWrap.addView(TextView(this).apply{text="TV GUIDE";textSize=34f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
-  titleWrap.addView(TextView(this).apply{text="$brandName  •  NOW & NEXT";textSize=12f;setTextColor(accent);letterSpacing=.055f})
+  titleWrap.addView(TextView(this).apply{text="$brandName  •  LIVE NOW & NEXT";textSize=12f;setTextColor(accent);letterSpacing=.055f})
   header.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
-  header.addView(TextView(this).apply{text="OK Watch   •   BACK Home";textSize=14f;setTextColor(muted)})
-  root.addView(header,LinearLayout.LayoutParams(-1,78))
+  header.addView(TextView(this).apply{text="▲▼ Browse   •   OK Watch   •   BACK Home";textSize=13f;setTextColor(muted)})
+  root.addView(header,LinearLayout.LayoutParams(-1,72))
 
-  val status=TextView(this).apply{text="Loading TV guide…";textSize=14f;setTextColor(Color.rgb(194,214,232));setPadding(14,8,14,8);background=GradientDrawable().apply{setColor(Color.argb(105,18,55,84));cornerRadius=12f;setStroke(1,Color.argb(70,120,180,230))}}
-  root.addView(status,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,4,0,14)})
+  val status=TextView(this).apply{
+   text="Loading live programme information…";textSize=13f;setTextColor(Color.rgb(194,214,232));setPadding(14,7,14,7)
+   background=GradientDrawable().apply{setColor(Color.argb(105,18,55,84));cornerRadius=12f;setStroke(1,Color.argb(70,120,180,230))}
+  }
+  root.addView(status,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,2,0,12)})
 
+  val content=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val listPane=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(4,17,30),Color.rgb(8,29,48))).apply{cornerRadius=18f;setStroke(1,Color.argb(88,120,180,230))}
+   setPadding(10,10,10,10);elevation=7f
+  }
   val scroll=ScrollView(this)
   val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   scroll.addView(list)
-  root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
-  setContentView(root)
+  listPane.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+
+  val previewPane=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(18,0,0,0)}
+  val videoFrame=FrameLayout(this).apply{
+   background=GradientDrawable().apply{setColor(Color.BLACK);cornerRadius=18f;setStroke(2,Color.argb(125,120,185,235))}
+   clipToOutline=true;elevation=9f
+  }
+  val playerView=PlayerView(this).apply{useController=false;keepScreenOn=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);setBackgroundColor(Color.BLACK)}
+  videoFrame.addView(playerView,FrameLayout.LayoutParams(-1,-1))
+  videoFrame.addView(TextView(this).apply{
+   text="LIVE";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+   background=GradientDrawable().apply{setColor(Color.rgb(205,34,52));cornerRadius=10f};setPadding(14,4,14,4)
+  },FrameLayout.LayoutParams(-2,-2,Gravity.TOP or Gravity.START).apply{setMargins(16,16,0,0)})
+  val previewStatus=TextView(this).apply{
+   text="Select a channel";textSize=13f;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+   background=GradientDrawable().apply{setColor(Color.argb(210,5,18,31));cornerRadius=12f};setPadding(18,10,18,10)
+  }
+  videoFrame.addView(previewStatus,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
+  previewPane.addView(videoFrame,LinearLayout.LayoutParams(-1,0,1f))
+
+  val previewTitle=TextView(this).apply{text="Select a channel";textSize=26f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,14,0,0)}
+  val previewNow=TextView(this).apply{text="NOW  •  Loading…";textSize=15f;setTextColor(Color.WHITE);setPadding(0,5,0,0)}
+  val previewNext=TextView(this).apply{text="NEXT •  Loading…";textSize=12.5f;setTextColor(Color.rgb(150,190,220));setPadding(0,3,0,0)}
+  previewPane.addView(previewTitle);previewPane.addView(previewNow);previewPane.addView(previewNext)
+  previewPane.addView(TextView(this).apply{text="Press OK for full-screen viewing.";textSize=12f;setTextColor(muted);setPadding(0,8,0,0)})
+
+  fun startPreview(index:Int){
+   if(index !in channels.indices)return
+   current=index
+   val ch=channels[index]
+   previewTitle.text=ch.name
+   previewNow.text="NOW  •  "+(epgNow[ch.tvgId]?:"Live programming")
+   previewNext.text="NEXT •  "+(epgNext[ch.tvgId]?:"Schedule unavailable")
+   previewStatus.text="Opening live preview…";previewStatus.visibility=View.VISIBLE
+   previewHandler.removeCallbacksAndMessages(null)
+   previewHandler.postDelayed({
+    previewPlayer?.release()
+    previewPlayer=ExoPlayer.Builder(this).build().also{p->
+     playerView.player=p;p.volume=0f
+     p.addListener(object:Player.Listener{
+      override fun onPlaybackStateChanged(state:Int){if(state==Player.STATE_READY&&previewPlayer===p)previewStatus.visibility=View.GONE}
+      override fun onPlayerError(error:PlaybackException){if(previewPlayer===p){previewStatus.text="Preview unavailable • OK to try full screen";previewStatus.visibility=View.VISIBLE}}
+     })
+     p.setMediaItem(MediaItem.fromUri(ch.url));p.prepare();p.play()
+    }
+   },300)
+  }
 
   fun render(){
    list.removeAllViews()
    val guideChannels=channels.filter{it.tvgId.isNotBlank()}.ifEmpty{channels}
-   status.text=if(epgNow.isEmpty()&&epgNext.isEmpty())"Programme data unavailable for some channels • Live channels still selectable" else "Live programme information"
-   guideChannels.forEachIndexed{i,ch->
+   status.text=if(epgNow.isEmpty()&&epgNext.isEmpty())
+    "Live preview available • programme data is still loading or unavailable for some channels"
+   else "Live programme information • "+epgNow.size+" channels with current programme data"
+
+   guideChannels.forEach{ch->
+    val realIndex=channels.indexOf(ch)
     val row=LinearLayout(this).apply{
      orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
-     setPadding(16,10,16,10)
-     background=panel(Color.rgb(10,31,50),12f)
+     setPadding(14,7,12,7);background=panel(Color.rgb(10,31,50),12f)
     }
     val logoUrl=channelLogoUrl(ch)
     if(logoUrl.isNotBlank()){
-     val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(4,4,4,4);background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=9f}}
-     row.addView(logo,LinearLayout.LayoutParams(52,40).apply{setMargins(0,0,14,0)})
-     loadImageInto(logo,logoUrl)
+     val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(3,3,3,3);background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=9f}}
+     row.addView(logo,LinearLayout.LayoutParams(48,38).apply{setMargins(0,0,12,0)});loadImageInto(logo,logoUrl)
     }else{
-     row.addView(TextView(this).apply{text="TV";gravity=Gravity.CENTER;textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);background=GradientDrawable().apply{setColor(Color.rgb(20,95,180));cornerRadius=9f}},LinearLayout.LayoutParams(52,40).apply{setMargins(0,0,14,0)})
+     row.addView(TextView(this).apply{text="TV";gravity=Gravity.CENTER;textSize=11f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);background=GradientDrawable().apply{setColor(Color.rgb(20,95,180));cornerRadius=9f}},LinearLayout.LayoutParams(48,38).apply{setMargins(0,0,12,0)})
     }
-    val name=TextView(this).apply{text=ch.name;textSize=17f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setSingleLine(true)}
-    row.addView(name,LinearLayout.LayoutParams(220,-2).apply{setMargins(0,0,18,0)})
-    val nowTitle=epgNow[ch.tvgId]?:"Live programming"
-    val nextTitle=epgNext[ch.tvgId]?:"Schedule unavailable"
-    val info=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-    info.addView(TextView(this@MainActivity).apply{text="NOW  •  $nowTitle";textSize=15f;setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
-    info.addView(TextView(this@MainActivity).apply{text="NEXT •  $nextTitle";textSize=12f;setTextColor(Color.rgb(150,186,215));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END;setPadding(0,4,0,0)})
-    row.addView(info,LinearLayout.LayoutParams(0,-2,1f))
-    row.setOnClickListener{val realIndex=channels.indexOf(ch);if(realIndex>=0)play(realIndex)}
-    row.setOnFocusChangeListener{v,focusOn->
-     v.background=if(focusOn)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,104,198),Color.rgb(34,155,246))).apply{cornerRadius=12f;setStroke(2,Color.argb(225,255,255,255))} else panel(Color.rgb(10,31,50),12f)
-     v.animate().scaleX(if(focusOn)1.012f else 1f).scaleY(if(focusOn)1.012f else 1f).setDuration(90).start()
+    val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+    copy.addView(TextView(this@MainActivity).apply{text=ch.name;textSize=15f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
+    copy.addView(TextView(this@MainActivity).apply{text="NOW  •  "+(epgNow[ch.tvgId]?:"Live");textSize=11f;setTextColor(Color.rgb(174,205,229));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END;setPadding(0,2,0,0)})
+    row.addView(copy,LinearLayout.LayoutParams(0,-2,1f))
+    row.setOnClickListener{previewPlayer?.release();previewPlayer=null;if(realIndex>=0)play(realIndex)}
+    row.setOnFocusChangeListener{v,f->
+     v.background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(10,116,213),Color.rgb(26,150,245))).apply{cornerRadius=12f;setStroke(2,Color.WHITE)}else panel(Color.rgb(10,31,50),12f)
+     v.animate().scaleX(if(f)1.012f else 1f).scaleY(if(f)1.012f else 1f).setDuration(90).start()
+     if(f&&realIndex>=0)startPreview(realIndex)
     }
-    list.addView(row,LinearLayout.LayoutParams(-1,74).apply{setMargins(0,0,0,8)})
+    list.addView(row,LinearLayout.LayoutParams(-1,64).apply{setMargins(0,0,0,7)})
    }
    list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
   }
+
+  content.addView(listPane,LinearLayout.LayoutParams(0,-1,.43f).apply{setMargins(0,0,18,0)})
+  content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.57f))
+  root.addView(content,LinearLayout.LayoutParams(-1,0,1f))
+  setContentView(root)
 
   Thread{try{
    val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e}
@@ -1590,7 +1681,7 @@ class MainActivity:Activity(){
    runOnUiThread{
     channels=all
     render()
-    loadEpg{render()}
+    loadEpg{if(screenMode=="GUIDE")render()}
    }
   }catch(_:Exception){runOnUiThread{status.text="Unable to load TV guide";render()}}}.start()
  }

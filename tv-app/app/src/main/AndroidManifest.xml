@@ -3,6 +3,10 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <queries>
+        <package android:name="com.google.android.youtube.tv"/>
+        <package android:name="com.google.android.youtube"/>
+    </queries>
     <application android:theme="@style/AppTheme" android:label="RESKAKIS TV" android:banner="@drawable/tv_banner" android:usesCleartextTraffic="true">
         <activity android:name=".MainActivity" android:screenOrientation="landscape" android:launchMode="singleTop" android:exported="true">
             <intent-filter>

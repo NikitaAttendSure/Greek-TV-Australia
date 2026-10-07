@@ -210,12 +210,12 @@ class MainActivity:Activity(){
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
   val ver=try{packageManager.getPackageInfo(packageName,0).versionName}catch(_:Exception){"1.0"}
   val root=LinearLayout(this).apply{
-   orientation=LinearLayout.VERTICAL;setPadding(82,32,78,30)
+   orientation=LinearLayout.VERTICAL;setPadding(92,32,88,30)
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(5,26,45),Color.rgb(2,9,17)))
   }
   val head=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
   val titleWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-  titleWrap.addView(TextView(this).apply{text="Settings";textSize=30f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
+  titleWrap.addView(TextView(this).apply{text="Settings";textSize=28f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
   titleWrap.addView(TextView(this).apply{text="Greek One preferences and app status";textSize=13f;setTextColor(Color.rgb(130,191,232));letterSpacing=.04f})
   head.addView(titleWrap,LinearLayout.LayoutParams(0,-2,1f))
   head.addView(button("←  Home"){activeHomeNav="Home";showHome()},LinearLayout.LayoutParams(180,58))
@@ -256,7 +256,7 @@ class MainActivity:Activity(){
    background=GradientDrawable().apply{setColor(Color.argb(155,4,18,31));cornerRadius=18f;setStroke(1,Color.argb(65,120,180,225))}
   }
   info.addView(TextView(this).apply{text="ABOUT GREEK ONE";textSize=11f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(104,180,227))})
-  info.addView(TextView(this).apply{text="Greek television, live channels, guide, favourites, recent viewing and YouTube discovery in one TV-first experience.";textSize=14f;setTextColor(Color.rgb(220,232,242));setPadding(0,9,0,0)})
+  info.addView(TextView(this).apply{text="Greek television, live channels, guide, favourites, movies, series and cooking in one TV-first experience.";textSize=13f;setTextColor(Color.rgb(220,232,242));setPadding(0,9,0,0)})
   root.addView(info,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,8,0,0)})
   root.addView(TextView(this).apply{text="Greek One  •  Version $ver  •  Build ${currentVersionCode()}";textSize=10f;letterSpacing=.08f;gravity=Gravity.CENTER_HORIZONTAL;setTextColor(Color.rgb(91,137,170));setPadding(0,24,0,0)})
   setContentView(root)
@@ -457,13 +457,13 @@ class MainActivity:Activity(){
  }
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{
   orientation=LinearLayout.VERTICAL
-  setPadding(88,32,78,30)
+  setPadding(92,32,88,30)
   setBackgroundColor(bg)
   addView(TextView(this@MainActivity).apply{
    text=title;textSize=30f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.035f;setPadding(2,0,0,2)
   })
   addView(TextView(this@MainActivity).apply{
-   text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=12.5f;setTextColor(accent);letterSpacing=.025f;setPadding(2,0,0,16)
+   text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=11.5f;setTextColor(accent);letterSpacing=.025f;setPadding(2,0,0,16)
   })
  }
 
@@ -545,7 +545,7 @@ class MainActivity:Activity(){
      text=s.title;textSize=14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END
     },LinearLayout.LayoutParams(-1,0,1f))
     copy.addView(TextView(this@MainActivity).apply{
-     text=s.source+"  •  "+s.episodes;textSize=9.5f;setTextColor(Color.rgb(159,204,232));maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
+     text=s.source+"  •  "+s.episodes;textSize=9f;setTextColor(Color.rgb(159,204,232));maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
     })
     card.addView(copy,LinearLayout.LayoutParams(-1,74))
     row.addView(card,LinearLayout.LayoutParams(0,200,1f).apply{setMargins(0,0,14,14)})
@@ -567,7 +567,7 @@ class MainActivity:Activity(){
  private fun showSeriesWeb(title:String,url:String){
   screenMode="SERIES_WEB"
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
-  val bar=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(82,12,78,12);background=panel(Color.rgb(4,22,38),0f)}
+  val bar=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(92,12,88,12);background=panel(Color.rgb(4,22,38),0f)}
   bar.addView(TextView(this).apply{text=title;textSize=22f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)},LinearLayout.LayoutParams(0,54,1f))
   bar.addView(button("← Series"){showPreloadedSeries()},LinearLayout.LayoutParams(150,54))
   root.addView(bar,LinearLayout.LayoutParams(-1,78))
@@ -590,7 +590,7 @@ class MainActivity:Activity(){
   if(isPappas){showHome();return}
   screenMode="BROUSKO"
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
-  val bar=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(82,12,78,12);background=panel(Color.rgb(4,22,38),0f)}
+  val bar=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(92,12,88,12);background=panel(Color.rgb(4,22,38),0f)}
   bar.addView(TextView(this).apply{text="ΜΠΡΟΥΣΚΟ";textSize=24f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)},LinearLayout.LayoutParams(0,54,1f))
   bar.addView(TextView(this).apply{text="ANT1 • Episodes 1–772";textSize=13f;setTextColor(muted);gravity=Gravity.CENTER_VERTICAL},LinearLayout.LayoutParams(220,54))
   bar.addView(button("← Series"){showPreloadedSeries()},LinearLayout.LayoutParams(150,54))
@@ -628,7 +628,7 @@ class MainActivity:Activity(){
 
   val root=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
-   setPadding(82,30,78,34)
+   setPadding(92,30,88,34)
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(6,24,40),Color.rgb(2,8,15)))
   }
 
@@ -903,11 +903,11 @@ class MainActivity:Activity(){
 
     val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(13,9,13,9)}
     copy.addView(TextView(this@MainActivity).apply{
-     text=m.title;textSize=15f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
+     text=m.title;textSize=14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
      maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END
     },LinearLayout.LayoutParams(-1,0,1f))
     copy.addView(TextView(this@MainActivity).apply{
-     text=m.source+"  •  "+m.subtitle;textSize=9.5f;setTextColor(Color.rgb(159,204,232))
+     text=m.source+"  •  "+m.subtitle;textSize=9f;setTextColor(Color.rgb(159,204,232))
      maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
     })
     card.addView(copy,LinearLayout.LayoutParams(-1,76))
@@ -2043,7 +2043,7 @@ class MainActivity:Activity(){
 
   val root=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
-   setPadding(82,28,78,30)
+   setPadding(92,28,88,30)
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(4,20,35),Color.rgb(2,8,15)))
   }
   val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
@@ -2287,7 +2287,7 @@ class MainActivity:Activity(){
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);previewPlayer?.release();previewPlayer=null
   val root=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
-   setPadding(82,32,78,30)
+   setPadding(92,32,88,30)
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(5,25,44),Color.rgb(2,9,17)))
   }
   val head=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
@@ -2364,7 +2364,7 @@ class MainActivity:Activity(){
  private fun showList(){
   screenMode="LIST"
   previewHandler.removeCallbacksAndMessages(null);previewPlayer?.release();previewPlayer=null
-  val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(82,28,78,30);background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(4,20,35),Color.rgb(2,8,15)))}
+  val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(92,28,88,30);background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(4,20,35),Color.rgb(2,8,15)))}
 
   val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
   val titleWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
@@ -2723,7 +2723,7 @@ class MainActivity:Activity(){
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
   val bar=LinearLayout(this).apply{
    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
-   setPadding(82,10,78,10);background=panel(Color.rgb(4,22,38),0f)
+   setPadding(92,10,88,10);background=panel(Color.rgb(4,22,38),0f)
   }
   bar.addView(TextView(this).apply{
    text=title;textSize=19f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE)

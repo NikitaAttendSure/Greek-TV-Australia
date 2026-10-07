@@ -285,14 +285,20 @@ function showSeriesDetail(x){
  }catch(_){b.disabled=false;b.textContent="EPISODES UNAVAILABLE"}};
  window.scrollTo({top:0,behavior:"smooth"});
 }
-function playEmbeddedPage(item,back){
- hero.className="vod-player embedded-player";hero.style.backgroundImage="";
- hero.innerHTML='<div class="live-player-head"><button class="detail-back live-back" type="button">← BACK</button><div><p>GREEK ONE • ON DEMAND</p><h3>'+esc(item.title||"Episode")+'</h3></div></div><div class="playerShell embedShell"><iframe id="vodFrame" title="'+esc(item.title||"Greek One")+'" src="'+item.page+'" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
+function showVodNotice(title,message,back){
+ hero.className="vod-player";hero.style.backgroundImage="";
+ hero.innerHTML='<div class="live-player-head"><button class="detail-back live-back" type="button">← BACK</button><div><p>GREEK ONE • ON DEMAND</p><h3>'+esc(title||"Episode")+'</h3></div></div><div class="playerShell unavailableShell"><div class="loadingMsg stream-error" style="display:flex"><b>Not currently playable</b><small>'+esc(message)+'</small></div></div>';
  grid.innerHTML="";hero.querySelector(".live-back").onclick=back;window.scrollTo({top:0,behavior:"smooth"});
 }
-function playSeriesEpisode(x,ep,img){
- remember(x.title+" • "+ep.title,"series",ep.page,img,x.source);
- return playEmbeddedPage({title:x.title+" • "+ep.title,page:ep.page},()=>showSeriesDetail(x));
+async function playSeriesEpisode(x,ep,img){
+ const back=()=>showSeriesDetail(x);
+ try{
+   const p=await resolveMegaEpisode(ep);
+   remember(x.title+" • "+ep.title,"series",ep.page,img,x.source);
+   return await playVod({...p,title:x.title+" • "+ep.title,sourceUrl:ep.page},back);
+ }catch(_){
+   return showVodNotice(x.title+" • "+ep.title,"The broadcaster is not currently publishing a playable stream for this episode. Greek One will not send you to an external webpage.",back);
+ }
 }
 function mixedCard(item){
  if(item.kind==="movie"){const m=item.data,img=MOVIE_ART[m[0]]||ART.movies;return card(m[0],m[1],()=>showMovieDetail(m),img,"movie",m[2])}

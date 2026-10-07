@@ -1153,6 +1153,11 @@ class MainActivity:Activity(){
     setOnClickListener{activeHomeNav="Settings";showSettings()}
     setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,120,210) else Color.argb(165,5,24,42));cornerRadius=14f;setStroke(if(f)2 else 1,if(f)Color.WHITE else Color.argb(75,150,205,245))}}
    }
+   val liveStatus=TextView(this).apply{
+    text="●  LIVE";textSize=9.2f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(255,129,139));gravity=Gravity.CENTER
+    background=GradientDrawable().apply{setColor(Color.argb(145,34,8,14));cornerRadius=13f;setStroke(1,Color.argb(110,255,95,105))}
+   }
+   top.addView(liveStatus,LinearLayout.LayoutParams(70,38).apply{setMargins(2,0,8,0)})
    top.addView(settingsChip,LinearLayout.LayoutParams(50,50))
    updateHomeHeader();refreshHomeWeather();headerHandler.post(headerTick)
   }
@@ -1301,6 +1306,15 @@ class MainActivity:Activity(){
     heroText.addView(TextView(this@MainActivity).apply{
      this.text=featured.name;textSize=25f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,5,0,0)
     })
+    val metaRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+    listOf("LIVE","GREEK TV","HD").forEachIndexed{i,label->
+     metaRow.addView(TextView(this@MainActivity).apply{
+      text=label;textSize=8.8f;typeface=Typeface.DEFAULT_BOLD;setTextColor(if(i==0)Color.rgb(255,110,118) else Color.rgb(202,226,242));gravity=Gravity.CENTER
+      background=GradientDrawable().apply{setColor(Color.argb(135,7,22,38));cornerRadius=9f;setStroke(1,Color.argb(75,145,205,245))}
+      setPadding(9,3,9,3)
+     },LinearLayout.LayoutParams(-2,25).apply{setMargins(0,3,7,3)})
+    }
+    heroText.addView(metaRow)
     heroText.addView(TextView(this@MainActivity).apply{
      this.text=epgNow[featured.tvgId]?.let{"NOW  •  "+it}?:"Greek television streaming live"
      textSize=14f;setTextColor(Color.rgb(231,242,250));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
@@ -1393,6 +1407,25 @@ class MainActivity:Activity(){
   channelGlass.addView(channelRow)
   main.addView(channelGlass)
 
+  sectionTitle("Tonight on Greek One","Live, cinema and Greek favourites")
+  val tonightRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val tonightData=listOf(
+   arrayOf("Live from Greece","Greek TV • watch now","https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=88","LIVE"),
+   arrayOf("Greek Cinema","32 films • classics & modern","https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=88","MOVIES"),
+   arrayOf("Series Night","30 Greek series","https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=88","SERIES"),
+   arrayOf("Taste of Greece","43 cooking shows & recipes","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=88","COOKING")
+  )
+  tonightData.forEach{item->
+   val action:()->Unit=when(item[3]){
+    "LIVE"->{ {loadChannels()} }
+    "MOVIES"->{ {showPreloadedMovies()} }
+    "SERIES"->{ {showPreloadedSeries()} }
+    else->{ {showGreekCooking()} }
+   }
+   tonightRow.addView(imageCard(item[0],item[1],item[2],action),LinearLayout.LayoutParams(0,176,1f).apply{setMargins(0,0,12,0)})
+  }
+  main.addView(tonightRow)
+
   sectionTitle("Continue Watching","Pick up where you left off")
   val cont=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   run{
@@ -1480,6 +1513,20 @@ class MainActivity:Activity(){
    }
   }
   main.addView(liveRow)
+
+  val signature=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(18,12,18,12)
+   background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(205,4,22,38),Color.argb(175,8,53,84),Color.argb(205,4,22,38))).apply{
+    cornerRadius=18f;setStroke(1,Color.argb(85,114,188,235))
+   }
+  }
+  signature.addView(ImageView(this).apply{setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE},LinearLayout.LayoutParams(46,46).apply{setMargins(0,0,12,0)})
+  val sigText=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  sigText.addView(TextView(this@MainActivity).apply{text="GREEK ONE";textSize=16f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.04f})
+  sigText.addView(TextView(this@MainActivity).apply{text="Greek television • cinema • series • cooking • live guide";textSize=10.5f;setTextColor(Color.rgb(151,199,230))})
+  signature.addView(sigText,LinearLayout.LayoutParams(0,-2,1f))
+  signature.addView(TextView(this).apply{text="CHIOS → WORLD";textSize=10f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(93,205,255));gravity=Gravity.CENTER_VERTICAL})
+  main.addView(signature,LinearLayout.LayoutParams(-1,70).apply{setMargins(0,18,0,8)})
 
   body.addView(mainScroll,LinearLayout.LayoutParams(0,-1,1f))
   page.addView(body,LinearLayout.LayoutParams(-1,0,1f))
@@ -1899,11 +1946,11 @@ class MainActivity:Activity(){
   val shade=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(242,2,8,14),Color.argb(118,2,8,14),Color.argb(24,2,8,14)))}
   frame.addView(shade,FrameLayout.LayoutParams(-1,-1))
   val textWrap=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(12,8,12,8)}
-  textWrap.addView(TextView(this).apply{text=title;textSize=14.5f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setShadowLayer(6f,0f,2f,Color.BLACK)})
-  textWrap.addView(TextView(this).apply{text=subtitle;textSize=10.5f;setTextColor(Color.rgb(230,237,244))})
+  textWrap.addView(TextView(this).apply{text=title;textSize=15.5f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setShadowLayer(8f,0f,2f,Color.BLACK)})
+  textWrap.addView(TextView(this).apply{text=subtitle;textSize=10f;setTextColor(Color.rgb(210,226,238))})
   frame.addView(textWrap,FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM))
   frame.setOnClickListener{action()}
-  frame.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(4,Color.WHITE);cornerRadius=14f}else null;v.animate().scaleX(if(f)1.05f else 1f).scaleY(if(f)1.05f else 1f).translationZ(if(f)7f else 0f).setDuration(145).start();v.elevation=if(f)18f else 3f}
+  frame.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(4,Color.WHITE);cornerRadius=14f}else null;v.animate().scaleX(if(f)1.065f else 1f).scaleY(if(f)1.065f else 1f).translationZ(if(f)11f else 0f).setDuration(145).start();v.elevation=if(f)18f else 3f}
   return frame
  }
  private fun showTvGuide(){

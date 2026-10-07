@@ -2407,6 +2407,7 @@ class MainActivity:Activity(){
   }
   if(k==KeyEvent.KEYCODE_BACK&&screenMode=="MOVIE_WEB"){showPreloadedMovies();return true}
   if(k==KeyEvent.KEYCODE_BACK&&screenMode=="COOKING_WEB"){showGreekCooking();return true}
+  if(k==KeyEvent.KEYCODE_BACK&&screenMode=="SERIES_WEB"){showPreloadedSeries();return true}
   if(k==KeyEvent.KEYCODE_BACK&&screenMode!="HOME"){showHome();return true}
   return super.onKeyDown(k,e)
  }
@@ -2450,7 +2451,8 @@ class MainActivity:Activity(){
     val session=installer.openSession(sessionId)
     conn.getInputStream().use{input->session.openWrite("GreekOne-update.apk",0,-1).use{out->input.copyTo(out);session.fsync(out)}}
     val statusIntent=Intent(this,MainActivity::class.java).apply{action="au.com.greektv.INSTALL_STATUS";addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)}
-    val pending=PendingIntent.getActivity(this,8817,statusIntent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+    val piFlags=PendingIntent.FLAG_UPDATE_CURRENT or (if(android.os.Build.VERSION.SDK_INT>=31)PendingIntent.FLAG_MUTABLE else 0)
+    val pending=PendingIntent.getActivity(this,8817,statusIntent,piFlags)
     session.commit(pending.intentSender);session.close()
    }catch(_:Exception){runOnUiThread{showMessage("Greek One","The update could not be installed automatically. Downloader is still available as a fallback.")}}
   }.start()
@@ -2504,7 +2506,7 @@ class MainActivity:Activity(){
      return if(scheme=="http"||scheme=="https"){false}else{true}
     }
     override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){
-     if(request?.isForMainFrame==true)Toast.makeText(this@MainActivity,"This page could not load. Please try another title.",Toast.LENGTH_SHORT).show()
+     if(request?.isForMainFrame==true)Toast.makeText(this@MainActivity,"This title could not load from the broadcaster. Try another title.",Toast.LENGTH_LONG).show()
     }
    }
   }

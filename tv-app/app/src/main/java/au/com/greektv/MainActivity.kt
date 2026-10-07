@@ -59,7 +59,6 @@ class MainActivity:Activity(){
  private var sydneyCondition="Weather"
  private var weatherLoadedAt=0L
  private var homeBackdropIndex=0
- private var homeWarmupStarted=false
  private val homeBackdropUrls=listOf(
   "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg",
   "https://commons.wikimedia.org/wiki/Special:Redirect/file/Chios_town_view.jpg",
@@ -78,36 +77,7 @@ class MainActivity:Activity(){
   try{remoteConfig=JSONObject(prefs.getString(cfgKey,"{}")?:"{}")}catch(_:Exception){}
   showLaunchScreen()
   refreshRemoteConfig()
-  Handler(Looper.getMainLooper()).postDelayed({
-   if(player==null){
-    try{showHome()}catch(e:Throwable){
-     android.util.Log.e("GreekOne","Home launch failed",e)
-     showSafeHome()
-    }
-   }
-  },650)
- }
- private fun showSafeHome(){
-  screenMode="HOME"
-  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
-  player?.release();player=null;previewPlayer?.release();previewPlayer=null
-  val root=LinearLayout(this).apply{
-   orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER;setPadding(48,36,48,36)
-   setBackgroundColor(Color.rgb(2,7,13))
-  }
-  root.addView(ImageView(this).apply{
-   setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE
-  },LinearLayout.LayoutParams(220,220))
-  root.addView(TextView(this).apply{
-   text="GREEK ONE";textSize=34f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
-  })
-  root.addView(TextView(this).apply{
-   text="Greek Television";textSize=16f;setTextColor(Color.rgb(158,180,201));gravity=Gravity.CENTER;setPadding(0,6,0,28)
-  })
-  root.addView(button("Live TV"){loadChannels()},LinearLayout.LayoutParams(360,72).apply{setMargins(0,6,0,6)})
-  root.addView(button("Retry Home"){try{showHome()}catch(_:Throwable){Toast.makeText(this@MainActivity,"Home screen could not load.",Toast.LENGTH_SHORT).show()}},LinearLayout.LayoutParams(360,72).apply{setMargins(0,6,0,6)})
-  setContentView(root)
-  root.post{if(root.childCount>3)root.getChildAt(3).requestFocus()}
+  Handler(Looper.getMainLooper()).postDelayed({if(player==null)showHome()},650)
  }
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
  override fun onStop(){super.onStop();previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null}
@@ -246,19 +216,6 @@ class MainActivity:Activity(){
   return when{mins<1->"Watched just now";mins<60->"Watched $mins min ago";mins<1440->"Watched ${mins/60} hr ago";else->"Watched ${mins/1440} d ago"}
  }
  private fun homeCachedChannels():List<Channel> = try{prefs.getString("playlist_cache",null)?.let{parsePlaylist(it)}?:emptyList()}catch(_:Exception){emptyList()}
- private fun warmGreekOneHome(){
-  if(isPappas||homeWarmupStarted||homeCachedChannels().isNotEmpty())return
-  homeWarmupStarted=true
-  Thread{
-   try{
-    val parsed=parsePlaylist(fetchPlaylist())
-    runOnUiThread{
-     homeWarmupStarted=false
-     if(screenMode=="HOME"&&parsed.isNotEmpty())showGreekOneHome()
-    }
-   }catch(_:Exception){homeWarmupStarted=false}
-  }.start()
- }
  private fun homeChannel(label:String):Channel?{
   val key=label.replace(" HD","").replace("ΕΡΤ","ERT").replace("ΣΚΑΪ","SKAI")
   return homeCachedChannels().firstOrNull{it.name.replace("ΕΡΤ","ERT").replace("ΣΚΑΪ","SKAI").contains(key,true)}
@@ -395,7 +352,7 @@ class MainActivity:Activity(){
    SeriesItem("ΣΑΒΒΑΤΟΓΕΝΝΗΜΕΝΕΣ","MEGA","33 episodes","https://www.megatv.com/ekpompes/43202/savvatogennimenes/"),
    SeriesItem("ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ","MEGA","complete archive","https://www.megatv.com/ekpompes/43346/sto-para-pente/"),
    SeriesItem("ΣΤΟΥΣ 31 ΔΡΟΜΟΥΣ","MEGA","12 episodes • complete","https://www.megatv.com/tvshows/49615/epeisodio-1/"),
-   SeriesItem("ΣΧΕΔΟΝ ΕΝΗΛΙΚΕΣ","MEGA","12 episodes • complete","https://www.megatv.com/ekpompes/142326/sxedon-enilikes/"),
+   SeriesItem("ΣΧΕΔΟΝ ΕΝΗΛΙΚΕΣ","MEGA","12 episodes • complete","https://www.megatv.com/ekpompes/142326/sxedon-enilikes/")
    SeriesItem("ΦΙΛΟΔΟΞΙΕΣ","MEGA","799 episodes","https://www.megatv.com/ekpompes/43252/filodoksies/"),
    SeriesItem("SAFE SEX","MEGA","43+ episode archive","https://www.megatv.com/ekpompes/43229/safe-sex/"),
    SeriesItem("SINGLES","MEGA","21 episodes • season 1","https://www.megatv.com/ekpompes/43287/singles/"),
@@ -411,7 +368,7 @@ class MainActivity:Activity(){
    text.addView(TextView(this@MainActivity).apply{this.text=s.title;textSize=19f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
    text.addView(TextView(this@MainActivity).apply{this.text=s.source+" • "+s.episodes;textSize=12.5f;setTextColor(Color.rgb(158,195,220));setPadding(0,3,0,0)})
    row.addView(text,LinearLayout.LayoutParams(0,-2,1f))
-   row.addView(TextView(this).apply{this.text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(105,207,255))})
+   row.addView(TextView(this).apply{text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(105,207,255))})
    row.setOnClickListener{if(s.brousko)showBrousko() else showSeriesWeb(s.title,s.url)}
    row.setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,105,184) else if(i==0)Color.rgb(50,24,72) else Color.rgb(10,31,50));cornerRadius=16f;if(f)setStroke(2,Color.WHITE)}}
    if(first==null)first=row
@@ -738,7 +695,7 @@ class MainActivity:Activity(){
   val root=FrameLayout(this).apply{setBackgroundColor(bg)}
   val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.82f;setBackgroundColor(Color.rgb(2,8,15))}
   root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
-  val hero=cfgString("heroUrl",if(isPappas)"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg" else "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1600&q=88")
+  val hero=cfgString("heroUrl",if(isPappas)"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg" else "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunset_at_%C3%87e%C5%9Fme_overlooking_Chios.jpg")
   imageCache.get(hero)?.let{backdrop.setImageBitmap(it)}?:Thread{try{
    val bmp=URL(hero).openStream().use{BitmapFactory.decodeStream(it)}
    if(bmp!=null)imageCache.put(hero,bmp)
@@ -908,8 +865,8 @@ class MainActivity:Activity(){
    main.addView(TextView(this).apply{text=t;textSize=21f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,9,0,6);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))})
   }
   if(!isPappas){
-   val featured=homeCachedChannels().firstOrNull{it.name.contains("ERT 1",true)||it.name.contains("ERT1",true)}?:homeCachedChannels().firstOrNull()?:Channel("ERT 1 HD","","Greek TV","ERT1.gr")
-   run{
+   val featured=homeCachedChannels().firstOrNull{it.name.contains("ERT 1",true)||it.name.contains("ERT1",true)}?:homeCachedChannels().firstOrNull()
+   if(featured!=null){
     val heroCard=LinearLayout(this).apply{
      orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true;setPadding(20,14,20,14)
      background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(245,4,31,55),Color.argb(230,8,82,129),Color.argb(205,3,26,46))).apply{cornerRadius=20f;setStroke(1,Color.argb(120,130,207,250))}
@@ -929,7 +886,7 @@ class MainActivity:Activity(){
      background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,115,216),Color.rgb(34,184,252))).apply{cornerRadius=14f}
     }
     heroCard.addView(watchButton,LinearLayout.LayoutParams(132,48))
-    heroCard.setOnClickListener{if(featured.url.isNotBlank())playRecent(featured.url) else loadChannels("ERT")}
+    heroCard.setOnClickListener{playRecent(featured.url)}
     heroCard.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(3,Color.WHITE);cornerRadius=20f}else null;v.animate().scaleX(if(f)1.018f else 1f).scaleY(if(f)1.018f else 1f).setDuration(145).start();v.elevation=if(f)20f else 10f}
     main.addView(heroCard,LinearLayout.LayoutParams(-1,116).apply{setMargins(0,4,0,8)})
    }
@@ -1058,7 +1015,6 @@ class MainActivity:Activity(){
    previewHandler.postDelayed(rotateHero,18000)
   }
   previewHandler.postDelayed(rotateHero,18000)
-  warmGreekOneHome()
   if(epgNow.isEmpty()&&!epgLoading){
    val cached=homeCachedChannels()
    if(cached.isNotEmpty()){channels=cached;loadEpg{if(screenMode=="HOME"&&epgNow.isNotEmpty())showHome()}}

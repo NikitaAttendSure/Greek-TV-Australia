@@ -659,3 +659,11 @@ body{background:#020810}
  #hero.vod-player .playerShell{background:#000!important}
  #hero.vod-player .playerShell video{display:block!important;opacity:1!important}
 }
+
+/* In-app broadcaster episode player */
+#hero.embedded-player .embedShell{position:relative;aspect-ratio:16/9;height:auto!important;min-height:0!important;background:#000;overflow:hidden}
+#hero.embedded-player .embedShell iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+@media(max-width:760px){
+ #hero.embedded-player{margin:0!important;border-radius:0!important;padding:10px!important}
+ #hero.embedded-player .embedShell{width:100%;aspect-ratio:16/9;border-radius:10px!important}
+}

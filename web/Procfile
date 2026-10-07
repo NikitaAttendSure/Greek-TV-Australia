@@ -1,1 +1,1 @@
-web: npx serve -s . -l $PORT
+web: node server.js

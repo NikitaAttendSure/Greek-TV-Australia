@@ -598,7 +598,7 @@ class MainActivity:Activity(){
     background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(6,24,39),Color.rgb(8,34,53))).apply{
      cornerRadius=15f;setStroke(1,Color.argb(72,150,200,232))
     }
-    elevation=6f;setOnClickListener{openUri(m.url)}
+    elevation=6f;setOnClickListener{showLibraryWeb(m.title,m.url,"MOVIE_WEB")}
    }
    val poster=FrameLayout(this).apply{
     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(m.accent,Color.rgb(7,20,33))).apply{
@@ -748,7 +748,7 @@ class MainActivity:Activity(){
      isFocusable=true;isClickable=true;clipToOutline=true
      background=panel(Color.rgb(8,27,45),16f)
      elevation=6f
-     setOnClickListener{openUri(m.url)}
+     setOnClickListener{showLibraryWeb(m.title,m.url,"COOKING_WEB")}
      setOnFocusChangeListener{v,f->
       v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
       v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start()
@@ -2050,6 +2050,8 @@ class MainActivity:Activity(){
     KeyEvent.KEYCODE_BACK->{player?.release();player=null;miniGuide=null;showList();return true}
    }
   }
+  if(k==KeyEvent.KEYCODE_BACK&&screenMode=="MOVIE_WEB"){showPreloadedMovies();return true}
+  if(k==KeyEvent.KEYCODE_BACK&&screenMode=="COOKING_WEB"){showGreekCooking();return true}
   if(k==KeyEvent.KEYCODE_BACK&&screenMode!="HOME"){showHome();return true}
   return super.onKeyDown(k,e)
  }
@@ -2122,6 +2124,52 @@ class MainActivity:Activity(){
   }catch(_:Exception){
    showMessage("Greek One","The update could not be started. Please try again.")
   }
+ }
+ private fun showLibraryWeb(title:String,url:String,mode:String){
+  screenMode=mode
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
+  val bar=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
+   setPadding(28,10,28,10);background=panel(Color.rgb(4,22,38),0f)
+  }
+  bar.addView(TextView(this).apply{
+   text=title;textSize=19f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE)
+   maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
+  },LinearLayout.LayoutParams(0,54,1f))
+  val backLabel=if(mode=="MOVIE_WEB")"← Movies" else "← Cooking"
+  bar.addView(button(backLabel){
+   if(mode=="MOVIE_WEB")showPreloadedMovies() else showGreekCooking()
+  },LinearLayout.LayoutParams(170,54))
+  root.addView(bar,LinearLayout.LayoutParams(-1,74))
+
+  val web=WebView(this).apply{
+   setBackgroundColor(Color.BLACK);isFocusable=true;isFocusableInTouchMode=true
+   settings.javaScriptEnabled=true
+   settings.domStorageEnabled=true
+   settings.mediaPlaybackRequiresUserGesture=true
+   settings.cacheMode=WebSettings.LOAD_DEFAULT
+   settings.loadsImagesAutomatically=true
+   settings.allowContentAccess=true
+   settings.allowFileAccess=false
+   settings.userAgentString=settings.userAgentString+" GreekOneTV/1.0"
+   webChromeClient=android.webkit.WebChromeClient()
+   webViewClient=object:WebViewClient(){
+    override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
+     val target=request?.url?.toString()?:return false
+     val scheme=request.url?.scheme?:""
+     return if(scheme=="http"||scheme=="https"){false}else{true}
+    }
+    override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){
+     if(request?.isForMainFrame==true)Toast.makeText(this@MainActivity,"This page could not load. Please try another title.",Toast.LENGTH_SHORT).show()
+    }
+   }
+  }
+  root.addView(web,LinearLayout.LayoutParams(-1,0,1f))
+  setContentView(root)
+  web.loadUrl(url)
+  web.requestFocus()
  }
  private fun openBrousko(){openUri("https://www.antenna.gr/mprousko")}
  private fun openUri(u:String){val i=Intent(Intent.ACTION_VIEW,Uri.parse(u));if(i.resolveActivity(packageManager)!=null)startActivity(i)else showMessage(brandName,"Δεν βρέθηκε συμβατή εφαρμογή.")}

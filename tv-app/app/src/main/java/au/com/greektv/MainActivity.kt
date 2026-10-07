@@ -397,7 +397,7 @@ class MainActivity:Activity(){
    text.addView(TextView(this@MainActivity).apply{this.text=s.title;textSize=19f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
    text.addView(TextView(this@MainActivity).apply{this.text=s.source+" • "+s.episodes;textSize=12.5f;setTextColor(Color.rgb(158,195,220));setPadding(0,3,0,0)})
    row.addView(text,LinearLayout.LayoutParams(0,-2,1f))
-   row.addView(TextView(this).apply{text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(105,207,255))})
+   row.addView(TextView(this).apply{this.text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(105,207,255))})
    row.setOnClickListener{if(s.brousko)showBrousko() else showSeriesWeb(s.title,s.url)}
    row.setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,105,184) else if(i==0)Color.rgb(50,24,72) else Color.rgb(10,31,50));cornerRadius=16f;if(f)setStroke(2,Color.WHITE)}}
    if(first==null)first=row

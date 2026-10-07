@@ -537,3 +537,34 @@ body{background:#020810}
  #hero h3{font-size:31px!important}
  .catalogue-grid .card{height:215px!important}
 }
+
+@media(max-width:760px){
+ /* second-pass density from real iPhone screenshots */
+ #hero.featured-hero{min-height:330px!important;margin-bottom:20px!important;padding:22px 18px!important}
+ #hero.featured-hero h3{font-size:31px!important}
+ #hero.featured-hero .muted{font-size:11px!important}
+ #hero.featured-hero .hero-cta{min-height:42px!important;margin-top:12px!important}
+ .home-block{margin-bottom:22px!important}
+ .media-rail{grid-auto-columns:66vw!important}
+ .media-rail .card{height:180px!important}
+ .media-rail .card.visual{height:190px!important}
+ .continue-rail .card{height:185px!important}
+ .live-rail .card{height:155px!important}
+ .home-head h3{font-size:20px!important}
+ .catalogue-grid .card{height:205px!important}
+ .channel-card{height:155px!important}
+ .live-landing{min-height:150px!important;margin:0 12px 14px!important;padding:22px 18px!important;border-radius:0 0 20px 20px!important;background:linear-gradient(145deg,#061a2a,#03101a)!important}
+ .live-landing h3{font-size:29px!important;margin:5px 0!important}
+ .live-landing .muted{font-size:11px!important}
+ #hero:has(.playerShell){min-height:300px!important;padding:18px!important;margin-bottom:14px!important}
+ #hero:has(.playerShell)>p:first-child{margin-bottom:5px!important}
+ #hero:has(.playerShell)>h3{font-size:29px!important;margin-bottom:10px!important}
+ .playerShell{min-height:185px!important;margin-top:4px!important}
+ .playerShell video{min-height:185px!important;max-height:32vh!important}
+ .loadingMsg.stream-error{align-items:center!important;justify-content:center!important;flex-direction:column!important;gap:5px!important;padding:18px!important;text-align:center!important;font-size:14px!important}
+ .loadingMsg.stream-error small{font-size:10px!important;color:#9fb3c0!important;font-weight:400!important}
+}
+@media(max-width:390px){
+ .media-rail{grid-auto-columns:70vw!important}
+ #hero.featured-hero{min-height:315px!important}
+}

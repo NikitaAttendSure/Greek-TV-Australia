@@ -568,3 +568,22 @@ body{background:#020810}
  .media-rail{grid-auto-columns:70vw!important}
  #hero.featured-hero{min-height:315px!important}
 }
+
+/* Browser-first live player */
+.live-player-head,.live-player-meta{display:flex;align-items:center}
+.live-player-head{gap:14px}.live-player-head>div{min-width:0}.live-player-head p{margin:0;color:#66d4ff;font-size:9px;letter-spacing:2px}.live-player-head h3{margin:3px 0 0}
+.live-player-meta{gap:10px;color:#9db4c3;font-size:10px}.live-pill{color:#ff6477;font-weight:800}.fullscreen-btn{margin-left:auto;border:1px solid rgba(255,255,255,.12);background:#071927;color:#dff5ff;border-radius:9px;padding:7px 10px;font-size:9px}
+.stream-spinner{width:25px;height:25px;border:2px solid rgba(255,255,255,.15);border-top-color:#55cfff;border-radius:50%;animation:streamspin .8s linear infinite}
+@keyframes streamspin{to{transform:rotate(360deg)}}
+.loadingMsg{gap:7px}.loadingMsg small{display:block;color:#91a8b7;font-size:10px}.retry-stream{margin-top:7px;border:1px solid rgba(83,204,255,.35);background:rgba(24,132,187,.16);color:#e7f8ff;border-radius:9px;padding:8px 12px;font-weight:800;font-size:9px}
+@media(max-width:760px){
+ #hero.live-player{min-height:0!important;margin:0 12px 16px!important;padding:16px!important;border-radius:0 0 20px 20px!important;background:#06131e!important;display:block!important}
+ #hero.live-player:after{display:none!important}
+ .live-player-head{margin-bottom:12px}.live-player-head .live-back{width:38px;height:38px;padding:0!important;font-size:0!important;border-radius:50%!important}
+ .live-player-head .live-back:after{content:"‹";font-size:27px;line-height:1}
+ .live-player-head h3{font-size:24px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:68vw}
+ #hero.live-player .playerShell{position:relative;aspect-ratio:16/9;min-height:0!important;height:auto!important;margin:0!important;border-radius:14px!important;background:#000!important;overflow:hidden}
+ #hero.live-player .playerShell video{position:absolute;inset:0;width:100%;height:100%;min-height:0!important;max-height:none!important;object-fit:contain;background:#000}
+ #hero.live-player .loadingMsg{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:22px;background:radial-gradient(circle at center,#09243a,#02080e)}
+ #hero.live-player .live-player-meta{padding:10px 2px 0}
+}

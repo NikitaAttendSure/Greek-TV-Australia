@@ -101,7 +101,76 @@ function card(name,meta,action,img,type="item",url=""){
 }
 function openTracked(name,type,url,img,meta){remember(name,type,url,img,meta);if(window.matchMedia("(max-width:760px)").matches){window.location.href=url}else{window.open(url,"_blank","noopener,noreferrer")}}
 function openSeries(x){openTracked(x.title,"series",x.url,SERIES_ART[x.title]||ART.series,x.source+" • "+x.episodes)}
-let activeHls=null;function playChannel(ch){remember(ch.name,"live",ch.url,LOGOS[ch.name]||ART.live,"Live stream");if(activeHls){activeHls.destroy();activeHls=null}hero.innerHTML='<p>LIVE TV</p><h3>'+ch.name+'</h3><div class="playerShell"><div class="loadingMsg">Connecting to live stream…</div><video id="player" controls autoplay playsinline preload="metadata"></video></div><p class="muted">Live stream • Greek One</p>';const v=document.getElementById("player"),msg=hero.querySelector(".loadingMsg");const ready=()=>{msg.style.display="none"};v.addEventListener("playing",ready,{once:true});v.addEventListener("loadedmetadata",ready,{once:true});if(window.Hls&&Hls.isSupported()&&ch.url.includes(".m3u8")){activeHls=new Hls({enableWorker:true,lowLatencyMode:true,backBufferLength:30,maxBufferLength:12,maxMaxBufferLength:20,startLevel:-1,capLevelToPlayerSize:true});activeHls.loadSource(ch.url);activeHls.attachMedia(v);activeHls.on(Hls.Events.MANIFEST_PARSED,()=>v.play().catch(()=>{}));activeHls.on(Hls.Events.ERROR,(_,data)=>{if(data.fatal){msg.innerHTML="<b>Stream unavailable</b><small>Try another channel or try again shortly.</small>";msg.classList.add("stream-error");msg.style.display="flex"}})}else{v.src=ch.url;v.play().catch(()=>{})}window.scrollTo({top:0,behavior:"smooth"})}function historyCard(h){let action=()=>{};if(h.type==="live"){const c=CHANNELS.find(x=>x.name===h.name);action=()=>c&&playChannel(c)}else action=()=>openTracked(h.name,h.type,h.url,h.img,h.meta);return card(h.name,h.meta||h.type,action,h.img,h.type,h.url)}
+let activeHls=null;
+function browserStreamCandidates(ch){
+ const urls=[ch.browserUrl,ch.url,...(ch.fallbacks||[])].filter(Boolean);
+ return [...new Set(urls)].filter(u=>{
+   try{
+     const x=new URL(u,location.href);
+     if(location.protocol==="https:"&&x.protocol==="http:")return false;
+     return /\.m3u8(?:$|\?)/i.test(x.href)||/^https:/i.test(x.href);
+   }catch(_){return false}
+ });
+}
+function liveError(msg,text="This stream is not browser-compatible right now."){
+ msg.innerHTML="<b>Can’t play this stream here</b><small>"+text+"</small><button class=\"retry-stream\" type=\"button\">TRY AGAIN</button>";
+ msg.classList.add("stream-error");msg.style.display="flex";
+}
+function playChannel(ch){
+ if(activeHls){activeHls.destroy();activeHls=null}
+ const sources=browserStreamCandidates(ch);
+ hero.className="live-player";
+ hero.style.backgroundImage="";
+ hero.innerHTML='<div class="live-player-head"><button class="detail-back live-back" type="button">← CHANNELS</button><div><p>LIVE TV</p><h3>'+esc(ch.name)+'</h3></div></div><div class="playerShell"><div class="loadingMsg"><span class="stream-spinner"></span><b>Connecting…</b><small>Finding the best browser stream</small></div><video id="player" controls playsinline webkit-playsinline preload="metadata"></video></div><div class="live-player-meta"><span class="live-pill">● LIVE</span><span>Greek One</span><button class="fullscreen-btn" type="button">FULL SCREEN</button></div>';
+ hero.querySelector(".live-back").onclick=()=>render("live");
+ const v=document.getElementById("player"),msg=hero.querySelector(".loadingMsg");
+ const fs=hero.querySelector(".fullscreen-btn");
+ fs.onclick=()=>{if(v.requestFullscreen)v.requestFullscreen();else if(v.webkitEnterFullscreen)v.webkitEnterFullscreen()};
+ let sourceIndex=0,recoveries=0,timeout=null;
+ const clearTimer=()=>{if(timeout){clearTimeout(timeout);timeout=null}};
+ const ready=()=>{clearTimer();msg.style.display="none";v.classList.add("ready")};
+ v.addEventListener("playing",ready);v.addEventListener("loadedmetadata",ready);
+ const failover=(reason)=>{
+   clearTimer();
+   if(activeHls){activeHls.destroy();activeHls=null}
+   sourceIndex++;
+   if(sourceIndex<sources.length){attach(sources[sourceIndex]);return}
+   liveError(msg,reason||"Try another channel or try again shortly.");
+   const b=msg.querySelector(".retry-stream");if(b)b.onclick=()=>{sourceIndex=0;recoveries=0;attach(sources[0])}
+ };
+ const attach=(url)=>{
+   clearTimer();msg.classList.remove("stream-error");msg.style.display="flex";
+   msg.innerHTML='<span class="stream-spinner"></span><b>Connecting…</b><small>Finding the best browser stream</small>';
+   v.removeAttribute("src");v.load();
+   timeout=setTimeout(()=>failover("The stream did not respond in time."),12000);
+   const nativeHls=v.canPlayType("application/vnd.apple.mpegurl")||v.canPlayType("application/x-mpegURL");
+   if(nativeHls&&/\.m3u8/i.test(url)){
+     v.src=url;v.load();v.play().catch(()=>{});
+     v.onerror=()=>failover("This source is not available in Safari.");
+     return;
+   }
+   if(window.Hls&&Hls.isSupported()&&/\.m3u8/i.test(url)){
+     activeHls=new Hls({enableWorker:true,lowLatencyMode:false,backBufferLength:20,maxBufferLength:20,maxMaxBufferLength:40,startLevel:-1,capLevelToPlayerSize:true});
+     activeHls.loadSource(url);activeHls.attachMedia(v);
+     activeHls.on(Hls.Events.MANIFEST_PARSED,()=>v.play().catch(()=>{}));
+     activeHls.on(Hls.Events.ERROR,(_,data)=>{
+       if(!data.fatal)return;
+       if(data.type===Hls.ErrorTypes.NETWORK_ERROR&&recoveries<1){recoveries++;try{activeHls.startLoad()}catch(_){failover("Network error while loading this channel.")};return}
+       if(data.type===Hls.ErrorTypes.MEDIA_ERROR&&recoveries<2){recoveries++;try{activeHls.recoverMediaError()}catch(_){failover("This stream uses an unsupported media format.")};return}
+       failover(data.type===Hls.ErrorTypes.NETWORK_ERROR?"The broadcaster blocked or stopped this browser stream.":"This stream cannot be decoded in this browser.");
+     });
+     return;
+   }
+   v.src=url;v.load();v.play().catch(()=>{});
+   v.onerror=()=>failover("This source is not supported by this browser.");
+ };
+ if(!sources.length){
+   liveError(msg,"This channel only has a non-secure or non-browser stream. It remains available in the TV app.");
+   const b=msg.querySelector(".retry-stream");if(b)b.remove();
+ }else attach(sources[0]);
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function historyCard(h){let action=()=>{};if(h.type==="live"){const c=CHANNELS.find(x=>x.name===h.name);action=()=>c&&playChannel(c)}else action=()=>openTracked(h.name,h.type,h.url,h.img,h.meta);return card(h.name,h.meta||h.type,action,h.img,h.type,h.url)}
 
 let featuredTimer=null;
 const EPG_URL="https://greektvapp.github.io/api/epg.xml";

@@ -513,7 +513,7 @@ class MainActivity:Activity(){
   root.addView(bar,LinearLayout.LayoutParams(-1,78))
   val web=WebView(this).apply{
    setBackgroundColor(bg);isFocusable=true;isFocusableInTouchMode=true
-   settings.javaScriptEnabled=true;settings.domStorageEnabled=true;settings.mediaPlaybackRequiresUserGesture=true;settings.cacheMode=WebSettings.LOAD_DEFAULT
+   settings.javaScriptEnabled=true;settings.domStorageEnabled=true;settings.mediaPlaybackRequiresUserGesture=false;settings.cacheMode=WebSettings.LOAD_DEFAULT
    settings.userAgentString=settings.userAgentString+" GreekOneTV/1.0"
    webViewClient=object:WebViewClient(){
     override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
@@ -1950,15 +1950,22 @@ class MainActivity:Activity(){
   }catch(_:Exception){runOnUiThread{status.text="Unable to load TV guide";render()}}}.start()
  }
  private fun openYouTubeExternal(url:String){
-  val uri=Uri.parse(url)
-  val packages=listOf("com.google.android.youtube.tv","com.google.android.youtube")
-  for(pkg in packages){
-   try{
-    val intent=Intent(Intent.ACTION_VIEW,uri).apply{setPackage(pkg);addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
-    if(intent.resolveActivity(packageManager)!=null){startActivity(intent);return}
-   }catch(_:Exception){}
+  val id=when{
+   url.contains("youtube.com/watch")->url.substringAfter("v=").substringBefore("&")
+   url.contains("youtu.be/")->url.substringAfter("youtu.be/").substringBefore("?")
+   else->""
   }
-  openUri(url)
+  val attempts=mutableListOf<Intent>()
+  if(id.isNotBlank()){
+   attempts.add(Intent(Intent.ACTION_VIEW,Uri.parse("vnd.youtube:$id")).apply{setPackage("com.google.android.youtube.tv");addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
+   attempts.add(Intent(Intent.ACTION_VIEW,Uri.parse("vnd.youtube:$id")).apply{setPackage("com.google.android.youtube");addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
+  }
+  attempts.add(Intent(Intent.ACTION_VIEW,Uri.parse(url)).apply{setPackage("com.google.android.youtube.tv");addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
+  attempts.add(Intent(Intent.ACTION_VIEW,Uri.parse(url)).apply{setPackage("com.google.android.youtube");addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
+  for(intent in attempts){
+   try{startActivity(intent);return}catch(_:Exception){}
+  }
+  showLibraryWeb("YouTube",url,"COOKING_WEB")
  }
  private fun showYouTubeResults(query:String){
   val q=query.trim()

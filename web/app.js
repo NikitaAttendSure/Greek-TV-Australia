@@ -229,8 +229,17 @@ async function playVod(item,back){
  const ready=()=>{msg.style.display="none"};v.addEventListener("playing",ready);v.addEventListener("loadedmetadata",ready);
  try{
    const url=item.streamUrl||item.url;if(!url)throw Error("No playable stream");
-   if(/\.mpd(?:$|\?)/i.test(url)&&window.shaka){
-     shaka.polyfill.installAll();activeVod=new shaka.Player();await activeVod.attach(v);await activeVod.load(url);
+   if(/\.mpd(?:$|\?)/i.test(url)){
+     if(window.shaka){
+       shaka.polyfill.installAll();
+       if(shaka.Player.isBrowserSupported()){
+         activeVod=new shaka.Player();await activeVod.attach(v);await activeVod.load(url);
+       }else{
+         const official=item.officialUrl||item.sourceUrl;
+         if(official){msg.innerHTML='<b>Opening official player…</b><small>This movie uses DASH, which iPhone Safari cannot play directly.</small>';setTimeout(()=>{window.location.href=official},450);return}
+         throw Error("DASH unsupported on this browser");
+       }
+     }else throw Error("DASH player unavailable");
    }else if(/\.m3u8/i.test(url)&&window.Hls&&Hls.isSupported()&&!v.canPlayType("application/vnd.apple.mpegurl")){
      activeHls=new Hls();activeHls.loadSource(url);activeHls.attachMedia(v);
    }else{v.src=url;v.load()}
@@ -244,7 +253,7 @@ async function showMovieDetail(m){
  const img=MOVIE_ART[m[0]]||ART.movies;
  hero.className="detail-hero";hero.style.backgroundImage=`linear-gradient(90deg,rgba(1,8,14,.98) 0%,rgba(2,15,24,.88) 44%,rgba(2,10,17,.35) 100%),url("${img}")`;
  hero.innerHTML=`<div class="detail-copy"><p>GREEK CINEMA • ERTFLIX</p><h3>${esc(m[0])}</h3><div class="detail-meta">${esc(m[1])}</div><h4>Synopsis</h4><p class="muted">${esc(movieSynopsis(m))}</p><div class="detail-actions"><button class="hero-cta" id="detailWatch">▶ PLAY MOVIE</button><button class="detail-back" onclick="render('movies')">← BACK TO MOVIES</button></div></div>`;
- const b=document.getElementById("detailWatch");b.onclick=async()=>{b.disabled=true;b.textContent="LOADING…";try{const d=await getErtDetails(m),p=d.primaryPlayback||d.episodes?.[0];if(!p)throw Error();remember(m[0],"movie",m[2],img,m[1]);await playVod({...p,title:d.title||m[0]},()=>showMovieDetail(m))}catch(_){b.disabled=false;b.textContent="PLAYBACK UNAVAILABLE"}};
+ const b=document.getElementById("detailWatch");b.onclick=async()=>{b.disabled=true;b.textContent="LOADING…";try{const d=await getErtDetails(m),p=d.primaryPlayback||d.episodes?.[0];if(!p)throw Error();remember(m[0],"movie",m[2],img,m[1]);await playVod({...p,title:d.title||m[0],officialUrl:m[2],sourceUrl:m[2]},()=>showMovieDetail(m))}catch(_){b.disabled=false;b.textContent="PLAYBACK UNAVAILABLE"}};
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function seriesCount(x){const m=x.episodes.match(/(\d+)\s*episodes/i);return m?Number(m[1]):0}

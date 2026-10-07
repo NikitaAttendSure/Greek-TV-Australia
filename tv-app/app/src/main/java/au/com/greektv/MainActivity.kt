@@ -1085,7 +1085,7 @@ class MainActivity:Activity(){
   window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 
   val root=FrameLayout(this).apply{setBackgroundColor(bg)}
-  val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.82f;setBackgroundColor(Color.rgb(2,8,15))}
+  val backdrop=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;alpha=.74f;setBackgroundColor(Color.rgb(2,8,15))}
   root.addView(backdrop,FrameLayout.LayoutParams(-1,-1))
   val hero=cfgString("heroUrl",if(isPappas)"https://commons.wikimedia.org/wiki/Special:Redirect/file/Nafplio_from_Palamidi_castle.jpg" else "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1600&q=88")
   imageCache.get(hero)?.let{backdrop.setImageBitmap(it)}?:Thread{try{
@@ -1093,7 +1093,7 @@ class MainActivity:Activity(){
    if(bmp!=null)imageCache.put(hero,bmp)
    runOnUiThread{if(bmp!=null)backdrop.setImageBitmap(bmp)}
   }catch(_:Exception){}}.start()
-  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(28,1,6,12),Color.argb(132,1,8,15),Color.argb(238,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
+  root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(28,1,6,12),Color.argb(132,1,8,15),Color.argb(248,1,7,13)))},FrameLayout.LayoutParams(-1,-1))
   root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,intArrayOf(Color.argb(58,36,143,214),Color.argb(16,36,143,214),Color.TRANSPARENT))},FrameLayout.LayoutParams(-1,200))
   root.addView(View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(120,0,8,18),Color.TRANSPARENT))},FrameLayout.LayoutParams(430,-1))
 
@@ -1130,7 +1130,7 @@ class MainActivity:Activity(){
     text="GREEK ONE";textSize=24f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.02f;setSingleLine(true)
    })
    bt.addView(TextView(this@MainActivity).apply{
-    text="GREEK TELEVISION";textSize=8.5f;letterSpacing=.18f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(145,195,229));setSingleLine(true)
+    text="GREEK TELEVISION  •  CHIOS → WORLD";textSize=8.5f;letterSpacing=.11f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(145,195,229));setSingleLine(true)
    })
    brand.addView(bt,LinearLayout.LayoutParams(190,-2))
    top.addView(brand,LinearLayout.LayoutParams(0,-2,1.25f))
@@ -1148,7 +1148,7 @@ class MainActivity:Activity(){
    top.addView(dateInfoView,LinearLayout.LayoutParams(88,60))
    top.addView(sydneyInfoView,LinearLayout.LayoutParams(182,60).apply{setMargins(4,0,4,0)})
    val settingsChip=TextView(this).apply{
-    text="⚙";textSize=20f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
+    text="⚙";textSize=22f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
     background=GradientDrawable().apply{setColor(Color.argb(165,5,24,42));cornerRadius=14f;setStroke(1,Color.argb(75,150,205,245))}
     setOnClickListener{activeHomeNav="Settings";showSettings()}
     setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,120,210) else Color.argb(165,5,24,42));cornerRadius=14f;setStroke(if(f)2 else 1,if(f)Color.WHITE else Color.argb(75,150,205,245))}}
@@ -1165,8 +1165,8 @@ class MainActivity:Activity(){
    orientation=LinearLayout.VERTICAL
    setPadding(if(isPappas)10 else 14,if(isPappas)12 else 14,if(isPappas)10 else 14,12)
    background=if(isPappas)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(242,1,11,22),Color.argb(226,3,22,39))).apply{cornerRadius=16f;setStroke(1,Color.argb(72,150,195,230))}
-   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(248,2,13,26),Color.argb(240,3,27,47))).apply{
-    cornerRadius=24f;setStroke(1,Color.argb(88,103,181,231))
+   else GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(252,2,12,24),Color.argb(246,3,30,52))).apply{
+    cornerRadius=26f;setStroke(1,Color.argb(118,103,181,231))
    }
    elevation=if(isPappas)8f else 16f
   }
@@ -1254,13 +1254,18 @@ class MainActivity:Activity(){
   val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(2,0,10,30);clipToPadding=false}
   mainScroll.addView(main,ViewGroup.LayoutParams(-1,-2))
   fun sectionTitle(t:String,sub:String=""){
-   val wrap=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.BOTTOM;setPadding(0,12,0,7)}
-   wrap.addView(TextView(this).apply{
+   val wrap=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(0,14,0,8)}
+   wrap.addView(View(this).apply{
+    background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.rgb(74,207,255),Color.rgb(16,112,223))).apply{cornerRadius=3f}
+   },LinearLayout.LayoutParams(5,28).apply{setMargins(0,0,10,0)})
+   val tw=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+   tw.addView(TextView(this@MainActivity).apply{
     text=t;textSize=21f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))
    })
-   if(sub.isNotBlank())wrap.addView(TextView(this).apply{
-    text="  •  "+sub;textSize=10.5f;setTextColor(Color.rgb(130,183,220));setPadding(6,0,0,2)
+   if(sub.isNotBlank())tw.addView(TextView(this@MainActivity).apply{
+    text=sub;textSize=10f;setTextColor(Color.rgb(130,183,220));setPadding(0,1,0,0)
    })
+   wrap.addView(tw,LinearLayout.LayoutParams(0,-2,1f))
    main.addView(wrap)
   }
   if(!isPappas){
@@ -1334,6 +1339,26 @@ class MainActivity:Activity(){
      quick.addView(tvCard(item.first,item.second,base,item.third),LinearLayout.LayoutParams(0,86,1f).apply{setMargins(0,0,10,0)})
     }
     main.addView(quick,LinearLayout.LayoutParams(-1,86).apply{setMargins(0,0,0,4)})
+
+    sectionTitle("Featured Collections","Curated for Greek One")
+    val featuredCollections=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+    featuredCollections.addView(
+     imageCard("Greek Cinema","32 films • classics to modern","https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=88"){showPreloadedMovies()},
+     LinearLayout.LayoutParams(0,160,1f).apply{setMargins(0,0,12,0)}
+    )
+    featuredCollections.addView(
+     imageCard("Greek Series","30 shows • broadcaster archives","https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=88"){showPreloadedSeries()},
+     LinearLayout.LayoutParams(0,160,1f).apply{setMargins(0,0,12,0)}
+    )
+    featuredCollections.addView(
+     imageCard("Greek Cooking","43 shows & recipes","https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=88"){showGreekCooking()},
+     LinearLayout.LayoutParams(0,160,1f).apply{setMargins(0,0,12,0)}
+    )
+    featuredCollections.addView(
+     imageCard("Live TV Guide","Live preview • Now & Next","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=88"){showTvGuide()},
+     LinearLayout.LayoutParams(0,160,1f)
+    )
+    main.addView(featuredCollections)
    }
   }
 
@@ -1359,7 +1384,14 @@ class MainActivity:Activity(){
     LinearLayout.LayoutParams(0,120,1f).apply{setMargins(0,0,12,0)}
    )
   }
-  main.addView(channelRow)
+  val channelGlass=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;setPadding(10,10,10,10)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(175,3,18,32),Color.argb(150,8,38,62))).apply{
+    cornerRadius=18f;setStroke(1,Color.argb(72,116,184,229))
+   }
+  }
+  channelGlass.addView(channelRow)
+  main.addView(channelGlass)
 
   sectionTitle("Continue Watching","Pick up where you left off")
   val cont=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
@@ -1388,7 +1420,14 @@ class MainActivity:Activity(){
     }
    }
   }
-  main.addView(cont)
+  val continueGlass=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;setPadding(10,10,10,10)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.argb(158,3,17,30),Color.argb(138,8,31,52))).apply{
+    cornerRadius=18f;setStroke(1,Color.argb(65,106,173,218))
+   }
+  }
+  continueGlass.addView(cont)
+  main.addView(continueGlass)
 
   sectionTitle("Explore Greek One","Movies, series, cooking and live TV")
   val cats=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}

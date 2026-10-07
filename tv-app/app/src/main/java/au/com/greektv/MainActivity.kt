@@ -537,7 +537,7 @@ class MainActivity:Activity(){
   root.addView(bar,LinearLayout.LayoutParams(-1,78))
   val web=WebView(this).apply{
    setBackgroundColor(bg);isFocusable=true;isFocusableInTouchMode=true
-   settings.javaScriptEnabled=true;settings.domStorageEnabled=true;settings.mediaPlaybackRequiresUserGesture=true;settings.cacheMode=WebSettings.LOAD_DEFAULT
+   settings.javaScriptEnabled=true;settings.domStorageEnabled=true;settings.mediaPlaybackRequiresUserGesture=false;settings.cacheMode=WebSettings.LOAD_DEFAULT
    settings.userAgentString=settings.userAgentString+" GreekOneTV/1.0"
    webViewClient=object:WebViewClient(){
     override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
@@ -677,7 +677,7 @@ class MainActivity:Activity(){
     background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(6,24,39),Color.rgb(8,34,53))).apply{
      cornerRadius=15f;setStroke(1,Color.argb(72,150,200,232))
     }
-    elevation=6f;setOnClickListener{showLibraryWeb(m.title,m.url,"MOVIE_WEB")}
+    elevation=6f;setOnClickListener{openBroadcasterContent(m.title,m.url,"MOVIE_WEB")}
    }
    val poster=FrameLayout(this).apply{
     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(m.accent,Color.rgb(7,20,33))).apply{
@@ -827,7 +827,7 @@ class MainActivity:Activity(){
      isFocusable=true;isClickable=true;clipToOutline=true
      background=panel(Color.rgb(8,27,45),16f)
      elevation=6f
-     setOnClickListener{if(m.url.contains("youtube.com",true)||m.url.contains("youtu.be",true))openYouTubeExternal(m.url) else showLibraryWeb(m.title,m.url,"COOKING_WEB")}
+     setOnClickListener{if(m.url.contains("youtube.com",true)||m.url.contains("youtu.be",true))openYouTubeExternal(m.url) else openBroadcasterContent(m.title,m.url,"COOKING_WEB")}
      setOnFocusChangeListener{v,f->
       v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
       v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start()
@@ -1050,8 +1050,8 @@ class MainActivity:Activity(){
    staticItems.filter{it.title.contains(q,true)||it.meta.contains(q,true)||it.type.contains(q,true)}.take(30).forEach{item->
     found.add((item.type.uppercase()+"  •  "+item.title+"\n"+item.meta) to {
      when(item.type){
-      "Movie"->showLibraryWeb(item.title,item.url,"MOVIE_WEB")
-      "Cooking"->if(item.url.contains("youtube.com",true)||item.url.contains("youtu.be",true))openYouTubeExternal(item.url) else showLibraryWeb(item.title,item.url,"COOKING_WEB")
+      "Movie"->openBroadcasterContent(item.title,item.url,"MOVIE_WEB")
+      "Cooking"->if(item.url.contains("youtube.com",true)||item.url.contains("youtu.be",true))openYouTubeExternal(item.url) else openBroadcasterContent(item.title,item.url,"COOKING_WEB")
       else->if(item.title.contains("ΜΠΡΟΥΣΚΟ",true))showBrousko() else showSeriesWeb(item.title,item.url)
      }
     })
@@ -2032,7 +2032,7 @@ class MainActivity:Activity(){
    isFocusable=true;isFocusableInTouchMode=true
    settings.javaScriptEnabled=true
    settings.domStorageEnabled=true
-   settings.mediaPlaybackRequiresUserGesture=true
+   settings.mediaPlaybackRequiresUserGesture=false
    settings.cacheMode=WebSettings.LOAD_DEFAULT
    webViewClient=object:WebViewClient(){
     override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
@@ -2475,6 +2475,20 @@ class MainActivity:Activity(){
    android.content.pm.PackageInstaller.STATUS_SUCCESS->Toast.makeText(this,"Greek One updated successfully.",Toast.LENGTH_LONG).show()
    else->showMessage("Greek One",i.getStringExtra(android.content.pm.PackageInstaller.EXTRA_STATUS_MESSAGE)?:"Android could not complete the update.")
   }
+ }
+ private fun openBroadcasterContent(title:String,url:String,mode:String){
+  val u=url.lowercase(Locale.ROOT)
+  if(u.contains("ertflix.gr")){
+   val packages=listOf("com.ertflix.app","t.yi.erthybrid")
+   for(pkg in packages){
+    try{
+     val intent=Intent(Intent.ACTION_VIEW,Uri.parse(url)).apply{setPackage(pkg);addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
+     startActivity(intent)
+     return
+    }catch(_:Exception){}
+   }
+  }
+  showLibraryWeb(title,url,mode)
  }
  private fun showLibraryWeb(title:String,url:String,mode:String){
   screenMode=mode

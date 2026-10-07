@@ -77,7 +77,36 @@ class MainActivity:Activity(){
   try{remoteConfig=JSONObject(prefs.getString(cfgKey,"{}")?:"{}")}catch(_:Exception){}
   showLaunchScreen()
   refreshRemoteConfig()
-  Handler(Looper.getMainLooper()).postDelayed({if(player==null)showHome()},650)
+  Handler(Looper.getMainLooper()).postDelayed({
+   if(player==null){
+    try{showHome()}catch(e:Throwable){
+     android.util.Log.e("GreekOne","Home launch failed",e)
+     showSafeHome()
+    }
+   }
+  },650)
+ }
+ private fun showSafeHome(){
+  screenMode="HOME"
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  val root=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER;setPadding(48,36,48,36)
+   setBackgroundColor(Color.rgb(2,7,13))
+  }
+  root.addView(ImageView(this).apply{
+   setImageResource(R.drawable.greek_one_mark);scaleType=ImageView.ScaleType.CENTER_INSIDE
+  },LinearLayout.LayoutParams(220,220))
+  root.addView(TextView(this).apply{
+   text="GREEK ONE";textSize=34f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
+  })
+  root.addView(TextView(this).apply{
+   text="Greek Television";textSize=16f;setTextColor(Color.rgb(158,180,201));gravity=Gravity.CENTER;setPadding(0,6,0,28)
+  })
+  root.addView(button("Live TV"){loadChannels()},LinearLayout.LayoutParams(360,72).apply{setMargins(0,6,0,6)})
+  root.addView(button("Retry Home"){try{showHome()}catch(_:Throwable){Toast.makeText(this@MainActivity,"Home screen could not load.",Toast.LENGTH_SHORT).show()}},LinearLayout.LayoutParams(360,72).apply{setMargins(0,6,0,6)})
+  setContentView(root)
+  root.post{if(root.childCount>3)root.getChildAt(3).requestFocus()}
  }
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
  override fun onStop(){super.onStop();previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null}

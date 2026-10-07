@@ -74,6 +74,7 @@ class MainActivity:Activity(){
  override fun onCreate(b:Bundle?){
   super.onCreate(b)
   fav=Favourites(this)
+  handleInstallStatus(intent)
   val cfgKey=if(isPappas)"papas_config" else "reskakis_config"
   try{remoteConfig=JSONObject(prefs.getString(cfgKey,"{}")?:"{}")}catch(_:Exception){}
   showLaunchScreen()
@@ -110,6 +111,11 @@ class MainActivity:Activity(){
   root.post{if(root.childCount>3)root.getChildAt(3).requestFocus()}
  }
  private val prefs by lazy{getSharedPreferences("greek_tv",MODE_PRIVATE)}
+ override fun onNewIntent(i:Intent){
+  super.onNewIntent(i)
+  setIntent(i)
+  handleInstallStatus(i)
+ }
  override fun onStop(){super.onStop();previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null}
  private fun panel(c:Int,r:Float=22f)=GradientDrawable().apply{setColor(c);cornerRadius=r;setStroke(1,Color.argb(58,138,190,232))}
  private fun showLaunchScreen(){
@@ -227,7 +233,7 @@ class MainActivity:Activity(){
   info.addView(TextView(this).apply{text="ABOUT GREEK ONE";textSize=11f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(104,180,227))})
   info.addView(TextView(this).apply{text="Greek television, live channels, guide, favourites, recent viewing and YouTube discovery in one TV-first experience.";textSize=14f;setTextColor(Color.rgb(220,232,242));setPadding(0,9,0,0)})
   root.addView(info,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,8,0,0)})
-  root.addView(TextView(this).apply{text="Greek One  •  Version $ver  •  Build \${currentVersionCode()}";textSize=10f;letterSpacing=.08f;gravity=Gravity.CENTER_HORIZONTAL;setTextColor(Color.rgb(91,137,170));setPadding(0,24,0,0)})
+  root.addView(TextView(this).apply{text="Greek One  •  Version $ver  •  Build ${currentVersionCode()}";textSize=10f;letterSpacing=.08f;gravity=Gravity.CENTER_HORIZONTAL;setTextColor(Color.rgb(91,137,170));setPadding(0,24,0,0)})
   setContentView(root)
   root.post{if(root.childCount>1)root.getChildAt(1).requestFocus()}
  }
@@ -393,6 +399,20 @@ class MainActivity:Activity(){
    runOnUiThread{if(screenMode=="HOME")updateHomeHeader()}
   }.start()
  }
+ private fun loadOpenGraphArtwork(view:ImageView,pageUrl:String,fallback:String){
+  Thread{
+   try{
+    val conn=URL(pageUrl).openConnection().apply{connectTimeout=5000;readTimeout=7000}
+    conn.setRequestProperty("User-Agent","Mozilla/5.0 GreekOneTV/1.0")
+    val html=conn.getInputStream().bufferedReader().use{it.readText()}
+    val r1=Regex("""<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']""",RegexOption.IGNORE_CASE).find(html)?.groupValues?.getOrNull(1)
+    val r2=Regex("""<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']""",RegexOption.IGNORE_CASE).find(html)?.groupValues?.getOrNull(1)
+    val art=(r1?:r2?:fallback).replace("&amp;","&")
+    val bmp=URL(art).openStream().use{BitmapFactory.decodeStream(it)}
+    if(bmp!=null)runOnUiThread{view.setImageBitmap(bmp)} else runOnUiThread{loadImageInto(view,fallback)}
+   }catch(_:Exception){runOnUiThread{loadImageInto(view,fallback)}}
+  }.start()
+ }
  private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
 
 
@@ -436,26 +456,54 @@ class MainActivity:Activity(){
    SeriesItem("SINGLES 2","MEGA","28 episodes • season 2","https://www.megatv.com/ekpompes/43292/singles-2/"),
    SeriesItem("SINGLES 3","MEGA","final season archive","https://www.megatv.com/ekpompes/42682/singles-3-2/"),
   )
-  val scroll=ScrollView(this)
-  val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(4,2,12,24)}
-  var first:View?=null
-  series.forEachIndexed{i,s->
-   val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true;setPadding(22,10,20,10);background=panel(if(i==0)Color.rgb(50,24,72) else Color.rgb(10,31,50),16f)}
-   val text=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-   text.addView(TextView(this@MainActivity).apply{this.text=s.title;textSize=19f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
-   text.addView(TextView(this@MainActivity).apply{this.text=s.source+" • "+s.episodes;textSize=12.5f;setTextColor(Color.rgb(158,195,220));setPadding(0,3,0,0)})
-   row.addView(text,LinearLayout.LayoutParams(0,-2,1f))
-   row.addView(TextView(this).apply{this.text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(105,207,255))})
-   row.setOnClickListener{if(s.brousko)showBrousko() else showSeriesWeb(s.title,s.url)}
-   row.setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,105,184) else if(i==0)Color.rgb(50,24,72) else Color.rgb(10,31,50));cornerRadius=16f;if(f)setStroke(2,Color.WHITE)}}
-   if(first==null)first=row
-   list.addView(row,LinearLayout.LayoutParams(-1,74).apply{setMargins(0,3,0,3)})
+  val scroll=ScrollView(this).apply{isFillViewport=true;overScrollMode=View.OVER_SCROLL_NEVER}
+  val grid=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(2,0,10,20)}
+  val fallbackArt=listOf(
+   "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=900&q=82",
+   "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=82",
+   "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=900&q=82",
+   "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=900&q=82"
+  )
+  series.chunked(3).forEachIndexed{rowIndex,group->
+   val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;clipChildren=false;clipToPadding=false}
+   group.forEachIndexed{col,s->
+    val index=rowIndex*3+col
+    val card=LinearLayout(this).apply{
+     orientation=LinearLayout.VERTICAL;isFocusable=true;isClickable=true;clipToOutline=true;elevation=6f
+     background=panel(Color.rgb(8,27,45),16f)
+     setOnClickListener{if(s.brousko)showBrousko() else showSeriesWeb(s.title,s.url)}
+     setOnFocusChangeListener{v,f->
+      v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
+      v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start();v.elevation=if(f)20f else 6f
+     }
+    }
+    val art=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.rgb(14,43,66))}
+    card.addView(art,LinearLayout.LayoutParams(-1,118))
+    loadOpenGraphArtwork(art,s.url,fallbackArt[index%fallbackArt.size])
+    val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(13,9,13,9)}
+    copy.addView(TextView(this@MainActivity).apply{
+     text=s.title;textSize=14.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END
+    },LinearLayout.LayoutParams(-1,0,1f))
+    copy.addView(TextView(this@MainActivity).apply{
+     text=s.source+"  •  "+s.episodes;textSize=9.5f;setTextColor(Color.rgb(159,204,232));maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
+    })
+    card.addView(copy,LinearLayout.LayoutParams(-1,72))
+    row.addView(card,LinearLayout.LayoutParams(0,190,1f).apply{setMargins(0,0,12,12)})
+   }
+   repeat(3-group.size){row.addView(View(this),LinearLayout.LayoutParams(0,190,1f).apply{setMargins(0,0,12,12)})}
+   grid.addView(row,LinearLayout.LayoutParams(-1,190))
   }
-  scroll.addView(list);root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
-  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(170,52).apply{setMargins(6,5,0,0)})
-  setContentView(root);first?.requestFocus()
+  scroll.addView(grid)
+  root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(180,54).apply{setMargins(6,5,0,0)})
+  setContentView(root)
+  grid.post{
+   if(grid.childCount>0){
+    val firstRow=grid.getChildAt(0)
+    if(firstRow is LinearLayout&&firstRow.childCount>0)firstRow.getChildAt(0).requestFocus()
+   }
+  }
  }
-
  private fun showSeriesWeb(title:String,url:String){
   screenMode="SERIES_WEB"
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
@@ -470,7 +518,7 @@ class MainActivity:Activity(){
    webViewClient=object:WebViewClient(){
     override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
      val u=request?.url?.toString()?:"";val host=request?.url?.host?:""
-     return if(host.endsWith("megatv.com")||host.endsWith("antenna.gr")||host.endsWith("antennaplus.gr"))false else{openUri(u);true}
+     return !(request?.url?.scheme=="http"||request?.url?.scheme=="https")
     }
     override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){if(request?.isForMainFrame==true)Toast.makeText(this@MainActivity,"Series archive could not load.",Toast.LENGTH_SHORT).show()}
    }
@@ -495,7 +543,7 @@ class MainActivity:Activity(){
     override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
      val u=request?.url?.toString()?:""
      val host=request?.url?.host?:""
-     return if(host.endsWith("antenna.gr")||host.endsWith("antennaplus.gr")) false else {openUri(u);true}
+     return !(request?.url?.scheme=="http"||request?.url?.scheme=="https")
     }
     override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){
      if(request?.isForMainFrame==true)Toast.makeText(this@MainActivity,"ANT1 archive could not load.",Toast.LENGTH_SHORT).show()
@@ -779,7 +827,7 @@ class MainActivity:Activity(){
      isFocusable=true;isClickable=true;clipToOutline=true
      background=panel(Color.rgb(8,27,45),16f)
      elevation=6f
-     setOnClickListener{showLibraryWeb(m.title,m.url,"COOKING_WEB")}
+     setOnClickListener{if(m.url.contains("youtube.com",true)||m.url.contains("youtu.be",true))openYouTubeExternal(m.url) else showLibraryWeb(m.title,m.url,"COOKING_WEB")}
      setOnFocusChangeListener{v,f->
       v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
       v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start()
@@ -819,6 +867,218 @@ class MainActivity:Activity(){
    }
   }
  }
+ private fun showOnDemand(){
+  activeHomeNav="On Demand"
+  currentSection="ON DEMAND"
+  loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")
+ }
+
+ private fun showCategories(){
+  if(isPappas){showHome();return}
+  screenMode="CATEGORIES";activeHomeNav="Categories"
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  previewPlayer?.release();previewPlayer=null;player?.release();player=null
+  val root=shell("CATEGORIES")
+  root.addView(TextView(this).apply{text="Choose what you want to watch";textSize=14f;setTextColor(Color.rgb(142,190,222));setPadding(7,0,0,16)})
+  val scroll=ScrollView(this).apply{isFillViewport=true}
+  val grid=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(2,0,10,18)}
+  val cats=listOf(
+   Triple("▣  All Live TV","Every live Greek channel",Pair(Color.rgb(18,124,210),{loadChannels()})),
+   Triple("ERT","ERT channels",Pair(Color.rgb(18,91,186),{loadChannels("ERT")})),
+   Triple("NEWS","Greek news channels",Pair(Color.rgb(165,34,45),{loadChannels("ΕΙΔΗΣΕΙΣ")})),
+   Triple("CYPRUS","Cyprus television",Pair(Color.rgb(20,121,127),{loadChannels("ΚΥΠΡΟΣ")})),
+   Triple("REGIONAL","Regional Greece",Pair(Color.rgb(93,69,147),{loadChannels("ΠΕΡΙΦΕΡΕΙΑΚΑ")})),
+   Triple("MUSIC","Greek music channels",Pair(Color.rgb(158,52,140),{loadChannels("ΕΛΛΗΝΙΚΗ ΜΟΥΣΙΚΗ")})),
+   Triple("ORTHODOX","Orthodox television",Pair(Color.rgb(132,83,29),{loadChannels("ΟΡΘΟΔΟΞΙΑ")})),
+   Triple("WORLD","Greek international",Pair(Color.rgb(40,104,126),{loadChannels("ΕΛΛΗΝΙΚΑ ΔΙΕΘΝΗ")})),
+   Triple("MOVIES","Preloaded Greek cinema",Pair(Color.rgb(155,26,83),{showPreloadedMovies()})),
+   Triple("SERIES","Greek series library",Pair(Color.rgb(95,19,160),{showPreloadedSeries()})),
+   Triple("COOKING","Greek cooking shows",Pair(Color.rgb(225,124,5),{showGreekCooking()})),
+   Triple("TV GUIDE","Live preview + Now & Next",Pair(Color.rgb(4,116,68),{showTvGuide()}))
+  )
+  cats.chunked(3).forEach{group->
+   val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+   group.forEach{item->row.addView(tvCard(item.first,item.second,item.third.first,item.third.second),LinearLayout.LayoutParams(0,112,1f).apply{setMargins(0,0,14,14)})}
+   repeat(3-group.size){row.addView(View(this),LinearLayout.LayoutParams(0,112,1f).apply{setMargins(0,0,14,14)})}
+   grid.addView(row)
+  }
+  scroll.addView(grid);root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+  root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(180,54))
+  setContentView(root);grid.post{if(grid.childCount>0){val r=grid.getChildAt(0);if(r is LinearLayout&&r.childCount>0)r.getChildAt(0).requestFocus()}}
+ }
+
+ private fun showSearchScreen(){
+  if(isPappas){showHome();return}
+  screenMode="SEARCH";activeHomeNav="Search"
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  previewPlayer?.release();previewPlayer=null;player?.release();player=null
+  data class SearchItem(val title:String,val meta:String,val type:String,val url:String)
+  val staticItems=listOf(
+   SearchItem("Our Guardian Angel","1961 • Comedy • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000545"),
+   SearchItem("The Girl of the Neighborhood","1954 • Drama • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M002260"),
+   SearchItem("Me, Myself and I","1964 • Greek Cinema • Comedy","Movie","https://live.ertflix.gr/details/ERT_214813"),
+   SearchItem("Cry","1964 • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M002490"),
+   SearchItem("The Mischief-Makers","Classic • Comedy • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_213212"),
+   SearchItem("The Big Shark","1957 • Comedy • Romance • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_182067"),
+   SearchItem("Bouboulina","1959 • Biography • Historical • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_P000052"),
+   SearchItem("The Refugee","1969 • Drama • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M001256"),
+   SearchItem("Athens – Istanbul","2008 • Drama • Adventure • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M002494"),
+   SearchItem("Almond Tree in Bloom","1959 • Romance • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000294"),
+   SearchItem("Blood Ties","2012 • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M001448"),
+   SearchItem("The Poor Boy","Classic • Drama • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M001392"),
+   SearchItem("My Poor Little Sparrow","Classic • Drama • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M002279"),
+   SearchItem("The Hook","1976 • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000567"),
+   SearchItem("Lefteris Dimakopoulos","1993 • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_P000031"),
+   SearchItem("Exotic Vitamins","Classic • Comedy • Old Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M002272"),
+   SearchItem("Liubi","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_P000372"),
+   SearchItem("Roza of Smyrna","2016 • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_P000440"),
+   SearchItem("The King","2002 • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_P000029"),
+   SearchItem("The Seventh Sun of Love","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000886"),
+   SearchItem("Drift","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000807"),
+   SearchItem("Love Under the Date Tree","Greek Cinema • Romance • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000338"),
+   SearchItem("Invincible Lovers","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_P001777"),
+   SearchItem("Such a Long Absence","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_P000437"),
+   SearchItem("The Photographers","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M002473"),
+   SearchItem("Young Aphrodites","1963 • Drama • Arthouse • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M002468"),
+   SearchItem("Riviera","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000893"),
+   SearchItem("Rembetiko","1983 • Music • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000496"),
+   SearchItem("Crows","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M000345"),
+   SearchItem("The Tears of the Mountain","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_M001148"),
+   SearchItem("Meteor and Shadow","Greek Cinema • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_271968"),
+   SearchItem("Coat Fitting","2006 • Drama • Greek Cinema","Movie","https://live.ertflix.gr/details/ERT_214863"),
+   SearchItem("ΑΓΙΟΣ ΠΑΪΣΙΟΣ – ΑΠΟ ΤΑ ΦΑΡΑΣΑ ΣΤΟΝ ΟΥΡΑΝΟ","MEGA • 2 seasons • 21 episodes • complete","Series","https://www.megatv.com/ekpompes/576225/agios-paisios-apo-ta-farasa-ston-ourano/"),
+   SearchItem("ΔΥΟ ΞΕΝΟΙ","MEGA • 59 episodes","Series","https://www.megatv.com/ekpompes/43265/duo-ksenoi/"),
+   SearchItem("ΕΘΝΙΚΗ ΕΛΛΑΔΟΣ","MEGA • 15 episodes","Series","https://www.megatv.com/ekpompes/1356374/ethniki-ellados/"),
+   SearchItem("ΕΙΜΑΣΤΕ ΣΤΟΝ ΑΕΡΑ","MEGA • 51 episodes","Series","https://www.megatv.com/ekpompes/43348/eimaste-ston-aera/"),
+   SearchItem("ΕΙΣΑΙ ΤΟ ΤΑΙΡΙ ΜΟΥ","MEGA • 30 episodes","Series","https://www.megatv.com/ekpompes/43098/eisai-to-tairi-mou-2/"),
+   SearchItem("ΕΜΕΙΣ ΚΑΙ ΕΜΕΙΣ","MEGA • 139 episodes","Series","https://www.megatv.com/ekpompes/42594/emeis-kai-emeis-2/"),
+   SearchItem("ΕΞΑΨΗ","MEGA • 72 episodes","Series","https://www.megatv.com/ekpompes/202020/eksapsi-nea-seira/"),
+   SearchItem("ΕΥΤΥΧΙΣΜΕΝΟΙ ΜΑΖΙ","MEGA • 61 episodes","Series","https://www.megatv.com/ekpompes/43235/eutuxismenoi-mazi/"),
+   SearchItem("Η ΓΕΝΙΑ ΤΩΝ 592€","MEGA • 18 episodes • complete","Series","https://www.megatv.com/tvshows/51758/epeisodio-1/"),
+   SearchItem("Η ΝΤΑΝΤΑ","MEGA • 70 episodes","Series","https://www.megatv.com/ekpompes/43294/i-ntanta/"),
+   SearchItem("ΚΩΝΣΤΑΝΤΙΝΟΥ ΚΑΙ ΕΛΕΝΗΣ","ANT1 • official archive","Series","https://www.antenna.gr/webtv/3142"),
+   SearchItem("ΛΑΤΡΕΜΕΝΟΙ ΜΟΥ ΓΕΙΤΟΝΕΣ","MEGA • 53 episodes","Series","https://www.megatv.com/ekpompes/42963/latremenoi-mou-geitones/"),
+   SearchItem("ΜΑΖΙ ΣΟΥ","MEGA • 20 episodes","Series","https://www.megatv.com/ekpompes/42996/mazi-sou-2/"),
+   SearchItem("ΜΑΥΡΑ ΜΕΣΑΝΥΧΤΑ","MEGA • 48 episodes","Series","https://www.megatv.com/ekpompes/43238/maura-mesanuxta/"),
+   SearchItem("ΜΕ ΤΑ ΠΑΝΤΕΛΟΝΙΑ ΚΑΤΩ","MEGA • 34 episodes • complete","Series","https://www.megatv.com/tvshows/52525/episode-001/"),
+   SearchItem("ΜΠΡΟΥΣΚΟ","ANT1 • 772 episodes","Series","https://nkv.antenna.gr/minisites/brusco/videos"),
+   SearchItem("ΝΤΟΛΤΣΕ ΒΙΤΑ","MEGA • 70 episodes","Series","https://www.megatv.com/ekpompes/43343/ntoltse-vita/"),
+   SearchItem("ΟΙ ΑΠΑΡΑΔΕΚΤΟΙ","MEGA • 48 episodes","Series","https://www.megatv.com/ekpompes/43303/aparadektoi/"),
+   SearchItem("ΠΕΙΡΑΣΜΟΣ","MEGA • 20 episodes • complete","Series","https://www.megatv.com/tvshows/45147/epeisodio-1/"),
+   SearchItem("ΠΕΝΗΝΤΑ ΠΕΝΗΝΤΑ","MEGA • 81 episodes","Series","https://www.megatv.com/ekpompes/43207/peninta-peninta/"),
+   SearchItem("ΠΕΡΙ ΑΝΕΜΩΝ ΚΑΙ ΥΔΑΤΩΝ","MEGA • 95 episodes • finale","Series","https://www.megatv.com/ekpompes/43241/peri-anemn-kai-udatn/"),
+   SearchItem("ΣΑΒΒΑΤΟΓΕΝΝΗΜΕΝΕΣ","MEGA • 33 episodes","Series","https://www.megatv.com/ekpompes/43202/savvatogennimenes/"),
+   SearchItem("ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ","MEGA • complete archive","Series","https://www.megatv.com/ekpompes/43346/sto-para-pente/"),
+   SearchItem("ΣΤΟΥΣ 31 ΔΡΟΜΟΥΣ","MEGA • 12 episodes • complete","Series","https://www.megatv.com/tvshows/49615/epeisodio-1/"),
+   SearchItem("ΣΧΕΔΟΝ ΕΝΗΛΙΚΕΣ","MEGA • 12 episodes • complete","Series","https://www.megatv.com/ekpompes/142326/sxedon-enilikes/"),
+   SearchItem("ΦΙΛΟΔΟΞΙΕΣ","MEGA • 799 episodes","Series","https://www.megatv.com/ekpompes/43252/filodoksies/"),
+   SearchItem("SAFE SEX","MEGA • 43+ episode archive","Series","https://www.megatv.com/ekpompes/43229/safe-sex/"),
+   SearchItem("SINGLES","MEGA • 21 episodes • season 1","Series","https://www.megatv.com/ekpompes/43287/singles/"),
+   SearchItem("SINGLES 2","MEGA • 28 episodes • season 2","Series","https://www.megatv.com/ekpompes/43292/singles-2/"),
+   SearchItem("SINGLES 3","MEGA • final season archive","Series","https://www.megatv.com/ekpompes/42682/singles-3-2/"),
+   SearchItem("ΠΟΠ Μαγειρική","ERTFLIX • Ανδρέας Λαγός • Ελληνικά προϊόντα & συνταγές","Cooking","https://www.ertflix.gr/vod/vod.179854"),
+   SearchItem("Kitchen Lab","ΣΚΑΪ • Άκης Πετρετζίκης • Σεζόν 2026–2027","Cooking","https://www.skai.gr/tv/show/psuchagogia/kitchen-lab-2/sezon-2026-2027"),
+   SearchItem("Kitchen Lab • 04/10/2026","ΣΚΑΪ • Πλήρες επεισόδιο • 3 συνταγές","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/kitchen-lab-04102026"),
+   SearchItem("Kitchen Lab • 03/10/2026","ΣΚΑΪ • Πλήρες επεισόδιο • πρεμιέρα σεζόν","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/kitchen-lab-03102026"),
+   SearchItem("Γεύσεις από Ελλάδα • Επ. 1","ΕΡΤ • Χόρτα του χειμώνα • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=3dD9ps5DXWo"),
+   SearchItem("Γεύσεις από Ελλάδα • Επ. 5","ΕΡΤ • Πορτοκάλι • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=yUf0f6kXQNo"),
+   SearchItem("Γεύσεις από Ελλάδα • Επ. 6","ΕΡΤ • Θαλασσινά • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=X0cX9UyCFP8"),
+   SearchItem("Γεύσεις από Ελλάδα • Επ. 7","ΕΡΤ • Γάλα • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=FmpxTcbWVZs"),
+   SearchItem("Γεύσεις από Ελλάδα • Επ. 8","ΕΡΤ • Μανιτάρια • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=vCR3zTyEwho"),
+   SearchItem("Γεύσεις από Ελλάδα • Επ. 9","ΕΡΤ • Ελιά • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=ySshUw411xM"),
+   SearchItem("Γεύσεις από Ελλάδα • Αβγό","ΕΡΤ • 17/03/2017 • Νίκος Καραθάνος","Cooking","https://www.youtube.com/watch?v=26_3zgdmqLs"),
+   SearchItem("Kitchen Lab • Τονοσαλάτα με κουσκούς","ΣΚΑΪ • Συνταγή από το επεισόδιο 04/10/2026","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/tonosalata-me-kouskous"),
+   SearchItem("Kitchen Lab • Σπιτικός γύρος κοτόπουλο","ΣΚΑΪ • Συνταγή από το επεισόδιο 04/10/2026","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/spitikos-guros-kotopoulo"),
+   SearchItem("Kitchen Lab • Εύκολη lemon pie","ΣΚΑΪ • Συνταγή από το επεισόδιο 04/10/2026","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/eukoli-lemon-pie"),
+   SearchItem("Kitchen Lab • Pulled beef sandwich","ΣΚΑΪ • Συνταγή από το επεισόδιο 03/10/2026","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/pulled-beef-sandwich"),
+   SearchItem("Kitchen Lab • Ελληνική καρμπονάρα στον φούρνο","ΣΚΑΪ • Συνταγή από το επεισόδιο 03/10/2026","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/elliniki-karmponara-ston-fourno"),
+   SearchItem("Kitchen Lab • Ατομικά banoffee με peanut crumble","ΣΚΑΪ • Συνταγή από το επεισόδιο 03/10/2026","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/atomika-banoffe-me-peanut-crumble"),
+   SearchItem("Γεύσεις από Ελλάδα • Χωρίς λάδι","ΕΡΤ • 12/04/2017 • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=Qof4R6vKE-w"),
+   SearchItem("Γεύσεις από Ελλάδα • Πατάτα","ΕΡΤ • 07/04/2017 • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=XDl2O11UefI"),
+   SearchItem("Γεύσεις από Ελλάδα • Μελιτζάνα","ΕΡΤ • 08/05/2017 • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=CDjYRygsyHg"),
+   SearchItem("Γεύσεις από Ελλάδα • Μπρόκολο","ΕΡΤ • 06/04/2017 • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=Eue3NUL9350"),
+   SearchItem("Γεύσεις από Ελλάδα • Καρότο","ΕΡΤ • 05/04/2017 • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=lljIV_Ud0vg"),
+   SearchItem("Γεύσεις από Ελλάδα • Αγκινάρα","ΕΡΤ • 30/03/2017 • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=CAekUSA0Za0"),
+   SearchItem("Γεύσεις από Ελλάδα • Κασέρι","ΕΡΤ • 10/05/2017 • πλήρες επεισόδιο","Cooking","https://www.youtube.com/watch?v=O9V6Oy71xDM"),
+   SearchItem("Νηστικοί Πράκτορες • 31/10/2011","STAR • Ντίνα Νικολάου & Ιωσήφ Μαρινάκης","Cooking","https://www.youtube.com/watch?v=ft57Ews96eM"),
+   SearchItem("Μπουκιά και Συχώριο • Αθήνα Β’","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55708/athina-v/"),
+   SearchItem("Μπουκιά και Συχώριο • Για ένα κομμάτι πίτα","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55852/gia-ena-kommati-pita/"),
+   SearchItem("Μπουκιά και Συχώριο • Κωνσταντινούπολη","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55742/knstantinoupoli/"),
+   SearchItem("Μπουκιά και Συχώριο • Βέροια – Νάουσα","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55736/veroia-naousa/"),
+   SearchItem("Μπουκιά και Συχώριο • Σίφνος Α’","MEGA • Η Σίφνος του Τσελεμεντέ","Cooking","https://www.megatv.com/gtvshows/55846/sifnos-a-i-sifnos-tou-tselemente/"),
+   SearchItem("Μπουκιά και Συχώριο • Σίφνος Β’","MEGA • Μια Κυκλαδίτισσα λωλή","Cooking","https://www.megatv.com/gtvshows/55850/sifnos-v-mia-kukladitissa-lli/"),
+   SearchItem("Μπουκιά και Συχώριο • Ορεινή Κορινθία","MEGA • Φενεός • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55966/oreini-korinthia-feneos/"),
+   SearchItem("Μπουκιά και Συχώριο • Πάτμος","MEGA • Το νησί της Αποκάλυψης","Cooking","https://www.megatv.com/gtvshows/55900/patmos-to-nisi-tis-apokaluis/"),
+   SearchItem("Μπουκιά και Συχώριο • Λήμνος","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55784/limnos/"),
+   SearchItem("Μπουκιά και Συχώριο • Κέρκυρα","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55774/kerkura/"),
+   SearchItem("Μπουκιά και Συχώριο • Πάρος","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55732/paros/"),
+   SearchItem("Μπουκιά και Συχώριο • Ήπειρος","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55744/ipeiros/"),
+   SearchItem("Μπουκιά και Συχώριο • Κάλυμνος","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55942/kalumnos-2/"),
+   SearchItem("Μπουκιά και Συχώριο • Σάμος","MEGA • Η Κυρία των Αμπελιών","Cooking","https://www.megatv.com/gtvshows/55932/skiathos-sti-skia-tou-ath/"),
+   SearchItem("Μπουκιά και Συχώριο • Σάμος 2","MEGA • Στο Νησί του Πυθαγόρα","Cooking","https://www.megatv.com/gtvshows/55936/samos-2-sto-nisi-tou-puthagora/"),
+   SearchItem("Μπουκιά και Συχώριο • Κύθνος","MEGA • Με ανοιχτά πανιά για Κύθνο","Cooking","https://www.megatv.com/gtvshows/55798/me-anoixta-pania-gia-kuthno"),
+   SearchItem("Μπουκιά και Συχώριο • Αργολίδα","MEGA • Ηλίας Μαμαλάκης • επίσημο αρχείο","Cooking","https://www.megatv.com/gtvshows/55972/argolida/"),
+   SearchItem("Μπουκιά και Συχώριο • Ζυμαρικά","MEGA • Τα πολυαγαπημένα","Cooking","https://www.megatv.com/gtvshows/55822/zumarika-ta-poluagapimena/")
+  )
+  var liveChannels=emptyList<Channel>()
+  val root=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;setPadding(66,30,66,30)
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(2,8,15),Color.rgb(5,25,44),Color.rgb(2,9,17)))
+  }
+  val head=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  val title=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  title.addView(TextView(this).apply{text="SEARCH";textSize=32f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
+  title.addView(TextView(this).apply{text="Channels, movies, series and cooking";textSize=12.5f;setTextColor(Color.rgb(129,190,235))})
+  head.addView(title,LinearLayout.LayoutParams(0,-2,1f));head.addView(button("← Home"){showGreekOneHome()},LinearLayout.LayoutParams(150,54))
+  root.addView(head,LinearLayout.LayoutParams(-1,76))
+  val input=EditText(this).apply{
+   hint="Type a channel, movie, series or cooking title…";textSize=20f;setTextColor(Color.WHITE);setHintTextColor(Color.rgb(135,166,190))
+   isSingleLine=true;setPadding(20,0,20,0)
+   background=GradientDrawable().apply{setColor(Color.argb(220,3,23,40));cornerRadius=16f;setStroke(2,Color.argb(110,125,190,230))}
+  }
+  root.addView(input,LinearLayout.LayoutParams(-1,62).apply{setMargins(0,0,0,14)})
+  val count=TextView(this).apply{text="Start typing to search";textSize=12f;setTextColor(Color.rgb(155,190,216));setPadding(4,0,0,8)}
+  root.addView(count)
+  val scroll=ScrollView(this);val results=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};scroll.addView(results);root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+  fun render(qRaw:String){
+   val q=qRaw.trim();results.removeAllViews()
+   if(q.isBlank()){count.text="Start typing to search";return}
+   val found=mutableListOf<Pair<String,()->Unit>>()
+   liveChannels.filter{it.name.contains(q,true)||it.group.contains(q,true)}.take(20).forEach{ch->
+    found.add(("LIVE  •  "+ch.name+"\n"+ch.group) to {channels=liveChannels;val i=channels.indexOfFirst{x->x.url==ch.url};if(i>=0)play(i)})
+   }
+   staticItems.filter{it.title.contains(q,true)||it.meta.contains(q,true)||it.type.contains(q,true)}.take(30).forEach{item->
+    found.add((item.type.uppercase()+"  •  "+item.title+"\n"+item.meta) to {
+     when(item.type){
+      "Movie"->showLibraryWeb(item.title,item.url,"MOVIE_WEB")
+      "Cooking"->if(item.url.contains("youtube.com",true)||item.url.contains("youtu.be",true))openYouTubeExternal(item.url) else showLibraryWeb(item.title,item.url,"COOKING_WEB")
+      else->if(item.title.contains("ΜΠΡΟΥΣΚΟ",true))showBrousko() else showSeriesWeb(item.title,item.url)
+     }
+    })
+   }
+   count.text=found.size.toString()+" result"+if(found.size==1)"" else "s"
+   found.take(40).forEach{pair->
+    val parts=pair.first.split("\n",limit=2)
+    val row=LinearLayout(this).apply{
+     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true;setPadding(18,10,18,10)
+     background=panel(Color.rgb(9,31,51),14f);setOnClickListener{pair.second()}
+     setOnFocusChangeListener{v,f->v.background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(9,105,200),Color.rgb(30,160,240))).apply{cornerRadius=14f;setStroke(2,Color.WHITE)}else panel(Color.rgb(9,31,51),14f)}
+    }
+    val tw=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+    tw.addView(TextView(this@MainActivity).apply{text=parts[0];textSize=16f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END})
+    tw.addView(TextView(this@MainActivity).apply{text=parts.getOrElse(1){""};textSize=10.5f;setTextColor(Color.rgb(156,194,222));maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END})
+    row.addView(tw,LinearLayout.LayoutParams(0,-2,1f));row.addView(TextView(this).apply{text="›";textSize=26f;setTextColor(Color.rgb(86,195,255))})
+    results.addView(row,LinearLayout.LayoutParams(-1,66).apply{setMargins(0,0,0,7)})
+   }
+  }
+  input.addTextChangedListener(object:android.text.TextWatcher{
+   override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int){}
+   override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int){render(s?.toString()?:"")}
+   override fun afterTextChanged(s:android.text.Editable?){}
+  })
+  setContentView(root);input.requestFocus()
+  Thread{try{val txt=try{fetchPlaylist()}catch(e:Exception){prefs.getString("playlist_cache",null)?:throw e};val parsed=parsePlaylist(txt);runOnUiThread{liveChannels=parsed;render(input.text.toString())}}catch(_:Exception){} }.start()
+ }
  private fun showGreekOneHome(){
   screenMode="HOME"
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null);player?.release();player=null;previewPlayer?.release();previewPlayer=null
@@ -839,7 +1099,7 @@ class MainActivity:Activity(){
 
   val lowerVeil=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.TRANSPARENT,Color.argb(95,1,8,15),Color.argb(185,1,7,13)))}
   root.addView(lowerVeil,FrameLayout.LayoutParams(-1,-1).apply{topMargin=150})
-  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(42,22,58,26);clipToPadding=false}
+  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(70,22,70,28);clipToPadding=false}
 
   // TV-safe masthead: compact brand, generous safe margins, no clipped right edge.
   val top=LinearLayout(this).apply{
@@ -933,13 +1193,13 @@ class MainActivity:Activity(){
   addNav("♡","Favourites"){loadChannels(favouritesOnly=true)}
   addNav("◷","Continue"){loadLastChannel()}
   addNav("◆","Preloaded Movies"){showPreloadedMovies()}
-  addNav("▤","On Demand"){loadChannels("ΕΛΛΗΝΙΚΕΣ ΤΑΙΝΙΕΣ")}
+  addNav("▤","On Demand"){showOnDemand()}
   if(isPappas)addNav("●",placeName){loadChannels(placeFilter)}
   addNav("▥","Preloaded Series"){showPreloadedSeries()}
-  addNav("☷","Categories"){loadChannels()}
+  addNav("☷","Categories"){showCategories()}
   addNav("▦","TV Guide"){showTvGuide()}
   if(!isPappas)addNav("▶","YouTube"){showYouTubeSearch()}
-  addNav("⌕","Search"){loadChannels()}
+  addNav("⌕","Search"){showSearchScreen()}
   addNav("⚙","Settings"){showSettings()}
 
   navItems.forEachIndexed{i,item->
@@ -1006,7 +1266,11 @@ class MainActivity:Activity(){
     }
     val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(8,8,8,8);background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=14f}}
     heroCard.addView(logo,LinearLayout.LayoutParams(92,72).apply{setMargins(0,0,20,0)})
-    loadImageInto(logo,channelLogoUrl(featured))
+    val featuredLogo=channelLogoUrl(featured)
+    if(featuredLogo.isNotBlank())loadImageInto(logo,featuredLogo) else {
+     logo.setImageResource(R.drawable.greek_one_mark)
+     logo.setPadding(14,14,14,14)
+    }
     val heroText=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
     heroText.addView(TextView(this@MainActivity).apply{this.text="FEATURED NOW";textSize=10f;letterSpacing=.14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(98,206,255))})
     heroText.addView(TextView(this@MainActivity).apply{this.text=featured.name;textSize=22f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
@@ -1096,7 +1360,7 @@ class MainActivity:Activity(){
     a[0].contains(placeName)->{ {loadChannels(placeFilter)} }
     else->{ {loadChannels("ΔΙΕΘΝΗ")} }
    }
-   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,86,1f).apply{setMargins(0,0,12,0)})
+   cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,96,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cats)
 
@@ -1529,8 +1793,8 @@ class MainActivity:Activity(){
    orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true
    setPadding(14,8,14,8)
    background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(base,Color.rgb(7,18,31))).apply{cornerRadius=14f;setStroke(1,Color.argb(90,150,195,230))}
-   addView(TextView(this@MainActivity).apply{text=title;textSize=15f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
-   if(subtitle.isNotBlank())addView(TextView(this@MainActivity).apply{text=subtitle;textSize=10f;setTextColor(Color.rgb(218,228,238));setPadding(0,2,0,0);setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
+   addView(TextView(this@MainActivity).apply{text=title;textSize=13.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END})
+   if(subtitle.isNotBlank())addView(TextView(this@MainActivity).apply{text=subtitle;textSize=9.5f;setTextColor(Color.rgb(218,228,238));setPadding(0,2,0,0);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END})
    setOnClickListener{action()}
    setOnFocusChangeListener{v,f->
     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(if(f)focus else base,Color.rgb(6,19,34))).apply{cornerRadius=14f;setStroke(if(f)3 else 1,if(f)Color.WHITE else Color.argb(90,150,195,230))}
@@ -2168,52 +2432,39 @@ class MainActivity:Activity(){
  }
  private fun installAppUpdate(url:String){
   if(isPappas){openUri(url);return}
-  try{
-   val dm=getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-   val req=DownloadManager.Request(Uri.parse(url)).apply{
-    setTitle("Greek One update")
-    setDescription("Downloading the latest Greek One update…")
-    setMimeType("application/vnd.android.package-archive")
-    setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-    setAllowedOverMetered(true)
-    setAllowedOverRoaming(true)
+  if(android.os.Build.VERSION.SDK_INT>=26&&!packageManager.canRequestPackageInstalls()){
+   try{
+    startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:$packageName")))
+    showMessage("Greek One","Allow Greek One to install updates, then return and press Check for update again.")
+   }catch(_:Exception){showMessage("Greek One","Android blocked in-app installation. Use Downloader as a fallback.")}
+   return
+  }
+  Toast.makeText(this,"Downloading Greek One update…",Toast.LENGTH_LONG).show()
+  Thread{
+   try{
+    val fresh=url+(if(url.contains("?"))"&" else "?")+"t="+System.currentTimeMillis()
+    val conn=URL(fresh).openConnection().apply{connectTimeout=10000;readTimeout=30000}
+    val installer=packageManager.packageInstaller
+    val params=android.content.pm.PackageInstaller.SessionParams(android.content.pm.PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply{setAppPackageName(packageName)}
+    val sessionId=installer.createSession(params)
+    val session=installer.openSession(sessionId)
+    conn.getInputStream().use{input->session.openWrite("GreekOne-update.apk",0,-1).use{out->input.copyTo(out);session.fsync(out)}}
+    val statusIntent=Intent(this,MainActivity::class.java).apply{action="au.com.greektv.INSTALL_STATUS";addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)}
+    val pending=PendingIntent.getActivity(this,8817,statusIntent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+    session.commit(pending.intentSender);session.close()
+   }catch(_:Exception){runOnUiThread{showMessage("Greek One","The update could not be installed automatically. Downloader is still available as a fallback.")}}
+  }.start()
+ }
+ private fun handleInstallStatus(i:Intent?){
+  if(i?.action!="au.com.greektv.INSTALL_STATUS")return
+  when(i.getIntExtra(android.content.pm.PackageInstaller.EXTRA_STATUS,android.content.pm.PackageInstaller.STATUS_FAILURE)){
+   android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION->{
+    @Suppress("DEPRECATION")
+    val confirm=i.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+    if(confirm!=null)try{startActivity(confirm)}catch(_:Exception){}
    }
-   val id=dm.enqueue(req)
-   Toast.makeText(this,"Downloading Greek One update…",Toast.LENGTH_LONG).show()
-   Thread{
-    var done=false
-    var failed=false
-    repeat(180){
-     if(done||failed)return@repeat
-     try{
-      dm.query(DownloadManager.Query().setFilterById(id)).use{cur->
-       if(cur.moveToFirst()){
-        when(cur.getInt(cur.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))){
-         DownloadManager.STATUS_SUCCESSFUL->done=true
-         DownloadManager.STATUS_FAILED->failed=true
-        }
-       }
-      }
-     }catch(_:Exception){}
-     if(!done&&!failed)Thread.sleep(1000)
-    }
-    runOnUiThread{
-     if(done){
-      val apkUri=dm.getUriForDownloadedFile(id)
-      if(apkUri!=null){
-       val intent=Intent(Intent.ACTION_VIEW).apply{
-        setDataAndType(apkUri,"application/vnd.android.package-archive")
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-       }
-       try{startActivity(intent)}catch(_:Exception){showMessage("Greek One","The update downloaded, but Android could not open the installer. Open Downloads and select the Greek One update.")}
-      }else showMessage("Greek One","The update downloaded, but Android could not open the installer.")
-     }else{
-      showMessage("Greek One","The update could not be downloaded. Please try again.")
-     }
-    }
-   }.start()
-  }catch(_:Exception){
-   showMessage("Greek One","The update could not be started. Please try again.")
+   android.content.pm.PackageInstaller.STATUS_SUCCESS->Toast.makeText(this,"Greek One updated successfully.",Toast.LENGTH_LONG).show()
+   else->showMessage("Greek One",i.getStringExtra(android.content.pm.PackageInstaller.EXTRA_STATUS_MESSAGE)?:"Android could not complete the update.")
   }
  }
  private fun showLibraryWeb(title:String,url:String,mode:String){

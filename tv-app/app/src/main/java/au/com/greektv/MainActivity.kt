@@ -132,9 +132,8 @@ class MainActivity:Activity(){
   if(remoteRefreshDone)return
   remoteRefreshDone=true
   Thread{try{
-   val base=if(isPappas)"https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json" else "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
-   val configUrl=base+"?t="+System.currentTimeMillis()
-   val raw=URL(configUrl).openConnection().apply{connectTimeout=5000;readTimeout=7000;useCaches=false}.getInputStream().bufferedReader().use{it.readText()}
+   val configUrl=if(isPappas)"https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json" else "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
+   val raw=URL(configUrl).openConnection().apply{connectTimeout=5000;readTimeout=7000}.getInputStream().bufferedReader().use{it.readText()}
    val obj=JSONObject(raw)
    val old=remoteConfig.toString()
    remoteConfig=obj
@@ -144,21 +143,6 @@ class MainActivity:Activity(){
     maybePromptLaunchUpdate()
    }
   }catch(_:Exception){}}.start()
- }
- private fun forceFreshUpdateCheck(){
-  Thread{try{
-   val base=if(isPappas)"https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json" else "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
-   val raw=URL(base+"?t="+System.currentTimeMillis()).openConnection().apply{connectTimeout=5000;readTimeout=7000;useCaches=false}.getInputStream().bufferedReader().use{it.readText()}
-   val obj=JSONObject(raw)
-   remoteConfig=obj
-   prefs.edit().putString(if(isPappas)"papas_config" else "reskakis_config",raw).apply()
-   runOnUiThread{
-    val latest=obj.optInt("latestVersionCode",currentVersionCode())
-    val latestName=obj.optString("latestVersionName","new version")
-    if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage("$brandName $latestName is ready.").setPositiveButton("Install"){_,_->installAppUpdate(obj.optString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}.setNegativeButton("Later",null).show()
-    else Toast.makeText(this,"$brandName is up to date.",Toast.LENGTH_SHORT).show()
-   }
-  }catch(_:Exception){runOnUiThread{Toast.makeText(this,"Could not check for updates. Please try again.",Toast.LENGTH_LONG).show()}}.start()
  }
  private fun maybePromptLaunchUpdate(){
   if(launchUpdateChecked)return
@@ -221,8 +205,13 @@ class MainActivity:Activity(){
      v.animate().scaleX(if(f)1.018f else 1f).scaleY(if(f)1.018f else 1f).setDuration(145).start()
     }
    }
-  root.addView(settingCard("Check for update","See whether a newer Greek One build is available"){
-   forceFreshUpdateCheck()
+  root.addView(settingCard("Check for update","Download and install the latest Greek One build"){
+   AlertDialog.Builder(this)
+    .setTitle("Check for update")
+    .setMessage("Download the latest signed Greek One build now?")
+    .setPositiveButton("Download"){_,_->installAppUpdate("https://rtv.up.railway.app")}
+    .setNegativeButton("Cancel",null)
+    .show()
   },LinearLayout.LayoutParams(-1,92).apply{setMargins(0,8,0,14)})
   root.addView(settingCard("Refresh content","Reload channels, guide configuration and branding"){
    prefs.edit().remove("playlist_cache").putLong("playlist_cache_at",0L).apply();remoteRefreshDone=false;refreshRemoteConfig()
@@ -238,7 +227,7 @@ class MainActivity:Activity(){
   info.addView(TextView(this).apply{text="ABOUT GREEK ONE";textSize=11f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(104,180,227))})
   info.addView(TextView(this).apply{text="Greek television, live channels, guide, favourites, recent viewing and YouTube discovery in one TV-first experience.";textSize=14f;setTextColor(Color.rgb(220,232,242));setPadding(0,9,0,0)})
   root.addView(info,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,8,0,0)})
-  root.addView(TextView(this).apply{text="Greek One  •  Version $ver  •  Build ${currentVersionCode()}";textSize=10f;letterSpacing=.08f;gravity=Gravity.CENTER_HORIZONTAL;setTextColor(Color.rgb(91,137,170));setPadding(0,24,0,0)})
+  root.addView(TextView(this).apply{text="Greek One  •  Version $ver  •  Build \${currentVersionCode()}";textSize=10f;letterSpacing=.08f;gravity=Gravity.CENTER_HORIZONTAL;setTextColor(Color.rgb(91,137,170));setPadding(0,24,0,0)})
   setContentView(root)
   root.post{if(root.childCount>1)root.getChildAt(1).requestFocus()}
  }

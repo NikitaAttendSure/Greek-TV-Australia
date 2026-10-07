@@ -99,8 +99,6 @@ function card(name,meta,action,img,type="item",url=""){
  const fav=document.createElement("button");fav.className="fav-btn"+(isFavourite(name,type)?" active":"");fav.type="button";fav.setAttribute("aria-label","Favourite");fav.textContent=isFavourite(name,type)?"♥":"♡";fav.onclick=e=>{e.stopPropagation();toggleFavourite({name,type,url,img:img||"",meta})};d.appendChild(fav);
  const copy=document.createElement("div");copy.className="card-copy";copy.innerHTML="<h4>"+name+"</h4><p>"+meta+"</p>";d.appendChild(copy);d.onclick=action;d.onkeydown=e=>{if(e.key==="Enter")action()};return d
 }
-function openTracked(name,type,url,img,meta){remember(name,type,url,img,meta);if(window.matchMedia("(max-width:760px)").matches){window.location.href=url}else{window.open(url,"_blank","noopener,noreferrer")}}
-function openSeries(x){openTracked(x.title,"series",x.url,SERIES_ART[x.title]||ART.series,x.source+" • "+x.episodes)}
 let activeHls=null;
 function browserStreamCandidates(ch){
  const urls=[ch.browserUrl,ch.url,...(ch.fallbacks||[])].filter(Boolean);
@@ -137,7 +135,6 @@ function playChannel(ch){
    if(sourceIndex<sources.length){attach(sources[sourceIndex]);return}
    liveError(msg,reason||"Try another channel or try again shortly.");
    const b=msg.querySelector(".retry-stream");if(b)b.onclick=()=>{sourceIndex=0;recoveries=0;attach(sources[0])};
-   if(ch.officialLive){const o=document.createElement("button");o.className="official-stream";o.type="button";o.textContent="OPEN OFFICIAL LIVE";o.onclick=()=>{window.location.href=ch.officialLive};msg.appendChild(o)}
  };
  const attach=(url)=>{
    clearTimer();msg.classList.remove("stream-error");msg.style.display="flex";
@@ -168,7 +165,6 @@ function playChannel(ch){
  if(!sources.length){
    liveError(msg,"This channel only has a non-secure or non-browser stream. It remains available in the TV app.");
    const b=msg.querySelector(".retry-stream");if(b)b.remove();
-   if(ch.officialLive){const o=document.createElement("button");o.className="official-stream";o.type="button";o.textContent="OPEN OFFICIAL LIVE";o.onclick=()=>{window.location.href=ch.officialLive};msg.appendChild(o)}
  }else attach(sources[0]);
  window.scrollTo({top:0,behavior:"smooth"});
 }

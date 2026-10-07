@@ -132,8 +132,9 @@ class MainActivity:Activity(){
   if(remoteRefreshDone)return
   remoteRefreshDone=true
   Thread{try{
-   val configUrl=if(isPappas)"https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json" else "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
-   val raw=URL(configUrl).openConnection().apply{connectTimeout=5000;readTimeout=7000}.getInputStream().bufferedReader().use{it.readText()}
+   val base=if(isPappas)"https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json" else "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
+   val configUrl=base+"?t="+System.currentTimeMillis()
+   val raw=URL(configUrl).openConnection().apply{connectTimeout=5000;readTimeout=7000;useCaches=false}.getInputStream().bufferedReader().use{it.readText()}
    val obj=JSONObject(raw)
    val old=remoteConfig.toString()
    remoteConfig=obj
@@ -143,6 +144,21 @@ class MainActivity:Activity(){
     maybePromptLaunchUpdate()
    }
   }catch(_:Exception){}}.start()
+ }
+ private fun forceFreshUpdateCheck(){
+  Thread{try{
+   val base=if(isPappas)"https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json" else "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
+   val raw=URL(base+"?t="+System.currentTimeMillis()).openConnection().apply{connectTimeout=5000;readTimeout=7000;useCaches=false}.getInputStream().bufferedReader().use{it.readText()}
+   val obj=JSONObject(raw)
+   remoteConfig=obj
+   prefs.edit().putString(if(isPappas)"papas_config" else "reskakis_config",raw).apply()
+   runOnUiThread{
+    val latest=obj.optInt("latestVersionCode",currentVersionCode())
+    val latestName=obj.optString("latestVersionName","new version")
+    if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage("$brandName $latestName is ready.").setPositiveButton("Install"){_,_->installAppUpdate(obj.optString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}.setNegativeButton("Later",null).show()
+    else Toast.makeText(this,"$brandName is up to date.",Toast.LENGTH_SHORT).show()
+   }
+  }catch(_:Exception){runOnUiThread{Toast.makeText(this,"Could not check for updates. Please try again.",Toast.LENGTH_LONG).show()}}.start()
  }
  private fun maybePromptLaunchUpdate(){
   if(launchUpdateChecked)return
@@ -206,9 +222,7 @@ class MainActivity:Activity(){
     }
    }
   root.addView(settingCard("Check for update","See whether a newer Greek One build is available"){
-   val latest=remoteConfig.optInt("latestVersionCode",currentVersionCode())
-   if(latest>currentVersionCode())AlertDialog.Builder(this).setTitle("Update available").setMessage("Greek One "+remoteConfig.optString("latestVersionName","new version")+" is ready.").setPositiveButton("Install"){_,_->installAppUpdate(cfgString("updateUrl","https://rtv.up.railway.app"))}.setNegativeButton("Later",null).show()
-   else Toast.makeText(this,"Greek One is up to date.",Toast.LENGTH_SHORT).show()
+   forceFreshUpdateCheck()
   },LinearLayout.LayoutParams(-1,92).apply{setMargins(0,8,0,14)})
   root.addView(settingCard("Refresh content","Reload channels, guide configuration and branding"){
    prefs.edit().remove("playlist_cache").putLong("playlist_cache_at",0L).apply();remoteRefreshDone=false;refreshRemoteConfig()

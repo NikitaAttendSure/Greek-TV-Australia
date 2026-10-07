@@ -9,8 +9,8 @@ android {
         applicationId = "au.com.greektv"
         minSdk = 23
         targetSdk = 36
-        versionCode = 43
-        versionName = "1.3.8"
+        versionCode = 44
+        versionName = "1.3.9"
     }
     signingConfigs {
         create("reskakisRelease") {

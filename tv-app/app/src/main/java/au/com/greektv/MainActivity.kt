@@ -86,6 +86,7 @@ class MainActivity:Activity(){
      showSafeHome()
     }
    }
+   Handler(Looper.getMainLooper()).postDelayed({maybePromptLaunchUpdate()},350)
   },650)
  }
  private fun showSafeHome(){
@@ -137,18 +138,42 @@ class MainActivity:Activity(){
  private fun refreshRemoteConfig(){
   if(remoteRefreshDone)return
   remoteRefreshDone=true
-  Thread{try{
-   val configUrl=if(isPappas)"https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json" else "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
-   val raw=URL(configUrl).openConnection().apply{connectTimeout=5000;readTimeout=7000}.getInputStream().bufferedReader().use{it.readText()}
-   val obj=JSONObject(raw)
-   val old=remoteConfig.toString()
-   remoteConfig=obj
-   prefs.edit().putString(if(isPappas)"papas_config" else "reskakis_config",raw).apply()
-   runOnUiThread{
-    if(old!=obj.toString()&&player==null&&previewPlayer==null)showHome()
-    maybePromptLaunchUpdate()
+  Thread{
+   fun fetchConfig():JSONObject?=try{
+    val base=if(isPappas)
+     "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/papas-config.json"
+    else
+     "https://raw.githubusercontent.com/NikitaAttendSure/Greek-TV-Australia/main/reskakis-config.json"
+    val conn=URL(base+"?t="+System.currentTimeMillis()).openConnection().apply{
+     connectTimeout=5000;readTimeout=7000
+     setRequestProperty("Cache-Control","no-cache, no-store, must-revalidate")
+     setRequestProperty("Pragma","no-cache")
+     setRequestProperty("User-Agent","GreekOneTV/"+currentVersionCode())
+    }
+    JSONObject(conn.getInputStream().bufferedReader().use{it.readText()})
+   }catch(e:Exception){
+    android.util.Log.w("GreekOne","Update config fetch failed",e)
+    null
    }
-  }catch(_:Exception){}}.start()
+
+   var obj=fetchConfig()
+   if(obj==null){
+    try{Thread.sleep(1200)}catch(_:Exception){}
+    obj=fetchConfig()
+   }
+
+   if(obj!=null){
+    val old=remoteConfig.toString()
+    remoteConfig=obj
+    prefs.edit().putString(if(isPappas)"papas_config" else "reskakis_config",obj.toString()).apply()
+    runOnUiThread{
+     if(old!=obj.toString()&&player==null&&previewPlayer==null&&screenMode=="HOME")showHome()
+     Handler(Looper.getMainLooper()).postDelayed({maybePromptLaunchUpdate()},250)
+    }
+   }else{
+    runOnUiThread{Handler(Looper.getMainLooper()).postDelayed({maybePromptLaunchUpdate()},250)}
+   }
+  }.start()
  }
  private fun maybePromptLaunchUpdate(){
   if(launchUpdateChecked)return
@@ -158,7 +183,7 @@ class MainActivity:Activity(){
   val latestName=remoteConfig.optString("latestVersionName","new version")
   AlertDialog.Builder(this)
    .setTitle("Update available")
-   .setMessage("$brandName $latestName is available. Update now?")
+   .setMessage("$brandName $latestName is ready. Install the latest update now?")
    .setPositiveButton("Update now"){_,_->installAppUpdate(cfgString("updateUrl",if(isPappas)"https://ptv.up.railway.app" else "https://rtv.up.railway.app"))}
    .setNegativeButton("Later",null)
    .show()

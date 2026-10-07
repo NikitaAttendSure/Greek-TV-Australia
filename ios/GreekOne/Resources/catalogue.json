@@ -1,0 +1,90 @@
+[
+  {
+    "id": "movie-rembetiko",
+    "title": "Rembetiko",
+    "subtitle": "1983 • Music • Drama",
+    "kind": "movie",
+    "url": "https://live.ertflix.gr/details/ERT_M000496",
+    "artwork": null,
+    "broadcaster": "ERTFLIX",
+    "year": "1983",
+    "synopsis": "Greek cinema from the official ERTFLIX catalogue."
+  },
+  {
+    "id": "movie-guardian",
+    "title": "Our Guardian Angel",
+    "subtitle": "1961 • Comedy • Old Greek Cinema",
+    "kind": "movie",
+    "url": "https://live.ertflix.gr/details/ERT_M000545",
+    "artwork": null,
+    "broadcaster": "ERTFLIX",
+    "year": "1961",
+    "synopsis": "Greek cinema from the official ERTFLIX catalogue."
+  },
+  {
+    "id": "series-parapente",
+    "title": "ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ",
+    "subtitle": "Complete archive",
+    "kind": "series",
+    "url": "https://www.megatv.com/ekpompes/43346/sto-para-pente/",
+    "artwork": null,
+    "broadcaster": "MEGA",
+    "year": null,
+    "synopsis": "Official MEGA archive series available through Greek One."
+  },
+  {
+    "id": "series-eisai",
+    "title": "ΕΙΣΑΙ ΤΟ ΤΑΙΡΙ ΜΟΥ",
+    "subtitle": "30 episodes",
+    "kind": "series",
+    "url": "https://www.megatv.com/ekpompes/43098/eisai-to-tairi-mou-2/",
+    "artwork": null,
+    "broadcaster": "MEGA",
+    "year": null,
+    "synopsis": "Official MEGA archive series available through Greek One."
+  },
+  {
+    "id": "live-alpha",
+    "title": "Alpha TV",
+    "subtitle": "Live Greek television",
+    "kind": "live",
+    "url": "https://alphatvlive2.siliconweb.com/alphatvlive/live_abr/playlist.m3u8",
+    "artwork": null,
+    "broadcaster": "Alpha TV",
+    "year": null,
+    "synopsis": "Live Greek television."
+  },
+  {
+    "id": "live-ertcosmos",
+    "title": "ERT Cosmos",
+    "subtitle": "Live Greek television",
+    "kind": "live",
+    "url": "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8",
+    "artwork": null,
+    "broadcaster": "ERT",
+    "year": null,
+    "synopsis": "Live Greek television."
+  },
+  {
+    "id": "live-ertnews",
+    "title": "ERT News HD",
+    "subtitle": "Live Greek news",
+    "kind": "live",
+    "url": "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTNews/default/index.m3u8",
+    "artwork": null,
+    "broadcaster": "ERT",
+    "year": null,
+    "synopsis": "Live Greek news."
+  },
+  {
+    "id": "live-euronews",
+    "title": "Euronews Greek",
+    "subtitle": "Live Greek news",
+    "kind": "live",
+    "url": "https://cdn-euronews.akamaized.net/live/eds/euronews-el/25068/index.m3u8",
+    "artwork": null,
+    "broadcaster": "Euronews",
+    "year": null,
+    "synopsis": "Live Greek-language news."
+  }
+]

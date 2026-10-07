@@ -650,3 +650,12 @@ body{background:#020810}
  #hero.vod-player .loadingMsg{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;background:radial-gradient(circle at center,#09243a,#02080e)}
  .episode-list{padding-bottom:90px}
 }
+
+/* iPhone VOD controls: keep native play control visible above status overlay */
+#hero.vod-player .loadingMsg{pointer-events:none}
+#hero.vod-player .playerShell video{z-index:2}
+#hero.vod-player .loadingMsg{z-index:1}
+@media(max-width:760px){
+ #hero.vod-player .playerShell{background:#000!important}
+ #hero.vod-player .playerShell video{display:block!important;opacity:1!important}
+}

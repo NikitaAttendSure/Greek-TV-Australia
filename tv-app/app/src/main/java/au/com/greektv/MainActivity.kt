@@ -381,7 +381,7 @@ class MainActivity:Activity(){
    SeriesItem("ΣΑΒΒΑΤΟΓΕΝΝΗΜΕΝΕΣ","MEGA","33 episodes","https://www.megatv.com/ekpompes/43202/savvatogennimenes/"),
    SeriesItem("ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ","MEGA","complete archive","https://www.megatv.com/ekpompes/43346/sto-para-pente/"),
    SeriesItem("ΣΤΟΥΣ 31 ΔΡΟΜΟΥΣ","MEGA","12 episodes • complete","https://www.megatv.com/tvshows/49615/epeisodio-1/"),
-   SeriesItem("ΣΧΕΔΟΝ ΕΝΗΛΙΚΕΣ","MEGA","12 episodes • complete","https://www.megatv.com/ekpompes/142326/sxedon-enilikes/")
+   SeriesItem("ΣΧΕΔΟΝ ΕΝΗΛΙΚΕΣ","MEGA","12 episodes • complete","https://www.megatv.com/ekpompes/142326/sxedon-enilikes/"),
    SeriesItem("ΦΙΛΟΔΟΞΙΕΣ","MEGA","799 episodes","https://www.megatv.com/ekpompes/43252/filodoksies/"),
    SeriesItem("SAFE SEX","MEGA","43+ episode archive","https://www.megatv.com/ekpompes/43229/safe-sex/"),
    SeriesItem("SINGLES","MEGA","21 episodes • season 1","https://www.megatv.com/ekpompes/43287/singles/"),

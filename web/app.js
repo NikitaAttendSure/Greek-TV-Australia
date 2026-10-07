@@ -172,7 +172,14 @@ function playChannel(ch){
  }else attach(sources[0]);
  window.scrollTo({top:0,behavior:"smooth"});
 }
-function historyCard(h){let action=()=>{};if(h.type==="live"){const c=CHANNELS.find(x=>x.name===h.name);action=()=>c&&playChannel(c)}else action=()=>openTracked(h.name,h.type,h.url,h.img,h.meta);return card(h.name,h.meta||h.type,action,h.img,h.type,h.url)}
+function historyCard(h){
+ let action=()=>showVodNotice(h.name,"This saved item is no longer available in the current Greek One catalogue.",()=>render("home"));
+ if(h.type==="live"){const c=CHANNELS.find(x=>x.name===h.name);action=()=>c?playChannel(c):showVodNotice(h.name,"This channel is no longer available.",()=>render("home"))}
+ else if(h.type==="movie"){const m=MOVIES.find(x=>x[0]===h.name||x[2]===h.url);action=()=>m?showMovieDetail(m):showVodNotice(h.name,"This movie is no longer available in the current Greek One catalogue.",()=>render("home"))}
+ else if(h.type==="series"){const x=SERIES.find(x=>x.title===h.name||x.url===h.url||h.name.startsWith(x.title+" •"));action=()=>x?showSeriesDetail(x):showVodNotice(h.name,"This series is no longer available in the current Greek One catalogue.",()=>render("home"))}
+ else if(h.type==="cooking"){const c=COOKING.find(x=>x[0]===h.name||x[3]===h.url);action=()=>c?showCookingDetail(c):showVodNotice(h.name,"This cooking title is no longer available in the current Greek One catalogue.",()=>render("home"))}
+ return card(h.name,h.meta||h.type,action,h.img,h.type,h.url)
+}
 
 let featuredTimer=null;
 const EPG_URL="https://greektvapp.github.io/api/epg.xml";
@@ -235,8 +242,6 @@ async function playVod(item,back){
        if(shaka.Player.isBrowserSupported()){
          activeVod=new shaka.Player();await activeVod.attach(v);await activeVod.load(url);
        }else{
-         const official=item.officialUrl||item.sourceUrl;
-         if(official){msg.innerHTML='<b>Opening official player…</b><small>This movie uses DASH, which iPhone Safari cannot play directly.</small>';setTimeout(()=>{window.location.href=official},450);return}
          throw Error("DASH unsupported on this browser");
        }
      }else throw Error("DASH player unavailable");
@@ -363,7 +368,7 @@ const cr=grid.querySelector(".continue-rail");if(cr)HISTORY.slice(0,8).forEach(h
 const lr=grid.querySelector(".live-rail");CHANNELS.slice(0,8).forEach(c=>{const x=card(c.name,"LIVE",()=>playChannel(c));x.classList.add("mini-media");const logo=LOGOS[c.name];x.insertAdjacentHTML("afterbegin",logo?`<span class="channel-logo"><img src="${logo}" alt=""></span>`:`<span class="channel-logo fallback">${c.name.split(/\\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase()}</span>`);lr.appendChild(x)});
 const mr=grid.querySelector(".movie-rail");MOVIES.slice(0,7).forEach((m,i)=>{const img=MOVIE_ART[m[0]]||COVER_ART[i%COVER_ART.length];mr.appendChild(card(m[0],m[1],()=>showMovieDetail(m),img,"movie",m[2]))});
 const sr=grid.querySelector(".series-rail");SERIES.slice(0,7).forEach((x,i)=>{const img=SERIES_ART[x.title]||COVER_ART[(i+2)%COVER_ART.length];sr.appendChild(card(x.title,x.source+" • "+x.episodes,()=>showSeriesDetail(x),img,"series",x.url))});
-const fr=grid.querySelector(".food-rail");COOKING.slice(0,7).forEach(c=>{const img=cookingArt(c);fr.appendChild(card(c[0],c[2],()=>openTracked(c[0],"cooking",c[3],img,c[1]+" • "+c[2]),img,"cooking",c[3]))});
+const fr=grid.querySelector(".food-rail");COOKING.slice(0,7).forEach(c=>{const img=cookingArt(c);fr.appendChild(card(c[0],c[2],()=>showCookingDetail(c),img,"cooking",c[3]))});
 const popular=grid.querySelector(".popular-rail"),classics=grid.querySelector(".classics-rail"),family=grid.querySelector(".family-rail");
 [
  {kind:"series",data:SERIES.find(x=>x.title==="ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ")},

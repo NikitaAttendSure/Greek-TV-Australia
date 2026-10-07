@@ -1246,49 +1246,98 @@ class MainActivity:Activity(){
    }
   }
 
-  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 312,-1).apply{
+  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 286,-1).apply{
    setMargins(0,6,if(isPappas)18 else 22,0)
   })
 
   val mainScroll=ScrollView(this).apply{isFillViewport=true;overScrollMode=View.OVER_SCROLL_NEVER}
-  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(2,0,18,26);clipToPadding=false}
+  val main=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(2,0,10,30);clipToPadding=false}
   mainScroll.addView(main,ViewGroup.LayoutParams(-1,-2))
-  fun sectionTitle(t:String){
-   main.addView(TextView(this).apply{text=t;textSize=21f;typeface=Typeface.create("sans-serif",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,9,0,6);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))})
+  fun sectionTitle(t:String,sub:String=""){
+   val wrap=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.BOTTOM;setPadding(0,12,0,7)}
+   wrap.addView(TextView(this).apply{
+    text=t;textSize=21f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setShadowLayer(6f,0f,2f,Color.argb(120,0,0,0))
+   })
+   if(sub.isNotBlank())wrap.addView(TextView(this).apply{
+    text="  •  "+sub;textSize=10.5f;setTextColor(Color.rgb(130,183,220));setPadding(6,0,0,2)
+   })
+   main.addView(wrap)
   }
   if(!isPappas){
    val featured=homeCachedChannels().firstOrNull{it.name.contains("ERT 1",true)||it.name.contains("ERT1",true)}?:homeCachedChannels().firstOrNull()?:Channel("ERT 1 HD","","Greek TV","ERT1.gr")
    run{
-    val heroCard=LinearLayout(this).apply{
-     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true;setPadding(20,14,20,14)
-     background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(245,4,31,55),Color.argb(230,8,82,129),Color.argb(205,3,26,46))).apply{cornerRadius=20f;setStroke(1,Color.argb(120,130,207,250))}
-     elevation=10f
+    val heroCard=FrameLayout(this).apply{
+     isFocusable=true;isClickable=true;clipToOutline=true;elevation=14f
+     background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.argb(248,3,18,32),Color.argb(235,7,68,111),Color.argb(205,4,28,50))).apply{
+      cornerRadius=24f;setStroke(1,Color.argb(145,142,213,255))
+     }
     }
-    val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(8,8,8,8);background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=14f}}
-    heroCard.addView(logo,LinearLayout.LayoutParams(92,72).apply{setMargins(0,0,20,0)})
+    val glow=View(this).apply{
+     background=GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,intArrayOf(Color.argb(105,34,191,255),Color.argb(20,34,191,255),Color.TRANSPARENT))
+    }
+    heroCard.addView(glow,FrameLayout.LayoutParams(-1,-1))
+    val heroInner=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(24,16,22,16)}
+    val logoWrap=FrameLayout(this).apply{
+     background=GradientDrawable().apply{setColor(Color.WHITE);cornerRadius=18f;setStroke(1,Color.argb(90,120,170,210))}
+     elevation=8f
+    }
+    val logo=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_INSIDE;setPadding(12,12,12,12)}
+    logoWrap.addView(logo,FrameLayout.LayoutParams(-1,-1))
+    heroInner.addView(logoWrap,LinearLayout.LayoutParams(108,86).apply{setMargins(0,0,22,0)})
     val featuredLogo=channelLogoUrl(featured)
-    if(featuredLogo.isNotBlank())loadImageInto(logo,featuredLogo) else {
-     logo.setImageResource(R.drawable.greek_one_mark)
-     logo.setPadding(14,14,14,14)
-    }
+    if(featuredLogo.isNotBlank())loadImageInto(logo,featuredLogo) else logo.setImageResource(R.drawable.greek_one_mark)
+
     val heroText=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-    heroText.addView(TextView(this@MainActivity).apply{this.text="FEATURED NOW";textSize=10f;letterSpacing=.14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(98,206,255))})
-    heroText.addView(TextView(this@MainActivity).apply{this.text=featured.name;textSize=22f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)})
-    heroText.addView(TextView(this@MainActivity).apply{this.text=epgNow[featured.tvgId]?.let{"NOW  •  "+it}?:"LIVE  •  Greek television";textSize=14f;setTextColor(Color.rgb(225,237,246));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END})
-    heroText.addView(TextView(this@MainActivity).apply{this.text=epgNext[featured.tvgId]?.let{"NEXT •  "+it}?:"Press OK to watch";textSize=12f;setTextColor(Color.rgb(154,199,228));setPadding(0,3,0,0)})
-    heroCard.addView(heroText,LinearLayout.LayoutParams(0,-2,1f))
-    val watchButton=TextView(this).apply{
-     setText("WATCH  ▶");textSize=14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
-     background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,115,216),Color.rgb(34,184,252))).apply{cornerRadius=14f}
+    val livePill=TextView(this).apply{
+     text="●  LIVE NOW";textSize=9.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+     background=GradientDrawable().apply{setColor(Color.rgb(202,36,48));cornerRadius=11f};setPadding(10,3,10,3)
     }
-    heroCard.addView(watchButton,LinearLayout.LayoutParams(132,48))
+    heroText.addView(livePill,LinearLayout.LayoutParams(-2,28))
+    heroText.addView(TextView(this@MainActivity).apply{
+     this.text=featured.name;textSize=25f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,5,0,0)
+    })
+    heroText.addView(TextView(this@MainActivity).apply{
+     this.text=epgNow[featured.tvgId]?.let{"NOW  •  "+it}?:"Greek television streaming live"
+     textSize=14f;setTextColor(Color.rgb(231,242,250));setSingleLine(true);ellipsize=android.text.TextUtils.TruncateAt.END
+    })
+    heroText.addView(TextView(this@MainActivity).apply{
+     this.text=epgNext[featured.tvgId]?.let{"NEXT •  "+it}?:"CHIOS → WORLD  •  Press OK to watch"
+     textSize=11.5f;setTextColor(Color.rgb(155,204,235));setPadding(0,3,0,0)
+    })
+    heroInner.addView(heroText,LinearLayout.LayoutParams(0,-2,1f))
+    val watch=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER}
+    watch.addView(TextView(this).apply{
+     text="WATCH  ▶";textSize=14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+     background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,119,221),Color.rgb(36,194,255))).apply{cornerRadius=15f}
+    },LinearLayout.LayoutParams(140,50))
+    watch.addView(TextView(this).apply{text="Full screen";textSize=9f;setTextColor(Color.rgb(166,205,232));gravity=Gravity.CENTER;setPadding(0,5,0,0)})
+    heroInner.addView(watch,LinearLayout.LayoutParams(158,-2))
+    heroCard.addView(heroInner,FrameLayout.LayoutParams(-1,-1))
     heroCard.setOnClickListener{if(featured.url.isNotBlank())playRecent(featured.url) else loadChannels("ERT")}
-    heroCard.setOnFocusChangeListener{v,f->v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(3,Color.WHITE);cornerRadius=20f}else null;v.animate().scaleX(if(f)1.018f else 1f).scaleY(if(f)1.018f else 1f).setDuration(145).start();v.elevation=if(f)20f else 10f}
-    main.addView(heroCard,LinearLayout.LayoutParams(-1,116).apply{setMargins(0,4,0,8)})
+    heroCard.setOnFocusChangeListener{v,f->
+     v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(4,Color.WHITE);cornerRadius=24f}else null
+     v.animate().scaleX(if(f)1.014f else 1f).scaleY(if(f)1.014f else 1f).setDuration(145).start();v.elevation=if(f)24f else 14f
+    }
+    main.addView(heroCard,LinearLayout.LayoutParams(-1,132).apply{setMargins(0,4,0,10)})
+
+    val quick=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+    val quickData=listOf(
+     Triple("▣  WATCH LIVE","All Greek channels",{loadChannels()}),
+     Triple("◆  MOVIES","32 Greek films",{showPreloadedMovies()}),
+     Triple("▥  SERIES","30 Greek series",{showPreloadedSeries()}),
+     Triple("🍳  COOKING","43 shows & recipes",{showGreekCooking()}),
+     Triple("▦  TV GUIDE","Live preview + Now/Next",{showTvGuide()}),
+     Triple("⌕  SEARCH","Search everything",{showSearchScreen()})
+    )
+    quickData.forEachIndexed{i,item->
+     val base=when(i){0->Color.rgb(11,100,183);1->Color.rgb(132,26,76);2->Color.rgb(83,29,143);3->Color.rgb(191,101,8);4->Color.rgb(8,103,73);else->Color.rgb(54,72,110)}
+     quick.addView(tvCard(item.first,item.second,base,item.third),LinearLayout.LayoutParams(0,86,1f).apply{setMargins(0,0,10,0)})
+    }
+    main.addView(quick,LinearLayout.LayoutParams(-1,86).apply{setMargins(0,0,0,4)})
    }
   }
 
-  sectionTitle("Popular Greek Channels")
+  sectionTitle("Popular Greek Channels","One click to watch")
   val channelRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val channelTiles=listOf(
    arrayOf("ΕΡΤ 1","ERT 1 HD",Color.rgb(20,46,210).toString(),"0"),
@@ -1312,12 +1361,12 @@ class MainActivity:Activity(){
   }
   main.addView(channelRow)
 
-  sectionTitle("Recently Watched")
+  sectionTitle("Continue Watching","Pick up where you left off")
   val cont=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   run{
    val recent=try{JSONArray(prefs.getString("recent_channels","[]")?:"[]")}catch(_:Exception){JSONArray()}
    if(recent.length()==0){
-    val cardView=imageCard("Start watching","Recently watched channels will appear here","https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=85"){loadChannels()}
+    val cardView=imageCard("Start watching","Your recent channels will appear here","https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=85"){loadChannels()}
     cont.addView(cardView,LinearLayout.LayoutParams(0,154,1f).apply{setMargins(0,0,12,0)})
    }else{
     for(i in 0 until minOf(4,recent.length())){
@@ -1341,7 +1390,7 @@ class MainActivity:Activity(){
   }
   main.addView(cont)
 
-  sectionTitle("Browse by Category")
+  sectionTitle("Explore Greek One","Movies, series, cooking and live TV")
   val cats=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val categoryData=mutableListOf<Array<String>>(
    arrayOf("▣  Greek TV","All Greek Channels",Color.rgb(18,124,210).toString()),
@@ -1355,16 +1404,17 @@ class MainActivity:Activity(){
    val action:()->Unit=when{
     a[0].contains("Greek TV")->{ {loadChannels()} }
     a[0].contains("Movies")->{ {showPreloadedMovies()} }
+    a[0].contains("Series")->{ {showPreloadedSeries()} }
     a[0].contains("TV Guide")->{ {showTvGuide()} }
     a[0].contains("ΜΑΓΕΙΡΙΚΗ")->{ {showGreekCooking()} }
     a[0].contains(placeName)->{ {loadChannels(placeFilter)} }
-    else->{ {loadChannels("ΔΙΕΘΝΗ")} }
+    else->{ {showCategories()} }
    }
    cats.addView(tvCard(a[0],a[1],a[2].toInt(),action).apply{gravity=Gravity.CENTER_VERTICAL;elevation=4f},LinearLayout.LayoutParams(0,96,1f).apply{setMargins(0,0,12,0)})
   }
   main.addView(cats)
 
-  sectionTitle("Live Channels")
+  sectionTitle("Live Now","Direct channel access")
   val liveRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
   val cachedHomeChannels=try{
    val cached=prefs.getString("playlist_cache",null)

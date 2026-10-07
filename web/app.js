@@ -211,23 +211,67 @@ async function loadEPG(){
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function fmtTime(d){return new Intl.DateTimeFormat("en-AU",{hour:"numeric",minute:"2-digit"}).format(d)}
 function movieSynopsis(m){const bits=m[1].split("•").map(x=>x.trim());return `A Greek cinema title from ${bits[0]||"the Greek One collection"}, presented from the official ERTFLIX catalogue. ${bits.slice(1).length?"Genres: "+bits.slice(1).join(", ")+".":""}`}
-function seriesSynopsis(x){return `An official ${x.source} archive title available through Greek One, with ${x.episodes}. Open the broadcaster archive to continue watching the series.`}
-function showMovieDetail(m){
+function seriesSynopsis(x){return `An official ${x.source} archive title available through Greek One, with ${x.episodes}. Choose a season and episode below.`}
+function ertContentId(url){const m=String(url||"").match(/\/details\/([^/?#]+)/);return m?m[1]:""}
+async function getErtDetails(m){
+ const id=ertContentId(m[2]);if(!id)throw Error("Movie source unavailable");
+ const r=await fetch("https://live.ertflix.gr/api/details?contentId="+encodeURIComponent(id)+"&lang=en_GB",{cache:"no-store"});
+ if(!r.ok)throw Error("Movie details unavailable");return await r.json()
+}
+let activeVod=null;
+async function playVod(item,back){
+ if(activeVod){try{await activeVod.destroy()}catch(_){}activeVod=null}
+ hero.className="vod-player";hero.style.backgroundImage="";
+ hero.innerHTML='<div class="live-player-head"><button class="detail-back live-back" type="button">← BACK</button><div><p>GREEK ONE • ON DEMAND</p><h3>'+esc(item.title||"Now Playing")+'</h3></div></div><div class="playerShell"><div class="loadingMsg"><span class="stream-spinner"></span><b>Loading…</b><small>Preparing your video</small></div><video id="vodPlayer" controls playsinline webkit-playsinline preload="metadata"></video></div><div class="live-player-meta"><span>Greek One</span><button class="fullscreen-btn" type="button">FULL SCREEN</button></div>';
+ grid.innerHTML="";const v=document.getElementById("vodPlayer"),msg=hero.querySelector(".loadingMsg");
+ hero.querySelector(".live-back").onclick=back;
+ hero.querySelector(".fullscreen-btn").onclick=()=>{if(v.requestFullscreen)v.requestFullscreen();else if(v.webkitEnterFullscreen)v.webkitEnterFullscreen()};
+ const ready=()=>{msg.style.display="none"};v.addEventListener("playing",ready);v.addEventListener("loadedmetadata",ready);
+ try{
+   const url=item.streamUrl||item.url;if(!url)throw Error("No playable stream");
+   if(/\.mpd(?:$|\?)/i.test(url)&&window.shaka){
+     shaka.polyfill.installAll();activeVod=new shaka.Player();await activeVod.attach(v);await activeVod.load(url);
+   }else if(/\.m3u8/i.test(url)&&window.Hls&&Hls.isSupported()&&!v.canPlayType("application/vnd.apple.mpegurl")){
+     activeHls=new Hls();activeHls.loadSource(url);activeHls.attachMedia(v);
+   }else{v.src=url;v.load()}
+   v.play().catch(()=>{msg.innerHTML="<b>Ready to play</b><small>Tap the play button to start.</small>"});
+ }catch(e){msg.classList.add("stream-error");msg.innerHTML="<b>Playback unavailable</b><small>This title cannot be played in this browser right now.</small>"}
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+async function showMovieDetail(m){
  if(featuredTimer){clearInterval(featuredTimer);featuredTimer=null}
  state.view="detail";title.textContent=m[0];grid.className="detail-grid";grid.innerHTML="";
  const img=MOVIE_ART[m[0]]||ART.movies;
  hero.className="detail-hero";hero.style.backgroundImage=`linear-gradient(90deg,rgba(1,8,14,.98) 0%,rgba(2,15,24,.88) 44%,rgba(2,10,17,.35) 100%),url("${img}")`;
- hero.innerHTML=`<div class="detail-copy"><p>GREEK CINEMA • ERTFLIX</p><h3>${esc(m[0])}</h3><div class="detail-meta">${esc(m[1])}</div><h4>Synopsis</h4><p class="muted">${esc(movieSynopsis(m))}</p><div class="detail-actions"><button class="hero-cta" id="detailWatch">▶ WATCH</button><button class="detail-back" onclick="render('movies')">← BACK TO MOVIES</button></div></div>`;
- document.getElementById("detailWatch").onclick=()=>openTracked(m[0],"movie",m[2],img,m[1]);
+ hero.innerHTML=`<div class="detail-copy"><p>GREEK CINEMA • ERTFLIX</p><h3>${esc(m[0])}</h3><div class="detail-meta">${esc(m[1])}</div><h4>Synopsis</h4><p class="muted">${esc(movieSynopsis(m))}</p><div class="detail-actions"><button class="hero-cta" id="detailWatch">▶ PLAY MOVIE</button><button class="detail-back" onclick="render('movies')">← BACK TO MOVIES</button></div></div>`;
+ const b=document.getElementById("detailWatch");b.onclick=async()=>{b.disabled=true;b.textContent="LOADING…";try{const d=await getErtDetails(m),p=d.primaryPlayback||d.episodes?.[0];if(!p)throw Error();remember(m[0],"movie",m[2],img,m[1]);await playVod({...p,title:d.title||m[0]},()=>showMovieDetail(m))}catch(_){b.disabled=false;b.textContent="PLAYBACK UNAVAILABLE"}};
  window.scrollTo({top:0,behavior:"smooth"});
+}
+function seriesCount(x){const m=x.episodes.match(/(\d+)\s*episodes/i);return m?Number(m[1]):0}
+function seasonCount(x){const m=x.episodes.match(/(\d+)\s*seasons?/i);return m?Number(m[1]):1}
+function episodeNumber(url,label){const m=(label||url).match(/(?:epeisodio|episode)[-\s:]*(\d+)/i);return m?Number(m[1]):0}
+async function loadMegaEpisodes(x){
+ const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(x.url),{cache:"no-store"});if(!r.ok)throw Error();const html=await r.text();
+ const doc=new DOMParser().parseFromString(html,"text/html"),seen=new Set(),out=[];
+ doc.querySelectorAll('a[href*="/tvshows/"]').forEach(a=>{const url=a.href;if(!/epeisodio|episode/i.test(url)||seen.has(url))return;seen.add(url);const n=episodeNumber(url,a.textContent);out.push({number:n||out.length+1,title:(a.textContent||"").trim()||("Episode "+(n||out.length+1)),page:url})});
+ return out.sort((a,b)=>a.number-b.number)
+}
+async function resolveMegaEpisode(ep){
+ const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(ep.page),{cache:"no-store"});if(!r.ok)throw Error();const html=await r.text(),doc=new DOMParser().parseFromString(html,"text/html");
+ const p=doc.querySelector("[data-kwik_source]");const url=p?.getAttribute("data-kwik_source");if(!url)throw Error();return{...ep,streamUrl:url,title:ep.title}
 }
 function showSeriesDetail(x){
  if(featuredTimer){clearInterval(featuredTimer);featuredTimer=null}
  state.view="detail";title.textContent=x.title;grid.className="detail-grid";grid.innerHTML="";
  const img=SERIES_ART[x.title]||ART.series;
  hero.className="detail-hero";hero.style.backgroundImage=`linear-gradient(90deg,rgba(1,8,14,.98) 0%,rgba(2,15,24,.88) 44%,rgba(2,10,17,.35) 100%),url("${img}")`;
- hero.innerHTML=`<div class="detail-copy"><p>${esc(x.source)} • SERIES</p><h3>${esc(x.title)}</h3><div class="detail-meta">${esc(x.episodes)}</div><h4>Synopsis</h4><p class="muted">${esc(seriesSynopsis(x))}</p><div class="detail-actions"><button class="hero-cta" id="detailWatch">▶ WATCH SERIES</button><button class="detail-back" onclick="render('series')">← BACK TO SERIES</button></div></div>`;
- document.getElementById("detailWatch").onclick=()=>openTracked(x.title,"series",x.url,img,x.source+" • "+x.episodes);
+ hero.innerHTML=`<div class="detail-copy"><p>${esc(x.source)} • SERIES</p><h3>${esc(x.title)}</h3><div class="detail-meta">${esc(x.episodes)}</div><p class="muted">${esc(seriesSynopsis(x))}</p><div class="detail-actions"><button class="hero-cta" id="loadEpisodes">BROWSE EPISODES</button><button class="detail-back" onclick="render('series')">← BACK TO SERIES</button></div></div>`;
+ const b=document.getElementById("loadEpisodes");b.onclick=async()=>{b.disabled=true;b.textContent="LOADING EPISODES…";try{
+   const eps=await loadMegaEpisodes(x);if(!eps.length)throw Error();const seasons=seasonCount(x);grid.innerHTML='<div class="season-picker"></div><div class="episode-list"></div>';const picker=grid.querySelector(".season-picker"),list=grid.querySelector(".episode-list");
+   const per=Math.ceil(eps.length/seasons);let current=1;
+   const paint=()=>{picker.querySelectorAll("button").forEach((z,i)=>z.classList.toggle("active",i+1===current));const subset=eps.filter((_,i)=>Math.min(seasons,Math.floor(i/per)+1)===current);list.innerHTML="";subset.forEach(ep=>{const row=document.createElement("button");row.className="episode-row";row.innerHTML='<span class="episode-num">E'+String(ep.number).padStart(2,"0")+'</span><span><b>'+esc(ep.title)+'</b><small>Tap to play in Greek One</small></span><span class="episode-play">▶</span>';row.onclick=async()=>{row.classList.add("loading");try{const p=await resolveMegaEpisode(ep);remember(x.title+" • "+ep.title,"series",ep.page,img,x.source);await playVod(p,()=>showSeriesDetail(x))}catch(_){row.classList.remove("loading");row.querySelector("small").textContent="Episode temporarily unavailable"};};list.appendChild(row)})};
+   for(let s=1;s<=seasons;s++){const z=document.createElement("button");z.textContent="Season "+s;z.onclick=()=>{current=s;paint()};picker.appendChild(z)}paint();b.textContent="EPISODES";
+ }catch(_){b.disabled=false;b.textContent="EPISODES UNAVAILABLE"}};
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function mixedCard(item){

@@ -413,7 +413,17 @@ class MainActivity:Activity(){
    }catch(_:Exception){runOnUiThread{loadImageInto(view,fallback)}}
   }.start()
  }
- private fun shell(title:String):LinearLayout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(64,34,64,28);setBackgroundColor(bg);addView(TextView(this@MainActivity).apply{text=title;textSize=34f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.05f;setPadding(6,0,0,2)});addView(TextView(this@MainActivity).apply{text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=15f;setTextColor(accent);letterSpacing=.03f;setPadding(7,0,0,22)})}
+ private fun shell(title:String):LinearLayout=LinearLayout(this).apply{
+  orientation=LinearLayout.VERTICAL
+  setPadding(88,32,78,30)
+  setBackgroundColor(bg)
+  addView(TextView(this@MainActivity).apply{
+   text=title;textSize=30f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.035f;setPadding(2,0,0,2)
+  })
+  addView(TextView(this@MainActivity).apply{
+   text="Η Ελλάδα στο σπίτι σας  •  $placeUpper → WORLD";textSize=12.5f;setTextColor(accent);letterSpacing=.025f;setPadding(2,0,0,16)
+  })
+ }
 
 
  private fun showPreloadedSeries(){
@@ -422,7 +432,15 @@ class MainActivity:Activity(){
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
   previewPlayer?.release();previewPlayer=null;player?.release();player=null
   val root=shell("PRELOADED SERIES")
-  root.addView(TextView(this).apply{text="Greek series library • official broadcaster archives";textSize=14f;setTextColor(muted);setPadding(7,0,0,14)})
+  val seriesMeta=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(2,0,2,14)}
+  seriesMeta.addView(TextView(this).apply{
+   text="30 SERIES";textSize=9.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+   background=GradientDrawable().apply{setColor(Color.rgb(13,105,193));cornerRadius=11f};setPadding(10,3,10,3)
+  },LinearLayout.LayoutParams(-2,28).apply{setMargins(0,0,10,0)})
+  seriesMeta.addView(TextView(this).apply{
+   text="MEGA • ANT1 • official broadcaster archives";textSize=11.5f;setTextColor(Color.rgb(153,198,227))
+  })
+  root.addView(seriesMeta)
   data class SeriesItem(val title:String,val source:String,val episodes:String,val url:String,val brousko:Boolean=false)
   val series=listOf(
    SeriesItem("ΑΓΙΟΣ ΠΑΪΣΙΟΣ – ΑΠΟ ΤΑ ΦΑΡΑΣΑ ΣΤΟΝ ΟΥΡΑΝΟ","MEGA","2 seasons • 21 episodes • complete","https://www.megatv.com/ekpompes/576225/agios-paisios-apo-ta-farasa-ston-ourano/"),
@@ -457,7 +475,7 @@ class MainActivity:Activity(){
    SeriesItem("SINGLES 3","MEGA","final season archive","https://www.megatv.com/ekpompes/42682/singles-3-2/"),
   )
   val scroll=ScrollView(this).apply{isFillViewport=true;overScrollMode=View.OVER_SCROLL_NEVER}
-  val grid=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(2,0,10,20)}
+  val grid=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,0,22)}
   val fallbackArt=listOf(
    "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=900&q=82",
    "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=82",
@@ -478,20 +496,20 @@ class MainActivity:Activity(){
      }
     }
     val art=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.rgb(14,43,66))}
-    card.addView(art,LinearLayout.LayoutParams(-1,118))
+    card.addView(art,LinearLayout.LayoutParams(-1,126))
     loadOpenGraphArtwork(art,s.url,fallbackArt[index%fallbackArt.size])
-    val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(13,9,13,9)}
+    val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(14,9,14,10)}
     copy.addView(TextView(this@MainActivity).apply{
-     text=s.title;textSize=14.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END
+     text=s.title;textSize=14f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END
     },LinearLayout.LayoutParams(-1,0,1f))
     copy.addView(TextView(this@MainActivity).apply{
      text=s.source+"  •  "+s.episodes;textSize=9.5f;setTextColor(Color.rgb(159,204,232));maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
     })
-    card.addView(copy,LinearLayout.LayoutParams(-1,72))
-    row.addView(card,LinearLayout.LayoutParams(0,190,1f).apply{setMargins(0,0,12,12)})
+    card.addView(copy,LinearLayout.LayoutParams(-1,74))
+    row.addView(card,LinearLayout.LayoutParams(0,200,1f).apply{setMargins(0,0,14,14)})
    }
-   repeat(3-group.size){row.addView(View(this),LinearLayout.LayoutParams(0,190,1f).apply{setMargins(0,0,12,12)})}
-   grid.addView(row,LinearLayout.LayoutParams(-1,190))
+   repeat(3-group.size){row.addView(View(this),LinearLayout.LayoutParams(0,200,1f).apply{setMargins(0,0,14,14)})}
+   grid.addView(row,LinearLayout.LayoutParams(-1,200))
   }
   scroll.addView(grid)
   root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
@@ -1099,7 +1117,7 @@ class MainActivity:Activity(){
 
   val lowerVeil=View(this).apply{background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.TRANSPARENT,Color.argb(95,1,8,15),Color.argb(185,1,7,13)))}
   root.addView(lowerVeil,FrameLayout.LayoutParams(-1,-1).apply{topMargin=150})
-  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(70,22,70,28);clipToPadding=false}
+  val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(82,22,78,30);clipToPadding=false}
 
   // TV-safe masthead: compact brand, generous safe margins, no clipped right edge.
   val top=LinearLayout(this).apply{
@@ -1132,8 +1150,8 @@ class MainActivity:Activity(){
    bt.addView(TextView(this@MainActivity).apply{
     text="GREEK TELEVISION  •  CHIOS → WORLD";textSize=8.5f;letterSpacing=.11f;typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setTextColor(Color.rgb(145,195,229));setSingleLine(true)
    })
-   brand.addView(bt,LinearLayout.LayoutParams(190,-2))
-   top.addView(brand,LinearLayout.LayoutParams(0,-2,1.25f))
+   brand.addView(bt,LinearLayout.LayoutParams(220,-2))
+   top.addView(brand,LinearLayout.LayoutParams(0,-2,1.5f))
    fun infoChip():TextView=TextView(this).apply{
     textSize=10.2f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);gravity=Gravity.CENTER
     setPadding(8,6,8,6)
@@ -1144,9 +1162,9 @@ class MainActivity:Activity(){
     textSize=10f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(222,235,245));gravity=Gravity.CENTER;letterSpacing=.05f;setSingleLine(true)
    }
    sydneyInfoView=infoChip()
-   top.addView(athensInfoView,LinearLayout.LayoutParams(178,60).apply{setMargins(6,0,4,0)})
-   top.addView(dateInfoView,LinearLayout.LayoutParams(88,60))
-   top.addView(sydneyInfoView,LinearLayout.LayoutParams(182,60).apply{setMargins(4,0,4,0)})
+   top.addView(athensInfoView,LinearLayout.LayoutParams(154,54).apply{setMargins(6,0,4,0)})
+   top.addView(dateInfoView,LinearLayout.LayoutParams(82,54))
+   top.addView(sydneyInfoView,LinearLayout.LayoutParams(158,54).apply{setMargins(4,0,4,0)})
    val settingsChip=TextView(this).apply{
     text="⚙";textSize=22f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
     background=GradientDrawable().apply{setColor(Color.argb(165,5,24,42));cornerRadius=14f;setStroke(1,Color.argb(75,150,205,245))}
@@ -1157,11 +1175,11 @@ class MainActivity:Activity(){
     text="●  LIVE";textSize=9.2f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(255,129,139));gravity=Gravity.CENTER
     background=GradientDrawable().apply{setColor(Color.argb(145,34,8,14));cornerRadius=13f;setStroke(1,Color.argb(110,255,95,105))}
    }
-   top.addView(liveStatus,LinearLayout.LayoutParams(70,38).apply{setMargins(2,0,8,0)})
+   top.addView(liveStatus,LinearLayout.LayoutParams(62,36).apply{setMargins(2,0,8,0)})
    top.addView(settingsChip,LinearLayout.LayoutParams(50,50))
    updateHomeHeader();refreshHomeWeather();headerHandler.post(headerTick)
   }
-  page.addView(top,LinearLayout.LayoutParams(-1,80))
+  page.addView(top,LinearLayout.LayoutParams(-1,72))
 
   val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
 
@@ -1251,7 +1269,7 @@ class MainActivity:Activity(){
    }
   }
 
-  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 286,-1).apply{
+  body.addView(nav,LinearLayout.LayoutParams(if(isPappas)224 else 268,-1).apply{
    setMargins(0,6,if(isPappas)18 else 22,0)
   })
 
@@ -1337,7 +1355,7 @@ class MainActivity:Activity(){
      v.foreground=if(f)GradientDrawable().apply{setColor(Color.TRANSPARENT);setStroke(4,Color.WHITE);cornerRadius=24f}else null
      v.animate().scaleX(if(f)1.014f else 1f).scaleY(if(f)1.014f else 1f).setDuration(145).start();v.elevation=if(f)24f else 14f
     }
-    main.addView(heroCard,LinearLayout.LayoutParams(-1,132).apply{setMargins(0,4,0,10)})
+    main.addView(heroCard,LinearLayout.LayoutParams(-1,144).apply{setMargins(0,4,0,12)})
 
     val quick=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
     val quickData=listOf(
@@ -1352,7 +1370,7 @@ class MainActivity:Activity(){
      val base=when(i){0->Color.rgb(11,100,183);1->Color.rgb(132,26,76);2->Color.rgb(83,29,143);3->Color.rgb(191,101,8);4->Color.rgb(8,103,73);else->Color.rgb(54,72,110)}
      quick.addView(tvCard(item.first,item.second,base,item.third),LinearLayout.LayoutParams(0,86,1f).apply{setMargins(0,0,10,0)})
     }
-    main.addView(quick,LinearLayout.LayoutParams(-1,86).apply{setMargins(0,0,0,4)})
+    main.addView(quick,LinearLayout.LayoutParams(-1,92).apply{setMargins(0,0,0,6)})
 
     sectionTitle("Featured Collections","Curated for Greek One")
     val featuredCollections=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
@@ -1532,7 +1550,7 @@ class MainActivity:Activity(){
   page.addView(body,LinearLayout.LayoutParams(-1,0,1f))
   root.addView(page)
   setContentView(root)
-  nav.post{if(nav.childCount>0)nav.getChildAt(0).requestFocus()}
+  nav.post{for(i in 0 until nav.childCount){val v=nav.getChildAt(i);if(v.isFocusable){v.requestFocus();break}}}
   val heroUrls=listOf(hero,
    "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1600&q=82",
    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=82")

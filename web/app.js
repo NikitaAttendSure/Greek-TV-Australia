@@ -280,10 +280,19 @@ function showSeriesDetail(x){
  const b=document.getElementById("loadEpisodes");b.onclick=async()=>{b.disabled=true;b.textContent="LOADING EPISODES…";try{
    const eps=await loadMegaEpisodes(x);if(!eps.length)throw Error();const seasons=seasonCount(x);grid.innerHTML='<div class="season-picker"></div><div class="episode-list"></div>';const picker=grid.querySelector(".season-picker"),list=grid.querySelector(".episode-list");
    const per=Math.ceil(eps.length/seasons);let current=1;
-   const paint=()=>{picker.querySelectorAll("button").forEach((z,i)=>z.classList.toggle("active",i+1===current));const subset=eps.filter((ep,i)=>ep.season?ep.season===current:Math.min(seasons,Math.floor(i/per)+1)===current);list.innerHTML="";subset.forEach(ep=>{const row=document.createElement("button");row.className="episode-row";row.innerHTML='<span class="episode-num">E'+String(ep.number).padStart(2,"0")+'</span><span><b>'+esc(ep.title)+'</b><small>Tap to play in Greek One</small></span><span class="episode-play">▶</span>';row.onclick=async()=>{row.classList.add("loading");try{const p=await resolveMegaEpisode(ep);remember(x.title+" • "+ep.title,"series",ep.page,img,x.source);await playVod(p,()=>showSeriesDetail(x))}catch(_){row.classList.remove("loading");row.querySelector("small").textContent="Episode temporarily unavailable"};};list.appendChild(row)})};
+   const paint=()=>{picker.querySelectorAll("button").forEach((z,i)=>z.classList.toggle("active",i+1===current));const subset=eps.filter((ep,i)=>ep.season?ep.season===current:Math.min(seasons,Math.floor(i/per)+1)===current);list.innerHTML="";subset.forEach(ep=>{const row=document.createElement("button");row.className="episode-row";row.innerHTML='<span class="episode-num">E'+String(ep.number).padStart(2,"0")+'</span><span><b>'+esc(ep.title)+'</b><small>Tap to play in Greek One</small></span><span class="episode-play">▶</span>';row.onclick=async()=>{row.classList.add("loading");try{await playSeriesEpisode(x,ep,img)}catch(_){row.classList.remove("loading");row.querySelector("small").textContent="Episode temporarily unavailable"};};list.appendChild(row)})};
    for(let s=1;s<=seasons;s++){const z=document.createElement("button");z.textContent="Season "+s;z.onclick=()=>{current=s;paint()};picker.appendChild(z)}paint();b.textContent="EPISODES";
  }catch(_){b.disabled=false;b.textContent="EPISODES UNAVAILABLE"}};
  window.scrollTo({top:0,behavior:"smooth"});
+}
+function playEmbeddedPage(item,back){
+ hero.className="vod-player embedded-player";hero.style.backgroundImage="";
+ hero.innerHTML='<div class="live-player-head"><button class="detail-back live-back" type="button">← BACK</button><div><p>GREEK ONE • ON DEMAND</p><h3>'+esc(item.title||"Episode")+'</h3></div></div><div class="playerShell embedShell"><iframe id="vodFrame" title="'+esc(item.title||"Greek One")+'" src="'+item.page+'" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
+ grid.innerHTML="";hero.querySelector(".live-back").onclick=back;window.scrollTo({top:0,behavior:"smooth"});
+}
+function playSeriesEpisode(x,ep,img){
+ remember(x.title+" • "+ep.title,"series",ep.page,img,x.source);
+ return playEmbeddedPage({title:x.title+" • "+ep.title,page:ep.page},()=>showSeriesDetail(x));
 }
 function mixedCard(item){
  if(item.kind==="movie"){const m=item.data,img=MOVIE_ART[m[0]]||ART.movies;return card(m[0],m[1],()=>showMovieDetail(m),img,"movie",m[2])}

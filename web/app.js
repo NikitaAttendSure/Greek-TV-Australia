@@ -320,8 +320,12 @@ function showCookingDetail(c){
  document.getElementById("cookWatch").onclick=()=>playCooking(c,img);window.scrollTo({top:0,behavior:"smooth"});
 }
 function playCooking(c,img){
- const url=c[3],back=()=>showCookingDetail(c);remember(c[0],"cooking",url,img,c[1]+" • "+c[2]);
- if(/youtu(?:\.be|be\.com)/i.test(url))return playYouTubeInside(c[0],url,back);
+ const url=c[3],back=()=>showCookingDetail(c);
+ if(/youtu(?:\.be|be\.com)/i.test(url)){
+   if(!youtubeId(url))return showVodNotice(c[0],"This video source is not currently available for in-app playback.",back);
+   remember(c[0],"cooking",url,img,c[1]+" • "+c[2]);
+   return playYouTubeInside(c[0],url,back);
+ }
  return showVodNotice(c[0],"This broadcaster is not currently exposing a browser-playable stream that Greek One can legally play internally. Greek One will not send you to another webpage.",back);
 }
 function mixedCard(item){

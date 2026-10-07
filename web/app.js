@@ -269,8 +269,13 @@ async function loadMegaEpisodes(x){
  return out.sort((a,b)=>a.number-b.number)
 }
 async function resolveMegaEpisode(ep){
- const r=await fetch("/api/page?url="+encodeURIComponent(ep.page),{cache:"no-store"});if(!r.ok)throw Error();const html=await r.text(),doc=new DOMParser().parseFromString(html,"text/html");
- const p=doc.querySelector("[data-kwik_source]");const url=p?.getAttribute("data-kwik_source");if(!url)throw Error();return{...ep,streamUrl:url,title:ep.title}
+ const r=await fetch("/api/page?url="+encodeURIComponent(ep.page),{cache:"no-store"});if(!r.ok)throw Error("Episode page unavailable");
+ const html=await r.text(),doc=new DOMParser().parseFromString(html,"text/html");
+ const pageText=(doc.body?.textContent||"").replace(/\\s+/g," ").trim().toLowerCase();
+ if(pageText.includes("το επεισόδιο δεν είναι διαθέσιμο")||pageText.includes("episode is not available"))throw Error("Episode unavailable at broadcaster");
+ const p=doc.querySelector("[data-kwik_source]"),url=p?.getAttribute("data-kwik_source");
+ if(!url||!/^https:\/\//i.test(url))throw Error("No verified browser-playable episode source");
+ return{...ep,streamUrl:url,title:ep.title}
 }
 function showSeriesDetail(x){
  if(featuredTimer){clearInterval(featuredTimer);featuredTimer=null}

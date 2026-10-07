@@ -2091,17 +2091,25 @@ class MainActivity:Activity(){
    url.contains("youtu.be/")->url.substringAfter("youtu.be/").substringBefore("?")
    else->""
   }
-  val attempts=mutableListOf<Intent>()
-  if(id.isNotBlank()){
-   attempts.add(Intent(Intent.ACTION_VIEW,Uri.parse("vnd.youtube:$id")).apply{setPackage("com.google.android.youtube.tv");addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
-   attempts.add(Intent(Intent.ACTION_VIEW,Uri.parse("vnd.youtube:$id")).apply{setPackage("com.google.android.youtube");addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
+  val watchUrl=if(id.isNotBlank())"https://www.youtube.com/watch?v=$id" else url
+  val packages=listOf("com.google.android.youtube.tv","com.google.android.youtube")
+  for(pkg in packages){
+   try{
+    val intent=Intent(Intent.ACTION_VIEW,Uri.parse(watchUrl)).apply{
+     setPackage(pkg)
+     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+     putExtra("force_fullscreen",true)
+     putExtra("finish_on_ended",true)
+    }
+    startActivity(intent)
+    return
+   }catch(_:Exception){}
   }
-  attempts.add(Intent(Intent.ACTION_VIEW,Uri.parse(url)).apply{setPackage("com.google.android.youtube.tv");addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
-  attempts.add(Intent(Intent.ACTION_VIEW,Uri.parse(url)).apply{setPackage("com.google.android.youtube");addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
-  for(intent in attempts){
-   try{startActivity(intent);return}catch(_:Exception){}
+  try{
+   startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(watchUrl)).apply{addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)})
+  }catch(_:Exception){
+   showLibraryWeb("YouTube",watchUrl,"COOKING_WEB")
   }
-  showLibraryWeb("YouTube",url,"COOKING_WEB")
  }
  private fun showYouTubeResults(query:String){
   val q=query.trim()

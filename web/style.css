@@ -637,3 +637,16 @@ body{background:#020810}
  #hero.featured-hero{min-height:286px!important}
  .catalogue-grid .card{height:182px!important}
 }
+
+/* Greek One on-demand library */
+.season-picker{display:flex;gap:8px;overflow-x:auto;padding:16px 12px 10px;scrollbar-width:none}.season-picker::-webkit-scrollbar{display:none}
+.season-picker button{flex:none;border:1px solid rgba(255,255,255,.12);background:#071927;color:#9db4c3;border-radius:999px;padding:9px 14px;font-weight:750;font-size:10px}.season-picker button.active{background:#19afe8;color:#fff;border-color:#19afe8}
+.episode-list{display:grid;gap:8px;padding:4px 12px 24px}.episode-row{width:100%;display:grid;grid-template-columns:48px 1fr 30px;align-items:center;gap:10px;text-align:left;border:1px solid rgba(255,255,255,.08);background:#061520;color:#fff;border-radius:13px;padding:11px}.episode-num{display:grid;place-items:center;width:42px;height:42px;border-radius:10px;background:#0b2536;color:#63d5ff;font-weight:850;font-size:10px}.episode-row b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.episode-row small{display:block;margin-top:4px;color:#8299a8;font-size:8px}.episode-play{color:#61d7ff}.episode-row.loading{opacity:.55;pointer-events:none}
+@media(max-width:760px){
+ #hero.vod-player{min-height:0!important;margin:0 10px 13px!important;padding:12px!important;border-radius:0 0 18px 18px!important;background:#06131e!important;display:block!important}
+ #hero.vod-player:after{display:none!important}
+ #hero.vod-player .playerShell{position:relative;aspect-ratio:16/9;min-height:0!important;height:auto!important;margin:0!important;border-radius:11px!important;background:#000!important;overflow:hidden}
+ #hero.vod-player .playerShell video{position:absolute;inset:0;width:100%;height:100%;min-height:0!important;max-height:none!important;object-fit:contain;background:#000}
+ #hero.vod-player .loadingMsg{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;background:radial-gradient(circle at center,#09243a,#02080e)}
+ .episode-list{padding-bottom:90px}
+}

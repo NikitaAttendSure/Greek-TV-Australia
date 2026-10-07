@@ -713,25 +713,80 @@ class MainActivity:Activity(){
    CookingShow("Μπουκιά και Συχώριο • Ζυμαρικά","Τα πολυαγαπημένα","MEGA","https://www.megatv.com/gtvshows/55822/zumarika-ta-poluagapimena/")
   )
   val scroll=ScrollView(this).apply{isFillViewport=true}
-  val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-  shows.forEach{m->
-   val row=LinearLayout(this).apply{
-    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isFocusable=true;isClickable=true;setPadding(22,12,22,12)
-    background=panel(Color.rgb(10,31,50),16f);setOnClickListener{openUri(m.url)}
-    setOnFocusChangeListener{v,f->v.background=if(f)GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(8,104,198),Color.rgb(34,155,246))).apply{cornerRadius=16f;setStroke(2,Color.WHITE)}else panel(Color.rgb(10,31,50),16f);v.animate().scaleX(if(f)1.012f else 1f).scaleY(if(f)1.012f else 1f).setDuration(100).start()}
+  val grid=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(2,0,2,6)}
+
+  fun artworkFor(m:CookingShow,index:Int):String{
+   if(m.url.contains("youtube.com/watch")){
+    val id=m.url.substringAfter("v=").substringBefore("&")
+    if(id.isNotBlank())return "https://img.youtube.com/vi/$id/hqdefault.jpg"
    }
-   val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-   copy.addView(TextView(this@MainActivity).apply{text=m.title;textSize=20f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
-   copy.addView(TextView(this@MainActivity).apply{text=m.subtitle;textSize=12f;setTextColor(Color.rgb(175,205,225));setPadding(0,3,0,0)})
-   row.addView(copy,LinearLayout.LayoutParams(0,-2,1f))
-   row.addView(TextView(this).apply{text=m.source+"  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(83,194,248))})
-   list.addView(row,LinearLayout.LayoutParams(-1,82).apply{setMargins(0,0,0,10)})
+   return when{
+    m.title.startsWith("Kitchen Lab")->listOf(
+     "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=700&q=82",
+     "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=700&q=82"
+    )[index%2]
+    m.title.startsWith("ΠΟΠ")->"https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=700&q=82"
+    m.title.startsWith("Μπουκιά")->listOf(
+     "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=700&q=82",
+     "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=700&q=82",
+     "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&w=700&q=82"
+    )[index%3]
+    else->listOf(
+     "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=700&q=82",
+     "https://images.unsplash.com/photo-1507048331197-7d4ac70811cf?auto=format&fit=crop&w=700&q=82",
+     "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=700&q=82"
+    )[index%3]
+   }
   }
-  scroll.addView(list)
+
+  shows.chunked(3).forEachIndexed{rowIndex,group->
+   val row=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;clipChildren=false;clipToPadding=false}
+   group.forEachIndexed{column,m->
+    val index=rowIndex*3+column
+    val card=LinearLayout(this).apply{
+     orientation=LinearLayout.VERTICAL
+     isFocusable=true;isClickable=true;clipToOutline=true
+     background=panel(Color.rgb(8,27,45),16f)
+     elevation=6f
+     setOnClickListener{openUri(m.url)}
+     setOnFocusChangeListener{v,f->
+      v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
+      v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start()
+      v.elevation=if(f)20f else 6f
+     }
+    }
+    val image=ImageView(this).apply{
+     scaleType=ImageView.ScaleType.CENTER_CROP
+     setBackgroundColor(Color.rgb(14,43,66))
+    }
+    card.addView(image,LinearLayout.LayoutParams(-1,112))
+    loadImageInto(image,artworkFor(m,index))
+
+    val copy=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(13,9,13,9)}
+    copy.addView(TextView(this@MainActivity).apply{
+     text=m.title;textSize=15f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
+     maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END
+    },LinearLayout.LayoutParams(-1,0,1f))
+    copy.addView(TextView(this@MainActivity).apply{
+     text=m.source+"  •  "+m.subtitle;textSize=9.5f;setTextColor(Color.rgb(159,204,232))
+     maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
+    })
+    card.addView(copy,LinearLayout.LayoutParams(-1,72))
+    row.addView(card,LinearLayout.LayoutParams(0,184,1f).apply{setMargins(0,0,12,12)})
+   }
+   repeat(3-group.size){row.addView(View(this),LinearLayout.LayoutParams(0,184,1f).apply{setMargins(0,0,12,12)})}
+   grid.addView(row,LinearLayout.LayoutParams(-1,184))
+  }
+  scroll.addView(grid)
   root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
   root.addView(button("←  Home"){showGreekOneHome()},LinearLayout.LayoutParams(320,62))
   setContentView(root)
-  list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
+  grid.post{
+   if(grid.childCount>0){
+    val firstRow=grid.getChildAt(0)
+    if(firstRow is LinearLayout && firstRow.childCount>0)firstRow.getChildAt(0).requestFocus()
+   }
+  }
  }
  private fun showGreekOneHome(){
   screenMode="HOME"

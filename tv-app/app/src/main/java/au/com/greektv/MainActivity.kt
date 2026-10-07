@@ -352,7 +352,7 @@ class MainActivity:Activity(){
    SeriesItem("ΣΑΒΒΑΤΟΓΕΝΝΗΜΕΝΕΣ","MEGA","33 episodes","https://www.megatv.com/ekpompes/43202/savvatogennimenes/"),
    SeriesItem("ΣΤΟ ΠΑΡΑ ΠΕΝΤΕ","MEGA","complete archive","https://www.megatv.com/ekpompes/43346/sto-para-pente/"),
    SeriesItem("ΣΤΟΥΣ 31 ΔΡΟΜΟΥΣ","MEGA","12 episodes • complete","https://www.megatv.com/tvshows/49615/epeisodio-1/"),
-   SeriesItem("ΣΧΕΔΟΝ ΕΝΗΛΙΚΕΣ","MEGA","12 episodes • complete","https://www.megatv.com/ekpompes/142326/sxedon-enilikes/")
+   SeriesItem("ΣΧΕΔΟΝ ΕΝΗΛΙΚΕΣ","MEGA","12 episodes • complete","https://www.megatv.com/ekpompes/142326/sxedon-enilikes/"),
    SeriesItem("ΦΙΛΟΔΟΞΙΕΣ","MEGA","799 episodes","https://www.megatv.com/ekpompes/43252/filodoksies/"),
    SeriesItem("SAFE SEX","MEGA","43+ episode archive","https://www.megatv.com/ekpompes/43229/safe-sex/"),
    SeriesItem("SINGLES","MEGA","21 episodes • season 1","https://www.megatv.com/ekpompes/43287/singles/"),
@@ -368,7 +368,7 @@ class MainActivity:Activity(){
    text.addView(TextView(this@MainActivity).apply{this.text=s.title;textSize=19f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
    text.addView(TextView(this@MainActivity).apply{this.text=s.source+" • "+s.episodes;textSize=12.5f;setTextColor(Color.rgb(158,195,220));setPadding(0,3,0,0)})
    row.addView(text,LinearLayout.LayoutParams(0,-2,1f))
-   row.addView(TextView(this).apply{text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(105,207,255))})
+   row.addView(TextView(this).apply{this.text="WATCH  ▶";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(105,207,255))})
    row.setOnClickListener{if(s.brousko)showBrousko() else showSeriesWeb(s.title,s.url)}
    row.setOnFocusChangeListener{v,f->v.background=GradientDrawable().apply{setColor(if(f)Color.rgb(12,105,184) else if(i==0)Color.rgb(50,24,72) else Color.rgb(10,31,50));cornerRadius=16f;if(f)setStroke(2,Color.WHITE)}}
    if(first==null)first=row

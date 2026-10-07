@@ -215,7 +215,7 @@ function seriesSynopsis(x){return `An official ${x.source} archive title availab
 function ertContentId(url){const m=String(url||"").match(/\/details\/([^/?#]+)/);return m?m[1]:""}
 async function getErtDetails(m){
  const id=ertContentId(m[2]);if(!id)throw Error("Movie source unavailable");
- const r=await fetch("https://live.ertflix.gr/api/details?contentId="+encodeURIComponent(id)+"&lang=en_GB",{cache:"no-store"});
+ const r=await fetch("/api/ert-details?id="+encodeURIComponent(id),{cache:"no-store"});
  if(!r.ok)throw Error("Movie details unavailable");return await r.json()
 }
 let activeVod=null;
@@ -251,13 +251,13 @@ function seriesCount(x){const m=x.episodes.match(/(\d+)\s*episodes/i);return m?N
 function seasonCount(x){const m=x.episodes.match(/(\d+)\s*seasons?/i);return m?Number(m[1]):1}
 function episodeNumber(url,label){const m=(label||url).match(/(?:epeisodio|episode)[-\s:]*(\d+)/i);return m?Number(m[1]):0}
 async function loadMegaEpisodes(x){
- const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(x.url),{cache:"no-store"});if(!r.ok)throw Error();const html=await r.text();
+ const r=await fetch("/api/page?url="+encodeURIComponent(x.url),{cache:"no-store"});if(!r.ok)throw Error();const html=await r.text();
  const doc=new DOMParser().parseFromString(html,"text/html"),seen=new Set(),out=[];
  doc.querySelectorAll('a[href*="/tvshows/"]').forEach(a=>{const url=a.href;if(!/epeisodio|episode/i.test(url)||seen.has(url))return;seen.add(url);const n=episodeNumber(url,a.textContent);out.push({number:n||out.length+1,title:(a.textContent||"").trim()||("Episode "+(n||out.length+1)),page:url})});
  return out.sort((a,b)=>a.number-b.number)
 }
 async function resolveMegaEpisode(ep){
- const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(ep.page),{cache:"no-store"});if(!r.ok)throw Error();const html=await r.text(),doc=new DOMParser().parseFromString(html,"text/html");
+ const r=await fetch("/api/page?url="+encodeURIComponent(ep.page),{cache:"no-store"});if(!r.ok)throw Error();const html=await r.text(),doc=new DOMParser().parseFromString(html,"text/html");
  const p=doc.querySelector("[data-kwik_source]");const url=p?.getAttribute("data-kwik_source");if(!url)throw Error();return{...ep,streamUrl:url,title:ep.title}
 }
 function showSeriesDetail(x){

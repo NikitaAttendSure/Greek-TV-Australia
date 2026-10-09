@@ -2807,7 +2807,18 @@ class MainActivity:Activity(){
   val pv=PlayerView(this).apply{useController=true;keepScreenOn=true;setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);setBackgroundColor(Color.BLACK)}
   root.addView(pv,LinearLayout.LayoutParams(-1,0,1f));setContentView(root)
   try{
-   player=ExoPlayer.Builder(this).build().also{p->pv.player=p;p.setMediaItem(MediaItem.fromUri(streamUrl));p.prepare();p.playWhenReady=true}
+   player=ExoPlayer.Builder(this).build().also{p->
+    pv.player=p
+    p.addListener(object:Player.Listener{
+     override fun onPlayerError(error:PlaybackException){
+      runOnUiThread{
+       showMessage("Playback unavailable","The broadcaster stream could not be played on this TV. Greek One stayed inside the app.")
+       p.release();if(player===p)player=null;onBack()
+      }
+     }
+    })
+    p.setMediaItem(MediaItem.fromUri(streamUrl));p.prepare();p.playWhenReady=true
+   }
   }catch(_:Exception){showMessage("Playback unavailable","This title cannot be played right now.");onBack()}
   back.requestFocus()
  }

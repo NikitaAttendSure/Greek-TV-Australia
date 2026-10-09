@@ -415,8 +415,9 @@ class MainActivity:Activity(){
  }
  private fun timeAt(zone:String):String=SimpleDateFormat("hh:mm a",Locale.US).apply{timeZone=TimeZone.getTimeZone(zone)}.format(Date())
  private fun updateHomeHeader(){
-  athensInfoView?.text="🇬🇷 ATHENS\n${timeAt("Europe/Athens")}  •  ${athensTemp}°C"
-  sydneyInfoView?.text="🇦🇺 SYDNEY\n${timeAt("Australia/Sydney")}  •  ${sydneyTemp}°C"
+  fun weatherLine(temp:String,condition:String)=if(temp=="--")"Weather loading…" else "${temp}°C  •  ${condition}"
+  athensInfoView?.text="🇬🇷 ATHENS  ${timeAt("Europe/Athens")}\n${weatherLine(athensTemp,athensCondition)}"
+  sydneyInfoView?.text="🇦🇺 SYDNEY  ${timeAt("Australia/Sydney")}\n${weatherLine(sydneyTemp,sydneyCondition)}"
   dateInfoView?.text=SimpleDateFormat("d MMM",Locale.getDefault()).format(Date()).uppercase()
  }
  private val headerTick=object:Runnable{override fun run(){if(screenMode=="HOME"){updateHomeHeader();headerHandler.postDelayed(this,30000)}}}
@@ -427,7 +428,12 @@ class MainActivity:Activity(){
   Thread{
    fun getWeather(lat:String,lon:String,tz:String):Pair<String,String>?=try{
     val u="https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code&timezone="+java.net.URLEncoder.encode(tz,"UTF-8")
-    val conn=URL(u).openConnection().apply{connectTimeout=5000;readTimeout=6000}
+    val conn=URL(u).openConnection().apply{
+     connectTimeout=7000;readTimeout=8000
+     setRequestProperty("User-Agent","GreekOneTV/"+currentVersionCode())
+     setRequestProperty("Accept","application/json")
+     setRequestProperty("Cache-Control","no-cache")
+    }
     val txt=conn.getInputStream().bufferedReader().use{it.readText()}
     val cur=JSONObject(txt).optJSONObject("current") ?: throw IllegalStateException("No current weather")
     val temp=Math.round(cur.optDouble("temperature_2m")).toInt().toString()
@@ -531,7 +537,7 @@ class MainActivity:Activity(){
     val card=LinearLayout(this).apply{
      orientation=LinearLayout.VERTICAL;isFocusable=true;isClickable=true;clipToOutline=true;elevation=6f
      background=panel(Color.rgb(8,27,45),16f)
-     setOnClickListener{if(s.brousko)showBrousko() else showSeriesWeb(s.title,s.url)}
+     setOnClickListener{showLibraryWeb(s.title,s.url,"SERIES_WEB")}
      setOnFocusChangeListener{v,f->
       v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
       v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start();v.elevation=if(f)20f else 6f
@@ -887,7 +893,7 @@ class MainActivity:Activity(){
      isFocusable=true;isClickable=true;clipToOutline=true
      background=panel(Color.rgb(8,27,45),16f)
      elevation=6f
-     setOnClickListener{if(m.url.contains("youtube.com",true)||m.url.contains("youtu.be",true))openYouTubeExternal(m.url) else openBroadcasterContent(m.title,m.url,"COOKING_WEB")}
+     setOnClickListener{openBroadcasterContent(m.title,m.url,"COOKING_WEB")}
      setOnFocusChangeListener{v,f->
       v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
       v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start()
@@ -1111,8 +1117,8 @@ class MainActivity:Activity(){
     found.add((item.type.uppercase()+"  •  "+item.title+"\n"+item.meta) to {
      when(item.type){
       "Movie"->openBroadcasterContent(item.title,item.url,"MOVIE_WEB")
-      "Cooking"->if(item.url.contains("youtube.com",true)||item.url.contains("youtu.be",true))openYouTubeExternal(item.url) else openBroadcasterContent(item.title,item.url,"COOKING_WEB")
-      else->if(item.title.contains("ΜΠΡΟΥΣΚΟ",true))showBrousko() else showSeriesWeb(item.title,item.url)
+      "Cooking"->openBroadcasterContent(item.title,item.url,"COOKING_WEB")
+      else->showLibraryWeb(item.title,item.url,"SERIES_WEB")
      }
     })
    }
@@ -2703,17 +2709,7 @@ class MainActivity:Activity(){
   }
  }
  private fun openBroadcasterContent(title:String,url:String,mode:String){
-  val u=url.lowercase(Locale.ROOT)
-  if(u.contains("ertflix.gr")){
-   val packages=listOf("com.ertflix.app","t.yi.erthybrid")
-   for(pkg in packages){
-    try{
-     val intent=Intent(Intent.ACTION_VIEW,Uri.parse(url)).apply{setPackage(pkg);addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
-     startActivity(intent)
-     return
-    }catch(_:Exception){}
-   }
-  }
+  // Greek One library rule: never hand Movies / Series / Cooking to an external app.
   showLibraryWeb(title,url,mode)
  }
  private fun showLibraryWeb(title:String,url:String,mode:String){
@@ -2729,9 +2725,9 @@ class MainActivity:Activity(){
    text=title;textSize=19f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE)
    maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
   },LinearLayout.LayoutParams(0,54,1f))
-  val backLabel=if(mode=="MOVIE_WEB")"← Movies" else "← Cooking"
+  val backLabel=when(mode){"MOVIE_WEB"->"← Movies";"SERIES_WEB"->"← Series";else->"← Cooking"}
   bar.addView(button(backLabel){
-   if(mode=="MOVIE_WEB")showPreloadedMovies() else showGreekCooking()
+   when(mode){"MOVIE_WEB"->showPreloadedMovies();"SERIES_WEB"->showPreloadedSeries();else->showGreekCooking()}
   },LinearLayout.LayoutParams(170,54))
   root.addView(bar,LinearLayout.LayoutParams(-1,74))
 

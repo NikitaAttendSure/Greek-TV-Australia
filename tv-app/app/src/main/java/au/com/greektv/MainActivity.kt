@@ -2809,14 +2809,29 @@ class MainActivity:Activity(){
   try{
    player=ExoPlayer.Builder(this).build().also{p->
     pv.player=p
+    val watchdog=android.os.Handler(android.os.Looper.getMainLooper())
+    var started=false
+    var failed=false
+    fun failPlayback(reason:String){
+     if(failed||player!==p)return
+     failed=true
+     p.release();if(player===p)player=null
+     onBack()
+     showMessage("Playback unavailable",reason)
+    }
     p.addListener(object:Player.Listener{
+     override fun onPlaybackStateChanged(state:Int){
+      if(state==Player.STATE_READY)started=true
+     }
      override fun onPlayerError(error:PlaybackException){
       runOnUiThread{
-       showMessage("Playback unavailable","The broadcaster stream could not be played on this TV. Greek One stayed inside the app.")
-       p.release();if(player===p)player=null;onBack()
+       failPlayback("The broadcaster stream could not be played on this TV (error "+error.errorCode+").")
       }
      }
     })
+    watchdog.postDelayed({
+     if(!started&&player===p)failPlayback("The broadcaster did not start playback within 25 seconds.")
+    },25000)
     p.setMediaItem(MediaItem.fromUri(streamUrl));p.prepare();p.playWhenReady=true
    }
   }catch(_:Exception){showMessage("Playback unavailable","This title cannot be played right now.");onBack()}

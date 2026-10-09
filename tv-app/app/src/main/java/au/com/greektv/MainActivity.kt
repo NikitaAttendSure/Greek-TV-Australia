@@ -2800,7 +2800,7 @@ class MainActivity:Activity(){
   }
   return title to streamFrom(obj)
  }
- private fun showVodPlayer(title:String,streamUrl:String,onBack:()->Unit,sourcePage:String=""){
+ private fun showVodPlayer(title:String,streamUrl:String,sourcePage:String="",onBack:()->Unit){
   screenMode="VOD_PLAYER";player?.release();player=null;previewPlayer?.release();previewPlayer=null
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(Color.BLACK)}
   val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(42,12,42,12);background=panel(Color.rgb(4,22,38),0f)}
@@ -2885,7 +2885,7 @@ class MainActivity:Activity(){
        status.text="Checking Episode "+ep.number+"…"
        Thread{val stream=try{resolveMegaStream(ep.page)}catch(_:Exception){null};runOnUiThread{
         if(stream.isNullOrBlank())status.text="Episode "+ep.number+" • UNAVAILABLE from broadcaster"
-        else showVodPlayer(title+" • "+ep.title,stream){showSeriesEpisodes(title,meta,sourceUrl)}
+        else showVodPlayer(title+" • "+ep.title,stream,ep.page){showSeriesEpisodes(title,meta,sourceUrl)}
        }}.start()
       };list.addView(b,LinearLayout.LayoutParams(-1,58).apply{setMargins(0,0,0,8)})
      }
@@ -2938,7 +2938,7 @@ class MainActivity:Activity(){
    status.text="Checking broadcaster stream…"
    Thread{val stream=try{resolveCookingStream(e.second)}catch(_:Exception){null};runOnUiThread{
     if(stream.isNullOrBlank())status.text="UNAVAILABLE • The broadcaster is not exposing a supported direct stream."
-    else showVodPlayer(e.first,stream){showCookingEpisodes(title,meta,sourceUrl)}
+    else showVodPlayer(e.first,stream,e.second){showCookingEpisodes(title,meta,sourceUrl)}
    }}.start()
   },LinearLayout.LayoutParams(-1,58).apply{setMargins(0,0,0,8)})}
   list.addView(button("←  BACK TO GREEK KITCHEN"){showGreekCooking()},LinearLayout.LayoutParams(310,58).apply{setMargins(0,10,0,16)})
@@ -2958,7 +2958,7 @@ class MainActivity:Activity(){
   val primary=button(if(kind=="SERIES")"BROWSE EPISODES" else "CHECK AVAILABILITY"){
    when(kind){
     "SERIES"->showSeriesEpisodes(title,meta,sourceUrl)
-    "MOVIE"->{status.text="Checking ERTFLIX…";Thread{val r=try{resolveErtStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{val stream=r?.second;if(stream.isNullOrBlank()){status.text="UNAVAILABLE • ERTFLIX is not exposing a supported stream for this title."}else showVodPlayer(r?.first?.ifBlank{title}?:title,stream){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}}}.start()}
+    "MOVIE"->{status.text="Checking ERTFLIX…";Thread{val r=try{resolveErtStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{val stream=r?.second;if(stream.isNullOrBlank()){status.text="UNAVAILABLE • ERTFLIX is not exposing a supported stream for this title."}else showVodPlayer(r?.first?.ifBlank{title}?:title,stream,sourceUrl){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}}}.start()}
     else->{
      val programmeEntries=cookingProgrammeEntries(cookingProgrammeName(title))
      if(programmeEntries.size>1)showCookingEpisodes(title,meta,sourceUrl)
@@ -2966,7 +2966,7 @@ class MainActivity:Activity(){
       status.text="Checking broadcaster stream…"
       Thread{val stream=try{resolveCookingStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{
        if(stream.isNullOrBlank())status.text="UNAVAILABLE • This programme does not currently expose a supported direct stream."
-       else showVodPlayer(title,stream){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}
+       else showVodPlayer(title,stream,sourceUrl){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}
       }}.start()
      }
     }

@@ -2785,7 +2785,7 @@ class MainActivity:Activity(){
   if(html.contains("Το επεισόδιο δεν είναι διαθέσιμο",true)||html.contains("episode is not available",true))return null
   return Regex("""data-kwik_source=["'](https://[^"']+)["']""",RegexOption.IGNORE_CASE).find(html)?.groupValues?.getOrNull(1)?.replace("&amp;","&")
  }
- private fun extractErtId(url:String)=Regex("""/details/([^/?#]+)""").find(url)?.groupValues?.getOrNull(1)
+ private fun extractErtId(url:String)=Regex("""/(?:details|vod)/([^/?#]+)""").find(url)?.groupValues?.getOrNull(1)
  private fun resolveErtStream(sourceUrl:String):Pair<String,String?>?{
   val id=extractErtId(sourceUrl)?:return null
   val raw=fetchText("https://live.ertflix.gr/api/details?contentId="+java.net.URLEncoder.encode(id,"UTF-8")+"&lang=en_GB")

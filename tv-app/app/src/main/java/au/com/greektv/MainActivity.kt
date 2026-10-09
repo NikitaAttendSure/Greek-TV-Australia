@@ -1117,9 +1117,9 @@ class MainActivity:Activity(){
    staticItems.filter{it.title.contains(q,true)||it.meta.contains(q,true)||it.type.contains(q,true)}.take(30).forEach{item->
     found.add((item.type.uppercase()+"  •  "+item.title+"\n"+item.meta) to {
      when(item.type){
-      "Movie"->openBroadcasterContent(item.title,item.url,"MOVIE_WEB")
-      "Cooking"->openBroadcasterContent(item.title,item.url,"COOKING_WEB")
-      else->showLibraryWeb(item.title,item.url,"SERIES_WEB")
+      "Movie"->showNativeVodDetail(item.title,item.meta,"Movie",item.url,"MOVIE")
+       "Cooking"->showNativeVodDetail(item.title,item.meta,"Greek Kitchen",item.url,"COOKING")
+       else->showNativeVodDetail(item.title,item.meta,"Series",item.url,"SERIES")
      }
     })
    }
@@ -2748,8 +2748,9 @@ class MainActivity:Activity(){
   }
  }
  private fun openBroadcasterContent(title:String,url:String,mode:String){
-  // Greek One library rule: never hand Movies / Series / Cooking to an external app.
-  showLibraryWeb(title,url,mode)
+  val kind=when(mode){"MOVIE_WEB"->"MOVIE";"SERIES_WEB"->"SERIES";else->"COOKING"}
+  val kicker=when(kind){"MOVIE"->"Movie";"SERIES"->"Series";else->"Greek Kitchen"}
+  showNativeVodDetail(title,"Official broadcaster title",kicker,url,kind)
  }
  private fun showNativeVodDetail(title:String,meta:String,kicker:String,sourceUrl:String,kind:String){
   screenMode="NATIVE_"+kind

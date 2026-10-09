@@ -2681,19 +2681,57 @@ class MainActivity:Activity(){
   }
   Toast.makeText(this,"Downloading Greek One update…",Toast.LENGTH_LONG).show()
   Thread{
+   var session:android.content.pm.PackageInstaller.Session?=null
+   var sessionId=-1
    try{
-    val fresh=url+(if(url.contains("?"))"&" else "?")+"t="+System.currentTimeMillis()
-    val conn=URL(fresh).openConnection().apply{connectTimeout=10000;readTimeout=30000}
+    var next=url+(if(url.contains("?"))"&" else "?")+"t="+System.currentTimeMillis()
+    var conn:java.net.HttpURLConnection?=null
+    repeat(6){
+     conn=(URL(next).openConnection() as java.net.HttpURLConnection).apply{
+      instanceFollowRedirects=false;connectTimeout=12000;readTimeout=45000
+      setRequestProperty("User-Agent","GreekOneTV/"+currentVersionCode())
+      setRequestProperty("Accept","application/vnd.android.package-archive,application/octet-stream")
+      setRequestProperty("Cache-Control","no-cache")
+     }
+     val code=conn!!.responseCode
+     if(code in 300..399){
+      val location=conn!!.getHeaderField("Location")?:throw java.io.IOException("Update redirect had no destination")
+      next=java.net.URL(java.net.URL(next),location).toString()
+      conn!!.disconnect();conn=null
+     }else return@repeat
+    }
+    val finalConn=conn?:throw java.io.IOException("Too many update redirects")
+    if(finalConn.responseCode !in 200..299)throw java.io.IOException("Update server returned HTTP "+finalConn.responseCode)
+    val expected=finalConn.contentLengthLong
+    if(expected in 1..999999)throw java.io.IOException("Update download is too small")
     val installer=packageManager.packageInstaller
     val params=android.content.pm.PackageInstaller.SessionParams(android.content.pm.PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply{setAppPackageName(packageName)}
-    val sessionId=installer.createSession(params)
-    val session=installer.openSession(sessionId)
-    conn.getInputStream().use{input->session.openWrite("GreekOne-update.apk",0,-1).use{out->input.copyTo(out);session.fsync(out)}}
+    sessionId=installer.createSession(params)
+    session=installer.openSession(sessionId)
+    var total=0L
+    finalConn.inputStream.use{input->
+     session!!.openWrite("base.apk",0,if(expected>0)expected else -1).use{out->
+      val buf=ByteArray(64*1024)
+      while(true){
+       val n=input.read(buf);if(n<0)break
+       out.write(buf,0,n);total+=n
+      }
+      session!!.fsync(out)
+     }
+    }
+    finalConn.disconnect()
+    if(total<1000000L)throw java.io.IOException("Incomplete APK download")
+    if(expected>0&&total!=expected)throw java.io.IOException("Incomplete APK: $total of $expected bytes")
     val statusIntent=Intent(this,MainActivity::class.java).apply{action="au.com.greektv.INSTALL_STATUS";addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)}
     val piFlags=PendingIntent.FLAG_UPDATE_CURRENT or (if(android.os.Build.VERSION.SDK_INT>=31)PendingIntent.FLAG_MUTABLE else 0)
     val pending=PendingIntent.getActivity(this,8817,statusIntent,piFlags)
-    session.commit(pending.intentSender);session.close()
-   }catch(_:Exception){runOnUiThread{showMessage("Greek One","The update could not be installed automatically. Downloader is still available as a fallback.")}}
+    session!!.commit(pending.intentSender);session!!.close();session=null
+   }catch(e:Exception){
+    android.util.Log.e("GreekOne","Update download/install failed",e)
+    try{session?.abandon()}catch(_:Exception){}
+    if(sessionId>=0)try{packageManager.packageInstaller.abandonSession(sessionId)}catch(_:Exception){}
+    runOnUiThread{showMessage("Greek One","The update download was incomplete or invalid. Nothing was installed. Please try Check for update again.")}
+   }
   }.start()
  }
  private fun handleInstallStatus(i:Intent?){

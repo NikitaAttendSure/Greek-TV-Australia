@@ -1211,9 +1211,9 @@ class MainActivity:Activity(){
     textSize=10f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.rgb(222,235,245));gravity=Gravity.CENTER;letterSpacing=.05f;setSingleLine(true)
    }
    sydneyInfoView=infoChip()
-   top.addView(athensInfoView,LinearLayout.LayoutParams(140,52).apply{setMargins(4,0,3,0)})
-   top.addView(dateInfoView,LinearLayout.LayoutParams(72,52))
-   top.addView(sydneyInfoView,LinearLayout.LayoutParams(144,52).apply{setMargins(3,0,3,0)})
+   top.addView(athensInfoView,LinearLayout.LayoutParams(140,60).apply{setMargins(4,0,3,0)})
+   top.addView(dateInfoView,LinearLayout.LayoutParams(72,60))
+   top.addView(sydneyInfoView,LinearLayout.LayoutParams(144,60).apply{setMargins(3,0,3,0)})
    val settingsChip=TextView(this).apply{
     text="⚙";textSize=22f;setTextColor(Color.WHITE);gravity=Gravity.CENTER;isFocusable=true;isClickable=true
     background=GradientDrawable().apply{setColor(Color.argb(165,5,24,42));cornerRadius=14f;setStroke(1,Color.argb(75,150,205,245))}
@@ -1228,7 +1228,7 @@ class MainActivity:Activity(){
    top.addView(settingsChip,LinearLayout.LayoutParams(50,50))
    updateHomeHeader();refreshHomeWeather();headerHandler.post(headerTick)
   }
-  page.addView(top,LinearLayout.LayoutParams(-1,72))
+  page.addView(top,LinearLayout.LayoutParams(-1,78))
 
   val body=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
 
@@ -2096,11 +2096,11 @@ class MainActivity:Activity(){
   videoFrame.addView(previewStatus,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
   previewPane.addView(videoFrame,LinearLayout.LayoutParams(-1,0,1f))
 
-  val previewTitle=TextView(this).apply{text="Select a channel";textSize=26f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,14,0,0)}
-  val previewNow=TextView(this).apply{text="NOW  •  Loading…";textSize=15f;setTextColor(Color.WHITE);setPadding(0,5,0,0)}
-  val previewNext=TextView(this).apply{text="NEXT •  Loading…";textSize=12.5f;setTextColor(Color.rgb(150,190,220));setPadding(0,3,0,0)}
+  val previewTitle=TextView(this).apply{text="Select a channel";textSize=30f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,15,0,0);letterSpacing=.01f}
+  val previewNow=TextView(this).apply{text="NOW  •  Loading…";textSize=16f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,7,0,0)}
+  val previewNext=TextView(this).apply{text="NEXT •  Loading…";textSize=13f;setTextColor(Color.rgb(158,199,229));setPadding(0,5,0,0)}
   previewPane.addView(previewTitle);previewPane.addView(previewNow);previewPane.addView(previewNext)
-  previewPane.addView(TextView(this).apply{text="Press OK for full-screen viewing.";textSize=12f;setTextColor(muted);setPadding(0,8,0,0)})
+  previewPane.addView(TextView(this).apply{text="OK  WATCH FULL SCREEN     •     ▲▼  BROWSE CHANNELS";textSize=12f;setTextColor(muted);setPadding(0,8,0,0)})
 
   fun startPreview(index:Int){
    if(index !in channels.indices)return
@@ -2159,8 +2159,8 @@ class MainActivity:Activity(){
    list.post{if(list.childCount>0)list.getChildAt(0).requestFocus()}
   }
 
-  content.addView(listPane,LinearLayout.LayoutParams(0,-1,.43f).apply{setMargins(0,0,18,0)})
-  content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.57f))
+  content.addView(listPane,LinearLayout.LayoutParams(0,-1,.40f).apply{setMargins(0,0,20,0)})
+  content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.60f))
   root.addView(content,LinearLayout.LayoutParams(-1,0,1f))
   setContentView(root)
 
@@ -2390,8 +2390,8 @@ class MainActivity:Activity(){
   }
   val scroll=ScrollView(this)
   val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-  val previewTitle=TextView(this).apply{text="Select a channel";textSize=27f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE)}
-  val previewMeta=TextView(this).apply{text="Live preview";textSize=14f;setTextColor(accent);setPadding(0,5,0,10)}
+  val previewTitle=TextView(this).apply{text="Select a channel";textSize=30f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);setTextColor(Color.WHITE);letterSpacing=.01f}
+  val previewMeta=TextView(this).apply{text="LIVE PREVIEW";textSize=14f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(accent);setPadding(0,6,0,12);setLineSpacing(3f,1f)}
 
   val previewPane=LinearLayout(this).apply{
    orientation=LinearLayout.VERTICAL
@@ -2426,7 +2426,7 @@ class MainActivity:Activity(){
   previewPane.addView(previewTitle,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,16,0,0)})
   previewPane.addView(previewMeta)
   previewPane.addView(TextView(this).apply{
-   text="OK  Full Screen   •   ▲▼  Change Channel"
+   text="OK  WATCH FULL SCREEN     •     ▲▼  CHANGE CHANNEL     •     HOLD OK  FAVOURITE"
    textSize=13f;setTextColor(muted);setPadding(0,2,0,0)
   })
 

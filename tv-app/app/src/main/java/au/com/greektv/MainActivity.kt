@@ -32,6 +32,7 @@ import org.json.JSONObject
 import org.xmlpull.v1.XmlPullParser
 
 data class Channel(val name:String,val url:String,val group:String,val tvgId:String="")
+// Build 58 bootstrap: release must be produced from the final updater source.
 class MainActivity:Activity(){
  private val bg=Color.rgb(2,7,13);private val card=Color.rgb(12,25,40);private val focus=Color.rgb(27,105,190);private val muted=Color.rgb(158,180,201);private val accent=Color.rgb(64,151,255)
  private val isPappas get()=packageName=="au.com.pappastv"

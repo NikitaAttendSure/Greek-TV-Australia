@@ -2752,46 +2752,174 @@ class MainActivity:Activity(){
   val kicker=when(kind){"MOVIE"->"Movie";"SERIES"->"Series";else->"Greek Kitchen"}
   showNativeVodDetail(title,"Official broadcaster title",kicker,url,kind)
  }
+ private data class VodEpisode(val season:Int,val number:Int,val title:String,val page:String)
+ private fun fetchText(url:String):String{
+  val conn=URL(url).openConnection().apply{connectTimeout=8000;readTimeout=12000;setRequestProperty("User-Agent","Mozilla/5.0 GreekOneTV/"+currentVersionCode());setRequestProperty("Accept","text/html,application/json,*/*")}
+  return conn.getInputStream().bufferedReader().use{it.readText()}
+ }
+ private fun megaEpisodeNumber(v:String):Int=Regex("""(?:epeisodio|episode)[-\\s:]*(\\d+)""",RegexOption.IGNORE_CASE).find(v)?.groupValues?.getOrNull(1)?.toIntOrNull()?:0
+ private fun knownSeriesEpisodes(title:String):List<VodEpisode>{
+  if(title!="ΑΓΙΟΣ ΠΑΪΣΙΟΣ – ΑΠΟ ΤΑ ΦΑΡΑΣΑ ΣΤΟΝ ΟΥΡΑΝΟ")return emptyList()
+  val s1=listOf("595231/epeisodio-1-68","596128/epeisodio-2-64","596132/epeisodio-3-66","604565/epeisodio-4-66","604569/epeisodio-5-63","616214/epeisodio-6-65","619881/epeisodio-7-65","625494/epeisodio-8-65","627037/epeisodio-9-65")
+  val s2=listOf("1799678/epeisodio-1-109","1810961/epeisodio-2-108","1810991/epeisodio-4-112","1829312/epeisodio-5-108","1811027/epeisodio-6-111","1864700/epeisodio-7-110","1864706/epeisodio-8-109","1880873/epeisodio-9-109","1893362/epeisodio-10-106","1894268/epeisodio-11-105","1894277/epeisodio-12-102")
+  return s1.mapIndexed{i,p->VodEpisode(1,i+1,"Episode "+(i+1),"https://www.megatv.com/tvshows/$p/")}+
+   s2.map{p->val n=megaEpisodeNumber(p);VodEpisode(2,n,"Episode $n","https://www.megatv.com/tvshows/$p/")}
+ }
+ private fun discoverMegaEpisodes(title:String,sourceUrl:String):List<VodEpisode>{
+  knownSeriesEpisodes(title).takeIf{it.isNotEmpty()}?.let{return it}
+  val html=fetchText(sourceUrl)
+  val rx=Regex("""href=["']([^"']*/tvshows/[^"']*(?:epeisodio|episode)[^"']*)["']""",RegexOption.IGNORE_CASE)
+  val seen=linkedSetOf<String>();val out=mutableListOf<VodEpisode>()
+  rx.findAll(html).forEach{m->
+   var u=m.groupValues[1].replace("&amp;","&")
+   if(u.startsWith("/"))u="https://www.megatv.com$u"
+   if(!u.startsWith("https://www.megatv.com/")||!seen.add(u))return@forEach
+   val n=megaEpisodeNumber(u);out.add(VodEpisode(1,if(n>0)n else out.size+1,"Episode "+(if(n>0)n else out.size+1),u))
+  }
+  return out.sortedBy{it.number}
+ }
+ private fun resolveMegaStream(page:String):String?{
+  val html=fetchText(page)
+  if(html.contains("Το επεισόδιο δεν είναι διαθέσιμο",true)||html.contains("episode is not available",true))return null
+  return Regex("""data-kwik_source=["'](https://[^"']+)["']""",RegexOption.IGNORE_CASE).find(html)?.groupValues?.getOrNull(1)?.replace("&amp;","&")
+ }
+ private fun extractErtId(url:String)=Regex("""/details/([^/?#]+)""").find(url)?.groupValues?.getOrNull(1)
+ private fun resolveErtStream(sourceUrl:String):Pair<String,String?>?{
+  val id=extractErtId(sourceUrl)?:return null
+  val raw=fetchText("https://live.ertflix.gr/api/details?contentId="+java.net.URLEncoder.encode(id,"UTF-8")+"&lang=en_GB")
+  val obj=JSONObject(raw);val title=obj.optString("title","Greek One")
+  fun streamFrom(x:JSONObject?):String?{
+   if(x==null)return null
+   for(k in listOf("streamUrl","url","playbackUrl","manifestUrl","dashUrl","hlsUrl")){
+    val v=x.optString(k,"");if(v.startsWith("https://")&&(v.contains(".m3u8",true)||v.contains(".mpd",true)||v.contains(".mp4",true)))return v
+   }
+   val keys=x.keys();while(keys.hasNext()){val k=keys.next();val v=x.opt(k);if(v is JSONObject){streamFrom(v)?.let{return it}}else if(v is JSONArray){for(i in 0 until v.length()){val e=v.opt(i);if(e is JSONObject)streamFrom(e)?.let{return it};if(e is String&&e.startsWith("https://")&&(e.contains(".m3u8",true)||e.contains(".mpd",true)||e.contains(".mp4",true)))return e}}else if(v is String&&v.startsWith("https://")&&(v.contains(".m3u8",true)||v.contains(".mpd",true)||v.contains(".mp4",true)))return v}
+   return null
+  }
+  return title to streamFrom(obj)
+ }
+ private fun showVodPlayer(title:String,streamUrl:String,onBack:()->Unit){
+  screenMode="VOD_PLAYER";player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(Color.BLACK)}
+  val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(42,12,42,12);background=panel(Color.rgb(4,22,38),0f)}
+  top.addView(TextView(this).apply{text="GREEK ONE  •  ON DEMAND   $title";textSize=18f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END},LinearLayout.LayoutParams(0,56,1f))
+  val back=button("←  BACK"){player?.release();player=null;onBack()};top.addView(back,LinearLayout.LayoutParams(170,54));root.addView(top,LinearLayout.LayoutParams(-1,78))
+  val pv=PlayerView(this).apply{useController=true;keepScreenOn=true;setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);setBackgroundColor(Color.BLACK)}
+  root.addView(pv,LinearLayout.LayoutParams(-1,0,1f));setContentView(root)
+  try{
+   player=ExoPlayer.Builder(this).build().also{p->pv.player=p;p.setMediaItem(MediaItem.fromUri(streamUrl));p.prepare();p.playWhenReady=true}
+  }catch(_:Exception){showMessage("Playback unavailable","This title cannot be played right now.");onBack()}
+  back.requestFocus()
+ }
+ private fun showSeriesEpisodes(title:String,meta:String,sourceUrl:String){
+  screenMode="NATIVE_SERIES_EPISODES";val root=shell("SERIES")
+  val head=TextView(this).apply{text=title+"\n"+meta;textSize=23f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(4,8,4,16)};root.addView(head)
+  val status=TextView(this).apply{text="Loading episodes…";textSize=13f;setTextColor(Color.rgb(173,202,220));setPadding(4,4,4,12)};root.addView(status)
+  val scroll=ScrollView(this);val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};scroll.addView(list);root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f));setContentView(root)
+  Thread{try{
+   val eps=discoverMegaEpisodes(title,sourceUrl)
+   runOnUiThread{
+    list.removeAllViews()
+    if(eps.isEmpty()){status.text="Episodes are not currently exposed by the broadcaster.";list.addView(button("←  BACK"){showNativeVodDetail(title,meta,"Series",sourceUrl,"SERIES")},LinearLayout.LayoutParams(220,58));return@runOnUiThread}
+    status.text=eps.size.toString()+" episodes found • select an episode"
+    val seasons=eps.map{it.season}.distinct()
+    seasons.forEach{s->
+     if(seasons.size>1)list.addView(TextView(this).apply{text="SEASON $s";textSize=16f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(77,190,246));setPadding(2,16,2,8)})
+     eps.filter{it.season==s}.forEach{ep->
+      val b=button("E"+ep.number.toString().padStart(2,'0')+"   "+ep.title){
+       status.text="Checking Episode "+ep.number+"…"
+       Thread{val stream=try{resolveMegaStream(ep.page)}catch(_:Exception){null};runOnUiThread{
+        if(stream.isNullOrBlank())status.text="Episode "+ep.number+" • UNAVAILABLE from broadcaster"
+        else showVodPlayer(title+" • "+ep.title,stream){showSeriesEpisodes(title,meta,sourceUrl)}
+       }}.start()
+      };list.addView(b,LinearLayout.LayoutParams(-1,58).apply{setMargins(0,0,0,8)})
+     }
+    }
+    list.addView(button("←  BACK TO SERIES"){showPreloadedSeries()},LinearLayout.LayoutParams(260,58).apply{setMargins(0,10,0,16)})
+    if(list.childCount>0)list.getChildAt(if(seasons.size>1)1 else 0).requestFocus()
+   }
+  }catch(_:Exception){runOnUiThread{status.text="Episodes are unavailable right now.";list.addView(button("←  BACK"){showNativeVodDetail(title,meta,"Series",sourceUrl,"SERIES")},LinearLayout.LayoutParams(220,58))}}}.start()
+ }
+ private fun resolveMegaCookingStream(sourceUrl:String):String?=try{resolveMegaStream(sourceUrl)}catch(_:Exception){null}
+ private fun resolveCookingStream(sourceUrl:String):String?{
+  return when{
+   sourceUrl.contains("megatv.com",true)->resolveMegaCookingStream(sourceUrl)
+   sourceUrl.contains("ertflix.gr",true)->resolveErtStream(sourceUrl)?.second
+   else->null
+  }
+ }
+ private fun cookingProgrammeName(title:String):String=title.substringBefore(" • ").trim()
+ private fun cookingProgrammeEntries(programme:String):List<Pair<String,String>>{
+  val all=listOf(
+   "Kitchen Lab • 04/10/2026" to "https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/kitchen-lab-04102026",
+   "Kitchen Lab • 03/10/2026" to "https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/kitchen-lab-03102026",
+   "Μπουκιά και Συχώριο • Αθήνα Β’" to "https://www.megatv.com/gtvshows/55708/athina-v/",
+   "Μπουκιά και Συχώριο • Για ένα κομμάτι πίτα" to "https://www.megatv.com/gtvshows/55852/gia-ena-kommati-pita/",
+   "Μπουκιά και Συχώριο • Κωνσταντινούπολη" to "https://www.megatv.com/gtvshows/55742/knstantinoupoli/",
+   "Μπουκιά και Συχώριο • Βέροια – Νάουσα" to "https://www.megatv.com/gtvshows/55736/veroia-naousa/",
+   "Μπουκιά και Συχώριο • Σίφνος Α’" to "https://www.megatv.com/gtvshows/55846/sifnos-a-i-sifnos-tou-tselemente/",
+   "Μπουκιά και Συχώριο • Σίφνος Β’" to "https://www.megatv.com/gtvshows/55850/sifnos-v-mia-kukladitissa-lli/",
+   "Μπουκιά και Συχώριο • Ορεινή Κορινθία" to "https://www.megatv.com/gtvshows/55966/oreini-korinthia-feneos/",
+   "Μπουκιά και Συχώριο • Πάτμος" to "https://www.megatv.com/gtvshows/55900/patmos-to-nisi-tis-apokaluis/",
+   "Μπουκιά και Συχώριο • Λήμνος" to "https://www.megatv.com/gtvshows/55784/limnos/",
+   "Μπουκιά και Συχώριο • Κέρκυρα" to "https://www.megatv.com/gtvshows/55774/kerkura/",
+   "Μπουκιά και Συχώριο • Πάρος" to "https://www.megatv.com/gtvshows/55732/paros/",
+   "Μπουκιά και Συχώριο • Ήπειρος" to "https://www.megatv.com/gtvshows/55744/ipeiros/",
+   "Μπουκιά και Συχώριο • Κάλυμνος" to "https://www.megatv.com/gtvshows/55942/kalumnos-2/",
+   "Μπουκιά και Συχώριο • Σάμος 2" to "https://www.megatv.com/gtvshows/55936/samos-2-sto-nisi-tou-puthagora/",
+   "Μπουκιά και Συχώριο • Κύθνος" to "https://www.megatv.com/gtvshows/55798/me-anoixta-pania-gia-kuthno",
+   "Μπουκιά και Συχώριο • Αργολίδα" to "https://www.megatv.com/gtvshows/55972/argolida/"
+  )
+  return all.filter{cookingProgrammeName(it.first).equals(programme,true)}
+ }
+ private fun showCookingEpisodes(title:String,meta:String,sourceUrl:String){
+  val programme=cookingProgrammeName(title);val entries=cookingProgrammeEntries(programme)
+  if(entries.size<=1){showNativeVodDetail(title,meta,"Greek Kitchen",sourceUrl,"COOKING");return}
+  screenMode="NATIVE_COOKING_EPISODES";val root=shell("GREEK KITCHEN")
+  root.addView(TextView(this).apply{text=programme;textSize=27f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(4,8,4,14)})
+  val status=TextView(this).apply{text=entries.size.toString()+" programmes • official broadcaster archive";textSize=13f;setTextColor(Color.rgb(173,202,220));setPadding(4,0,4,12)};root.addView(status)
+  val scroll=ScrollView(this);val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};scroll.addView(list)
+  entries.forEach{e->list.addView(button(e.first.substringAfter(" • ",e.first)){
+   status.text="Checking broadcaster stream…"
+   Thread{val stream=try{resolveCookingStream(e.second)}catch(_:Exception){null};runOnUiThread{
+    if(stream.isNullOrBlank())status.text="UNAVAILABLE • The broadcaster is not exposing a supported direct stream."
+    else showVodPlayer(e.first,stream){showCookingEpisodes(title,meta,sourceUrl)}
+   }}.start()
+  },LinearLayout.LayoutParams(-1,58).apply{setMargins(0,0,0,8)})}
+  list.addView(button("←  BACK TO GREEK KITCHEN"){showGreekCooking()},LinearLayout.LayoutParams(310,58).apply{setMargins(0,10,0,16)})
+  root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f));setContentView(root);if(list.childCount>0)list.getChildAt(0).requestFocus()
+ }
  private fun showNativeVodDetail(title:String,meta:String,kicker:String,sourceUrl:String,kind:String){
   screenMode="NATIVE_"+kind
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
   player?.release();player=null;previewPlayer?.release();previewPlayer=null
   val root=shell(when(kind){"MOVIE"->"MOVIES";"SERIES"->"SERIES";else->"GREEK KITCHEN"})
-  val panel=LinearLayout(this).apply{
-   orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL
-   setPadding(34,28,34,28);background=panel(Color.rgb(7,27,44),18f)
-  }
-  panel.addView(TextView(this).apply{
-   text=kicker.uppercase(Locale.ROOT);textSize=11f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD
-   setTextColor(Color.rgb(77,190,246))
-  })
-  panel.addView(TextView(this).apply{
-   text=title;textSize=30f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE)
-   setPadding(0,8,0,7)
-  })
-  panel.addView(TextView(this).apply{
-   text=meta;textSize=14f;setTextColor(Color.rgb(173,202,220));setPadding(0,0,0,22)
-  })
-  val status=TextView(this).apply{
-   text=when(kind){
-    "SERIES"->"Episodes are being prepared for native Greek One playback."
-    "COOKING"->"This programme will play here when a broadcaster-supported stream is available."
-    else->"This movie will play here when a broadcaster-supported stream is available."
-   }
-   textSize=13f;setTextColor(Color.rgb(204,218,228));setPadding(0,0,0,18)
-  }
-  panel.addView(status)
+  val panel=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL;setPadding(34,28,34,28);background=panel(Color.rgb(7,27,44),18f)}
+  panel.addView(TextView(this).apply{text=kicker.uppercase(Locale.ROOT);textSize=11f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.rgb(77,190,246))})
+  panel.addView(TextView(this).apply{text=title;textSize=30f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE);setPadding(0,8,0,7)})
+  panel.addView(TextView(this).apply{text=meta;textSize=14f;setTextColor(Color.rgb(173,202,220));setPadding(0,0,0,22)})
+  val status=TextView(this).apply{text=when(kind){"SERIES"->"Browse seasons and episodes without leaving Greek One.";"MOVIE"->"Checking official ERTFLIX playback availability…";else->"Greek One will only play broadcaster-supported streams internally."};textSize=13f;setTextColor(Color.rgb(204,218,228));setPadding(0,0,0,18)};panel.addView(status)
   val actions=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-  val play=button("▶  PLAY IN GREEK ONE"){
-   showMessage("Greek One","This title does not currently expose a supported direct stream. Greek One will not open a broadcaster webpage or another app.")
+  val primary=button(if(kind=="SERIES")"BROWSE EPISODES" else "CHECK AVAILABILITY"){
+   when(kind){
+    "SERIES"->showSeriesEpisodes(title,meta,sourceUrl)
+    "MOVIE"->{status.text="Checking ERTFLIX…";Thread{val r=try{resolveErtStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{val stream=r?.second;if(stream.isNullOrBlank()){status.text="UNAVAILABLE • ERTFLIX is not exposing a supported stream for this title."}else showVodPlayer(r?.first?.ifBlank{title}?:title,stream){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}}}.start()}
+    else->{
+     val programmeEntries=cookingProgrammeEntries(cookingProgrammeName(title))
+     if(programmeEntries.size>1)showCookingEpisodes(title,meta,sourceUrl)
+     else{
+      status.text="Checking broadcaster stream…"
+      Thread{val stream=try{resolveCookingStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{
+       if(stream.isNullOrBlank())status.text="UNAVAILABLE • This programme does not currently expose a supported direct stream."
+       else showVodPlayer(title,stream){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}
+      }}.start()
+     }
+    }
+   }
   }
-  actions.addView(play,LinearLayout.LayoutParams(260,58).apply{setMargins(0,0,12,0)})
-  actions.addView(button("←  BACK"){
-   when(kind){"MOVIE"->showPreloadedMovies();"SERIES"->showPreloadedSeries();else->showGreekCooking()}
-  },LinearLayout.LayoutParams(180,58))
-  panel.addView(actions)
-  root.addView(panel,LinearLayout.LayoutParams(-1,0,1f).apply{setMargins(6,18,6,18)})
-  setContentView(root);play.requestFocus()
+  actions.addView(primary,LinearLayout.LayoutParams(270,58).apply{setMargins(0,0,12,0)})
+  actions.addView(button("←  BACK"){when(kind){"MOVIE"->showPreloadedMovies();"SERIES"->showPreloadedSeries();else->showGreekCooking()}},LinearLayout.LayoutParams(180,58))
+  panel.addView(actions);root.addView(panel,LinearLayout.LayoutParams(-1,0,1f).apply{setMargins(6,18,6,18)});setContentView(root);primary.requestFocus()
  }
  private fun showLibraryWeb(title:String,url:String,mode:String){
   screenMode=mode

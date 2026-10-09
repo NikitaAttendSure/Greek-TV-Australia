@@ -23,6 +23,8 @@ import android.webkit.WebResourceError
 import android.webkit.WebSettings
 import androidx.media3.common.*
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -2807,7 +2809,20 @@ class MainActivity:Activity(){
   val pv=PlayerView(this).apply{useController=true;keepScreenOn=true;setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);setBackgroundColor(Color.BLACK)}
   root.addView(pv,LinearLayout.LayoutParams(-1,0,1f));setContentView(root)
   try{
-   player=ExoPlayer.Builder(this).build().also{p->
+   val httpFactory=DefaultHttpDataSource.Factory()
+    .setUserAgent("Mozilla/5.0 (Linux; Android TV) AppleWebKit/537.36 Chrome/124 Safari/537.36")
+    .setAllowCrossProtocolRedirects(true)
+    .setDefaultRequestProperties(mapOf(
+     "Accept" to "*/*",
+     "Accept-Language" to "el-GR,el;q=0.9,en;q=0.8",
+     "Referer" to when{
+      streamUrl.contains("megatv",true)||streamUrl.contains("kwik",true)->"https://www.megatv.com/"
+      streamUrl.contains("ert",true)->"https://www.ertflix.gr/"
+      else->"https://www.megatv.com/"
+     }
+    ))
+   val mediaSourceFactory=DefaultMediaSourceFactory(httpFactory)
+   player=ExoPlayer.Builder(this).setMediaSourceFactory(mediaSourceFactory).build().also{p->
     pv.player=p
     val watchdog=android.os.Handler(android.os.Looper.getMainLooper())
     var started=false

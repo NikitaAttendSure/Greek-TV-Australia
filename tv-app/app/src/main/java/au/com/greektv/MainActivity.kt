@@ -2840,6 +2840,55 @@ class MainActivity:Activity(){
    }
   }catch(_:Exception){runOnUiThread{status.text="Episodes are unavailable right now.";list.addView(button("←  BACK"){showNativeVodDetail(title,meta,"Series",sourceUrl,"SERIES")},LinearLayout.LayoutParams(220,58))}}}.start()
  }
+ private fun resolveMegaCookingStream(sourceUrl:String):String?=try{resolveMegaStream(sourceUrl)}catch(_:Exception){null}
+ private fun resolveCookingStream(sourceUrl:String):String?{
+  return when{
+   sourceUrl.contains("megatv.com",true)->resolveMegaCookingStream(sourceUrl)
+   sourceUrl.contains("ertflix.gr",true)->resolveErtStream(sourceUrl)?.second
+   else->null
+  }
+ }
+ private fun cookingProgrammeName(title:String):String=title.substringBefore(" • ").trim()
+ private fun cookingProgrammeEntries(programme:String):List<Pair<String,String>>{
+  val all=listOf(
+   "Kitchen Lab • 04/10/2026" to "https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/kitchen-lab-04102026",
+   "Kitchen Lab • 03/10/2026" to "https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-03-16/kitchen-lab-03102026",
+   "Μπουκιά και Συχώριο • Αθήνα Β’" to "https://www.megatv.com/gtvshows/55708/athina-v/",
+   "Μπουκιά και Συχώριο • Για ένα κομμάτι πίτα" to "https://www.megatv.com/gtvshows/55852/gia-ena-kommati-pita/",
+   "Μπουκιά και Συχώριο • Κωνσταντινούπολη" to "https://www.megatv.com/gtvshows/55742/knstantinoupoli/",
+   "Μπουκιά και Συχώριο • Βέροια – Νάουσα" to "https://www.megatv.com/gtvshows/55736/veroia-naousa/",
+   "Μπουκιά και Συχώριο • Σίφνος Α’" to "https://www.megatv.com/gtvshows/55846/sifnos-a-i-sifnos-tou-tselemente/",
+   "Μπουκιά και Συχώριο • Σίφνος Β’" to "https://www.megatv.com/gtvshows/55850/sifnos-v-mia-kukladitissa-lli/",
+   "Μπουκιά και Συχώριο • Ορεινή Κορινθία" to "https://www.megatv.com/gtvshows/55966/oreini-korinthia-feneos/",
+   "Μπουκιά και Συχώριο • Πάτμος" to "https://www.megatv.com/gtvshows/55900/patmos-to-nisi-tis-apokaluis/",
+   "Μπουκιά και Συχώριο • Λήμνος" to "https://www.megatv.com/gtvshows/55784/limnos/",
+   "Μπουκιά και Συχώριο • Κέρκυρα" to "https://www.megatv.com/gtvshows/55774/kerkura/",
+   "Μπουκιά και Συχώριο • Πάρος" to "https://www.megatv.com/gtvshows/55732/paros/",
+   "Μπουκιά και Συχώριο • Ήπειρος" to "https://www.megatv.com/gtvshows/55744/ipeiros/",
+   "Μπουκιά και Συχώριο • Κάλυμνος" to "https://www.megatv.com/gtvshows/55942/kalumnos-2/",
+   "Μπουκιά και Συχώριο • Σάμος 2" to "https://www.megatv.com/gtvshows/55936/samos-2-sto-nisi-tou-puthagora/",
+   "Μπουκιά και Συχώριο • Κύθνος" to "https://www.megatv.com/gtvshows/55798/me-anoixta-pania-gia-kuthno",
+   "Μπουκιά και Συχώριο • Αργολίδα" to "https://www.megatv.com/gtvshows/55972/argolida/"
+  )
+  return all.filter{cookingProgrammeName(it.first).equals(programme,true)}
+ }
+ private fun showCookingEpisodes(title:String,meta:String,sourceUrl:String){
+  val programme=cookingProgrammeName(title);val entries=cookingProgrammeEntries(programme)
+  if(entries.size<=1){showNativeVodDetail(title,meta,"Greek Kitchen",sourceUrl,"COOKING");return}
+  screenMode="NATIVE_COOKING_EPISODES";val root=shell("GREEK KITCHEN")
+  root.addView(TextView(this).apply{text=programme;textSize=27f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);setPadding(4,8,4,14)})
+  val status=TextView(this).apply{text=entries.size.toString()+" programmes • official broadcaster archive";textSize=13f;setTextColor(Color.rgb(173,202,220));setPadding(4,0,4,12)};root.addView(status)
+  val scroll=ScrollView(this);val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL};scroll.addView(list)
+  entries.forEach{e->list.addView(button(e.first.substringAfter(" • ",e.first)){
+   status.text="Checking broadcaster stream…"
+   Thread{val stream=try{resolveCookingStream(e.second)}catch(_:Exception){null};runOnUiThread{
+    if(stream.isNullOrBlank())status.text="UNAVAILABLE • The broadcaster is not exposing a supported direct stream."
+    else showVodPlayer(e.first,stream){showCookingEpisodes(title,meta,sourceUrl)}
+   }}.start()
+  },LinearLayout.LayoutParams(-1,58).apply{setMargins(0,0,0,8)})}
+  list.addView(button("←  BACK TO GREEK KITCHEN"){showGreekCooking()},LinearLayout.LayoutParams(310,58).apply{setMargins(0,10,0,16)})
+  root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f));setContentView(root);if(list.childCount>0)list.getChildAt(0).requestFocus()
+ }
  private fun showNativeVodDetail(title:String,meta:String,kicker:String,sourceUrl:String,kind:String){
   screenMode="NATIVE_"+kind
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
@@ -2855,7 +2904,17 @@ class MainActivity:Activity(){
    when(kind){
     "SERIES"->showSeriesEpisodes(title,meta,sourceUrl)
     "MOVIE"->{status.text="Checking ERTFLIX…";Thread{val r=try{resolveErtStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{val stream=r?.second;if(stream.isNullOrBlank()){status.text="UNAVAILABLE • ERTFLIX is not exposing a supported stream for this title."}else showVodPlayer(r?.first?.ifBlank{title}?:title,stream){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}}}.start()}
-    else->status.text="UNAVAILABLE • This programme does not currently expose a supported direct stream."
+    else->{
+     val programmeEntries=cookingProgrammeEntries(cookingProgrammeName(title))
+     if(programmeEntries.size>1)showCookingEpisodes(title,meta,sourceUrl)
+     else{
+      status.text="Checking broadcaster stream…"
+      Thread{val stream=try{resolveCookingStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{
+       if(stream.isNullOrBlank())status.text="UNAVAILABLE • This programme does not currently expose a supported direct stream."
+       else showVodPlayer(title,stream){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}
+      }}.start()
+     }
+    }
    }
   }
   actions.addView(primary,LinearLayout.LayoutParams(270,58).apply{setMargins(0,0,12,0)})

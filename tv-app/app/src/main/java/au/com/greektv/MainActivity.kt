@@ -2080,13 +2080,13 @@ class MainActivity:Activity(){
 
   val previewPane=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(18,0,0,0)}
   val videoFrame=FrameLayout(this).apply{
-   background=GradientDrawable().apply{setColor(Color.BLACK);cornerRadius=22f;setStroke(2,Color.argb(145,124,197,241))}
-   clipToOutline=true;elevation=9f
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(1,5,10),Color.rgb(3,18,31))).apply{cornerRadius=24f;setStroke(2,Color.argb(190,105,196,250))}
+   clipToOutline=true;elevation=16f
   }
   val playerView=PlayerView(this).apply{useController=false;keepScreenOn=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);setBackgroundColor(Color.BLACK)}
   videoFrame.addView(playerView,FrameLayout.LayoutParams(-1,-1))
   videoFrame.addView(TextView(this).apply{
-   text="LIVE";textSize=12f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+   text="●  LIVE";textSize=11f;letterSpacing=.08f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
    background=GradientDrawable().apply{setColor(Color.rgb(205,34,52));cornerRadius=10f};setPadding(14,4,14,4)
   },FrameLayout.LayoutParams(-2,-2,Gravity.TOP or Gravity.START).apply{setMargins(16,16,0,0)})
   val previewStatus=TextView(this).apply{
@@ -2398,7 +2398,7 @@ class MainActivity:Activity(){
    setPadding(18,0,0,0)
   }
   val videoFrame=FrameLayout(this).apply{
-   background=GradientDrawable().apply{setColor(Color.BLACK);cornerRadius=22f;setStroke(2,Color.argb(145,124,197,241))};clipToOutline=true;elevation=9f
+   background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(1,5,10),Color.rgb(3,18,31))).apply{cornerRadius=24f;setStroke(2,Color.argb(190,105,196,250))};clipToOutline=true;elevation=16f
   }
   val playerView=PlayerView(this).apply{
    useController=false
@@ -2418,7 +2418,7 @@ class MainActivity:Activity(){
   }
   videoFrame.addView(previewStatus,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
   videoFrame.addView(TextView(this).apply{
-   text="LIVE";textSize=13f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+   text="●  LIVE";textSize=11.5f;letterSpacing=.08f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
    background=GradientDrawable().apply{setColor(Color.rgb(205,34,52));cornerRadius=10f}
    setPadding(14,4,14,4)
   },FrameLayout.LayoutParams(-2,-2,Gravity.TOP or Gravity.START).apply{setMargins(16,16,0,0)})
@@ -2503,7 +2503,7 @@ class MainActivity:Activity(){
      val guideNow=epgNow[ch.tvgId]
      val guideNext=epgNext[ch.tvgId]
      previewMeta.text=if(guideNow!=null)"NOW  •  $guideNow"+(if(guideNext!=null)"\nNEXT •  $guideNext" else "") else (if(ch.group.isBlank())"GREEK TV" else ch.group.uppercase())+"   •   LIVE NOW"
-     previewHandler.postDelayed({if(v.hasFocus())startPreview(i)},350)
+     previewHandler.postDelayed({if(v.hasFocus())startPreview(i)},500)
     }
    }
    list.addView(row)
@@ -2511,8 +2511,8 @@ class MainActivity:Activity(){
 
   scroll.addView(list)
   listPane.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
-  content.addView(listPane,LinearLayout.LayoutParams(0,-1,.40f).apply{setMargins(0,0,18,0)})
-  content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.60f))
+  content.addView(listPane,LinearLayout.LayoutParams(0,-1,.38f).apply{setMargins(0,0,22,0)})
+  content.addView(previewPane,LinearLayout.LayoutParams(0,-1,.62f))
   root.addView(content,LinearLayout.LayoutParams(-1,0,1f))
   setContentView(root)
   loadEpg()

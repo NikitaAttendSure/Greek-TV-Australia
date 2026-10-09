@@ -538,7 +538,7 @@ class MainActivity:Activity(){
     val card=LinearLayout(this).apply{
      orientation=LinearLayout.VERTICAL;isFocusable=true;isClickable=true;clipToOutline=true;elevation=6f
      background=panel(Color.rgb(8,27,45),16f)
-     setOnClickListener{showLibraryWeb(s.title,s.url,"SERIES_WEB")}
+     setOnClickListener{showNativeVodDetail(s.title,s.source+" • "+s.episodes,"Series",s.url,"SERIES")}
      setOnFocusChangeListener{v,f->
       v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
       v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start();v.elevation=if(f)20f else 6f
@@ -744,7 +744,7 @@ class MainActivity:Activity(){
     background=GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,intArrayOf(Color.rgb(6,24,39),Color.rgb(8,34,53))).apply{
      cornerRadius=15f;setStroke(1,Color.argb(72,150,200,232))
     }
-    elevation=6f;setOnClickListener{openBroadcasterContent(m.title,m.url,"MOVIE_WEB")}
+    elevation=6f;setOnClickListener{showNativeVodDetail(m.title,m.meta,m.year,m.url,"MOVIE")}
    }
    val poster=FrameLayout(this).apply{
     background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(m.accent,Color.rgb(7,20,33))).apply{
@@ -894,7 +894,7 @@ class MainActivity:Activity(){
      isFocusable=true;isClickable=true;clipToOutline=true
      background=panel(Color.rgb(8,27,45),16f)
      elevation=6f
-     setOnClickListener{openBroadcasterContent(m.title,m.url,"COOKING_WEB")}
+     setOnClickListener{showNativeVodDetail(m.title,m.source+" • "+m.subtitle,"Greek Kitchen",m.url,"COOKING")}
      setOnFocusChangeListener{v,f->
       v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
       v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start()
@@ -2750,6 +2750,47 @@ class MainActivity:Activity(){
  private fun openBroadcasterContent(title:String,url:String,mode:String){
   // Greek One library rule: never hand Movies / Series / Cooking to an external app.
   showLibraryWeb(title,url,mode)
+ }
+ private fun showNativeVodDetail(title:String,meta:String,kicker:String,sourceUrl:String,kind:String){
+  screenMode="NATIVE_"+kind
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  val root=shell(when(kind){"MOVIE"->"MOVIES";"SERIES"->"SERIES";else->"GREEK KITCHEN"})
+  val panel=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL
+   setPadding(34,28,34,28);background=panel(Color.rgb(7,27,44),18f)
+  }
+  panel.addView(TextView(this).apply{
+   text=kicker.uppercase(Locale.ROOT);textSize=11f;letterSpacing=.12f;typeface=Typeface.DEFAULT_BOLD
+   setTextColor(Color.rgb(77,190,246))
+  })
+  panel.addView(TextView(this).apply{
+   text=title;textSize=30f;typeface=Typeface.create("sans-serif-medium",Typeface.BOLD);setTextColor(Color.WHITE)
+   setPadding(0,8,0,7)
+  })
+  panel.addView(TextView(this).apply{
+   text=meta;textSize=14f;setTextColor(Color.rgb(173,202,220));setPadding(0,0,0,22)
+  })
+  val status=TextView(this).apply{
+   text=when(kind){
+    "SERIES"->"Episodes are being prepared for native Greek One playback."
+    "COOKING"->"This programme will play here when a broadcaster-supported stream is available."
+    else->"This movie will play here when a broadcaster-supported stream is available."
+   }
+   textSize=13f;setTextColor(Color.rgb(204,218,228));setPadding(0,0,0,18)
+  }
+  panel.addView(status)
+  val actions=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
+  val play=button("▶  PLAY IN GREEK ONE"){
+   showMessage("Greek One","This title does not currently expose a supported direct stream. Greek One will not open a broadcaster webpage or another app.")
+  }
+  actions.addView(play,LinearLayout.LayoutParams(260,58).apply{setMargins(0,0,12,0)})
+  actions.addView(button("←  BACK"){
+   when(kind){"MOVIE"->showPreloadedMovies();"SERIES"->showPreloadedSeries();else->showGreekCooking()}
+  },LinearLayout.LayoutParams(180,58))
+  panel.addView(actions)
+  root.addView(panel,LinearLayout.LayoutParams(-1,0,1f).apply{setMargins(6,18,6,18)})
+  setContentView(root);play.requestFocus()
  }
  private fun showLibraryWeb(title:String,url:String,mode:String){
   screenMode=mode

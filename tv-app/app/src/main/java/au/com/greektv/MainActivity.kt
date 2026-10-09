@@ -2854,7 +2854,7 @@ class MainActivity:Activity(){
   val primary=button(if(kind=="SERIES")"BROWSE EPISODES" else "CHECK AVAILABILITY"){
    when(kind){
     "SERIES"->showSeriesEpisodes(title,meta,sourceUrl)
-    "MOVIE"->{status.text="Checking ERTFLIX…";Thread{val r=try{resolveErtStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{val stream=r?.second;if(stream.isNullOrBlank()){status.text="UNAVAILABLE • ERTFLIX is not exposing a supported stream for this title.";primary@{}}else showVodPlayer(r?.first?.ifBlank{title}?:title,stream){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}}}.start()}
+    "MOVIE"->{status.text="Checking ERTFLIX…";Thread{val r=try{resolveErtStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{val stream=r?.second;if(stream.isNullOrBlank()){status.text="UNAVAILABLE • ERTFLIX is not exposing a supported stream for this title."}else showVodPlayer(r?.first?.ifBlank{title}?:title,stream){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}}}.start()}
     else->status.text="UNAVAILABLE • This programme does not currently expose a supported direct stream."
    }
   }

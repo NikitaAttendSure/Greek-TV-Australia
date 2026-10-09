@@ -2800,7 +2800,7 @@ class MainActivity:Activity(){
   }
   return title to streamFrom(obj)
  }
- private fun showVodPlayer(title:String,streamUrl:String,onBack:()->Unit){
+ private fun showVodPlayer(title:String,streamUrl:String,onBack:()->Unit,sourcePage:String=""){
   screenMode="VOD_PLAYER";player?.release();player=null;previewPlayer?.release();previewPlayer=null
   val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(Color.BLACK)}
   val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(42,12,42,12);background=panel(Color.rgb(4,22,38),0f)}
@@ -2816,9 +2816,11 @@ class MainActivity:Activity(){
      "Accept" to "*/*",
      "Accept-Language" to "el-GR,el;q=0.9,en;q=0.8",
      "Referer" to when{
+      sourcePage.contains("megatv.com",true)->"https://www.megatv.com/"
+      sourcePage.contains("ertflix.gr",true)->"https://www.ertflix.gr/"
       streamUrl.contains("megatv",true)||streamUrl.contains("kwik",true)->"https://www.megatv.com/"
       streamUrl.contains("ert",true)->"https://www.ertflix.gr/"
-      else->"https://www.megatv.com/"
+      else->"https://www.ertflix.gr/"
      }
     ))
    val mediaSourceFactory=DefaultMediaSourceFactory(httpFactory)
@@ -2840,7 +2842,19 @@ class MainActivity:Activity(){
      }
      override fun onPlayerError(error:PlaybackException){
       runOnUiThread{
-       failPlayback("The broadcaster stream could not be played on this TV (error "+error.errorCode+").")
+       var cause:Throwable?=error.cause
+       var httpStatus:Int?=null
+       while(cause!=null){
+        if(cause is androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException){httpStatus=cause.responseCode;break}
+        cause=cause.cause
+       }
+       val detail=when(httpStatus){
+        401,403->"Broadcaster denied access (HTTP "+httpStatus+"). This programme may require permission or be region restricted."
+        404,410->"Broadcaster video is missing or expired (HTTP "+httpStatus+")."
+        null->"Broadcaster stream failed (player error "+error.errorCode+")."
+        else->"Broadcaster returned HTTP "+httpStatus+" (player error "+error.errorCode+")."
+       }
+       failPlayback(detail)
       }
      }
     })

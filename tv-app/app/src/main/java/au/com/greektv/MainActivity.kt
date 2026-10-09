@@ -243,7 +243,7 @@ class MainActivity:Activity(){
    AlertDialog.Builder(this)
     .setTitle("Check for update")
     .setMessage("Download the latest signed Greek One build now?")
-    .setPositiveButton("Download"){_,_->installAppUpdate("https://rtv.up.railway.app")}
+    .setPositiveButton("Download"){_,_->installAppUpdate(cfgString("updateUrl","https://github.com/NikitaAttendSure/Greek-TV-Australia/releases/download/reskakis-tv-latest/RESKAKIS-TV.apk"))}
     .setNegativeButton("Cancel",null)
     .show()
   },LinearLayout.LayoutParams(-1,88).apply{setMargins(0,8,0,14)})

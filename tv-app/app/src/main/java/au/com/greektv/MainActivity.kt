@@ -2689,7 +2689,7 @@ class MainActivity:Activity(){
    try{
     var next=url+(if(url.contains("?"))"&" else "?")+"t="+System.currentTimeMillis()
     var conn:java.net.HttpURLConnection?=null
-    repeat(6){
+    for(redirect in 0..6){
      conn=(URL(next).openConnection() as java.net.HttpURLConnection).apply{
       instanceFollowRedirects=false;connectTimeout=12000;readTimeout=45000
       setRequestProperty("User-Agent","GreekOneTV/"+currentVersionCode())
@@ -2701,7 +2701,7 @@ class MainActivity:Activity(){
       val location=conn!!.getHeaderField("Location")?:throw java.io.IOException("Update redirect had no destination")
       next=java.net.URL(java.net.URL(next),location).toString()
       conn!!.disconnect();conn=null
-     }else return@repeat
+     }else break
     }
     val finalConn=conn?:throw java.io.IOException("Too many update redirects")
     if(finalConn.responseCode !in 200..299)throw java.io.IOException("Update server returned HTTP "+finalConn.responseCode)

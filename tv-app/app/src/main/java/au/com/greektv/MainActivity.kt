@@ -243,7 +243,7 @@ class MainActivity:Activity(){
    AlertDialog.Builder(this)
     .setTitle("Check for update")
     .setMessage("Download the latest signed Greek One build now?")
-    .setPositiveButton("Download"){_,_->installAppUpdate("https://rtv.up.railway.app")}
+    .setPositiveButton("Download"){_,_->installAppUpdate(cfgString("updateUrl","https://github.com/NikitaAttendSure/Greek-TV-Australia/releases/download/reskakis-tv-latest/RESKAKIS-TV.apk"))}
     .setNegativeButton("Cancel",null)
     .show()
   },LinearLayout.LayoutParams(-1,88).apply{setMargins(0,8,0,14)})
@@ -2689,7 +2689,7 @@ class MainActivity:Activity(){
    try{
     var next=url+(if(url.contains("?"))"&" else "?")+"t="+System.currentTimeMillis()
     var conn:java.net.HttpURLConnection?=null
-    repeat(6){
+    for(redirect in 0..6){
      conn=(URL(next).openConnection() as java.net.HttpURLConnection).apply{
       instanceFollowRedirects=false;connectTimeout=12000;readTimeout=45000
       setRequestProperty("User-Agent","GreekOneTV/"+currentVersionCode())
@@ -2701,7 +2701,7 @@ class MainActivity:Activity(){
       val location=conn!!.getHeaderField("Location")?:throw java.io.IOException("Update redirect had no destination")
       next=java.net.URL(java.net.URL(next),location).toString()
       conn!!.disconnect();conn=null
-     }else return@repeat
+     }else break
     }
     val finalConn=conn?:throw java.io.IOException("Too many update redirects")
     if(finalConn.responseCode !in 200..299)throw java.io.IOException("Update server returned HTTP "+finalConn.responseCode)
@@ -2854,7 +2854,11 @@ class MainActivity:Activity(){
         null->"Broadcaster stream failed (player error "+error.errorCode+")."
         else->"Broadcaster returned HTTP "+httpStatus+" (player error "+error.errorCode+")."
        }
-       failPlayback(detail)
+       if(sourcePage.startsWith("https://")&&(sourcePage.contains("megatv.com",true)||sourcePage.contains("ertflix.gr",true)||sourcePage.contains("skai.gr",true))){
+        p.release();if(player===p)player=null
+        showLibraryWeb(title,sourcePage,when{sourcePage.contains("ertflix.gr",true)->"MOVIE_WEB";sourcePage.contains("/tvshows/",true)->"SERIES_WEB";else->"COOKING_WEB"})
+        Toast.makeText(this@MainActivity,"Direct playback unavailable • trying official broadcaster player",Toast.LENGTH_LONG).show()
+       }else failPlayback(detail)
       }
      }
     })
@@ -2884,7 +2888,7 @@ class MainActivity:Activity(){
       val b=button("E"+ep.number.toString().padStart(2,'0')+"   "+ep.title){
        status.text="Checking Episode "+ep.number+"…"
        Thread{val stream=try{resolveMegaStream(ep.page)}catch(_:Exception){null};runOnUiThread{
-        if(stream.isNullOrBlank())status.text="Episode "+ep.number+" • UNAVAILABLE from broadcaster"
+        if(stream.isNullOrBlank()){status.text="Direct stream unavailable • opening the official episode page";showLibraryWeb(title+" • "+ep.title,ep.page,"SERIES_WEB")}
         else showVodPlayer(title+" • "+ep.title,stream,ep.page){showSeriesEpisodes(title,meta,sourceUrl)}
        }}.start()
       };list.addView(b,LinearLayout.LayoutParams(-1,58).apply{setMargins(0,0,0,8)})
@@ -2937,7 +2941,7 @@ class MainActivity:Activity(){
   entries.forEach{e->list.addView(button(e.first.substringAfter(" • ",e.first)){
    status.text="Checking broadcaster stream…"
    Thread{val stream=try{resolveCookingStream(e.second)}catch(_:Exception){null};runOnUiThread{
-    if(stream.isNullOrBlank())status.text="UNAVAILABLE • The broadcaster is not exposing a supported direct stream."
+    if(stream.isNullOrBlank()){status.text="Direct stream unavailable • opening official programme page";showLibraryWeb(e.first,e.second,"COOKING_WEB")}
     else showVodPlayer(e.first,stream,e.second){showCookingEpisodes(title,meta,sourceUrl)}
    }}.start()
   },LinearLayout.LayoutParams(-1,58).apply{setMargins(0,0,0,8)})}
@@ -2965,7 +2969,7 @@ class MainActivity:Activity(){
      else{
       status.text="Checking broadcaster stream…"
       Thread{val stream=try{resolveCookingStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{
-       if(stream.isNullOrBlank())status.text="UNAVAILABLE • This programme does not currently expose a supported direct stream."
+       if(stream.isNullOrBlank()){status.text="Direct stream unavailable • opening official programme page";showLibraryWeb(title,sourceUrl,"COOKING_WEB")}
        else showVodPlayer(title,stream,sourceUrl){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}
       }}.start()
      }

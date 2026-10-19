@@ -2,7 +2,7 @@ const http=require("http"),https=require("https"),fs=require("fs"),path=require(
 const root=__dirname,port=process.env.PORT||3000;
 function send(res,status,body,type="application/json"){res.writeHead(status,{"content-type":type,"cache-control":"no-store","access-control-allow-origin":"*"});res.end(body)}
 function get(url){return new Promise((resolve,reject)=>{https.get(url,{headers:{"user-agent":"Mozilla/5.0 GreekOne/1.0","accept":"*/*"}},r=>{let b=[];r.on("data",d=>b.push(d));r.on("end",()=>resolve({status:r.statusCode,headers:r.headers,body:Buffer.concat(b)}))}).on("error",reject)})}
-function mime(f){return f.endsWith(".html")?"text/html":f.endsWith(".js")?"application/javascript":f.endsWith(".css")?"text/css":"application/octet-stream"}
+function mime(f){return f.endsWith(".html")?"text/html; charset=utf-8":f.endsWith(".js")?"application/javascript; charset=utf-8":f.endsWith(".css")?"text/css; charset=utf-8":f.endsWith(".webmanifest")?"application/manifest+json; charset=utf-8":f.endsWith(".svg")?"image/svg+xml":"application/octet-stream"}
 http.createServer(async(req,res)=>{
  try{
   const u=new URL(req.url,"http://localhost");

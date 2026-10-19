@@ -1,0 +1,57 @@
+/* iPhone / mobile Safari additions. Kept separate from the established TV/web layout. */
+html { -webkit-text-size-adjust: 100%; }
+body { overscroll-behavior-x: none; }
+button, input { font-family: inherit; }
+button { touch-action: manipulation; }
+:focus-visible { outline: 2px solid #72d8ff; outline-offset: 3px; }
+@supports (padding: max(0px)) {
+  @media (max-width:760px) {
+    body { padding-top: env(safe-area-inset-top, 0px); padding-bottom: max(84px, calc(66px + env(safe-area-inset-bottom))) !important; }
+    .topline { top: env(safe-area-inset-top, 0px); }
+    .mobile-nav { padding-bottom: max(5px, env(safe-area-inset-bottom)) !important; }
+    #grid, main { min-width: 0; }
+    #hero, .card, .detail-hero { max-width: 100%; }
+    .media-rail { -webkit-overflow-scrolling: touch; }
+    .topline input { font-size: 16px !important; }
+    .catalogue-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .detail-actions { flex-wrap: wrap; }
+    .episode-row { min-height: 56px; }
+    #hero.embedded-player .embedShell, #hero.live-player .playerShell, #hero.vod-player .playerShell {
+      aspect-ratio: 16 / 9; height: auto !important; width: 100%; max-width: 100%;
+    }
+    #hero.embedded-player .embedShell iframe { display: block; }
+    #hero.live-player .playerShell video, #hero.vod-player .playerShell video { width: 100%; height: 100%; }
+  }
+}
+.iphone-install-btn { display: none; }
+@media (max-width:760px) {
+  body.ios-safari:not(.ios-standalone) .iphone-install-btn {
+    display: inline-flex; justify-content: center; align-items: center; flex: 0 0 auto;
+    border-radius: 12px; border: 1px solid rgba(110,213,255,.25);
+    background: rgba(26,115,179,.19); color: #ccefff; padding: 0 10px;
+    min-height: 38px; font-size: 11px; font-weight: 750; white-space: nowrap;
+  }
+  .topline.search-open .iphone-install-btn { display: none !important; }
+}
+/* Install help is shown only when the user explicitly taps Install. */
+.iphone-install-dialog[hidden] { display:none !important; }
+.iphone-install-dialog {
+  position: fixed; inset: 0; z-index: 1000; display: flex; justify-content: center;
+  align-items: flex-end; padding: 18px 16px max(22px, calc(20px + env(safe-area-inset-bottom)));
+  background: rgba(0,5,10,.77); backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px);
+}
+.iphone-install-sheet {
+  width: min(100%, 460px); border-radius: 24px; padding: 22px 22px 20px;
+  border: 1px solid rgba(112,207,253,.24); background: linear-gradient(145deg,#102c41,#05111e);
+  color: #f4fbff; box-shadow: 0 30px 90px rgba(0,0,0,.7);
+}
+.iphone-install-sheet h2 { margin: 0 0 8px; font-size: 22px; }
+.iphone-install-sheet p { margin: 0 0 15px; color:#b4cedc; font-size:14px; line-height:1.5; }
+.iphone-install-sheet ol { padding-left: 22px; line-height:1.85; font-size:14px; }
+.iphone-install-sheet strong { color:#fff; }
+.iphone-install-sheet button {
+  width:100%; margin-top:12px; min-height:46px; border:0; border-radius:13px;
+  background:#d9f3ff; color:#052038; font-size:14px; font-weight:800;
+}
+@media(min-width:761px) {.iphone-install-dialog {align-items:center;}}
+@media(prefers-reduced-motion:reduce) {html{scroll-behavior:auto!important}}

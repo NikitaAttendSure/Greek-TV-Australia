@@ -485,15 +485,16 @@ class MainActivity:Activity(){
   val root=shell("PRELOADED SERIES")
   val seriesMeta=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(2,0,2,14)}
   seriesMeta.addView(TextView(this).apply{
-   text="30 SERIES";textSize=9.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
+   text="31 SERIES";textSize=9.5f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);gravity=Gravity.CENTER
    background=GradientDrawable().apply{setColor(Color.rgb(13,105,193));cornerRadius=11f};setPadding(10,3,10,3)
   },LinearLayout.LayoutParams(-2,28).apply{setMargins(0,0,10,0)})
   seriesMeta.addView(TextView(this).apply{
-   text="MEGA • ANT1 • official broadcaster archives";textSize=11.5f;setTextColor(Color.rgb(153,198,227))
+   text="MEGA • ANT1 • SKAI • official broadcaster archives";textSize=11.5f;setTextColor(Color.rgb(153,198,227))
   })
   root.addView(seriesMeta)
   data class SeriesItem(val title:String,val source:String,val episodes:String,val url:String,val brousko:Boolean=false)
   val series=listOf(
+   SeriesItem("ΜΠΛΕ ΩΡΕΣ","SKAI","2026–2027 • official episodes","https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/"),
    SeriesItem("ΑΓΙΟΣ ΠΑΪΣΙΟΣ – ΑΠΟ ΤΑ ΦΑΡΑΣΑ ΣΤΟΝ ΟΥΡΑΝΟ","MEGA","2 seasons • 21 episodes • complete","https://www.megatv.com/ekpompes/576225/agios-paisios-apo-ta-farasa-ston-ourano/"),
    SeriesItem("ΔΥΟ ΞΕΝΟΙ","MEGA","59 episodes","https://www.megatv.com/ekpompes/43265/duo-ksenoi/"),
    SeriesItem("ΕΘΝΙΚΗ ΕΛΛΑΔΟΣ","MEGA","15 episodes","https://www.megatv.com/ekpompes/1356374/ethniki-ellados/"),
@@ -1045,6 +1046,7 @@ class MainActivity:Activity(){
    SearchItem("SINGLES","MEGA • 21 episodes • season 1","Series","https://www.megatv.com/ekpompes/43287/singles/"),
    SearchItem("SINGLES 2","MEGA • 28 episodes • season 2","Series","https://www.megatv.com/ekpompes/43292/singles-2/"),
    SearchItem("SINGLES 3","MEGA • final season archive","Series","https://www.megatv.com/ekpompes/42682/singles-3-2/"),
+   SearchItem("ΜΠΛΕ ΩΡΕΣ","SKAI • 2026–2027 • official episode archive","Series","https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/"),
    SearchItem("ΠΟΠ Μαγειρική","ERTFLIX • Ανδρέας Λαγός • Ελληνικά προϊόντα & συνταγές","Cooking","https://www.ertflix.gr/vod/vod.179854"),
    SearchItem("Kitchen Lab","ΣΚΑΪ • Άκης Πετρετζίκης • Σεζόν 2026–2027","Cooking","https://www.skai.gr/tv/show/psuchagogia/kitchen-lab-2/sezon-2026-2027"),
    SearchItem("Kitchen Lab • 04/10/2026","ΣΚΑΪ • Πλήρες επεισόδιο • 3 συνταγές","Cooking","https://www.skai.gr/tv/episode/psuchagogia/kitchen-lab-2/2026-10-04-16/kitchen-lab-04102026"),
@@ -2959,8 +2961,10 @@ class MainActivity:Activity(){
   panel.addView(TextView(this).apply{text=meta;textSize=14f;setTextColor(Color.rgb(173,202,220));setPadding(0,0,0,22)})
   val status=TextView(this).apply{text=when(kind){"SERIES"->"Browse seasons and episodes without leaving Greek One.";"MOVIE"->"Checking official ERTFLIX playback availability…";else->"Greek One will only play broadcaster-supported streams internally."};textSize=13f;setTextColor(Color.rgb(204,218,228));setPadding(0,0,0,18)};panel.addView(status)
   val actions=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL}
-  val primary=button(if(kind=="SERIES")"BROWSE EPISODES" else "CHECK AVAILABILITY"){
-   when(kind){
+  // SKAI publishes its own episode archive; MEGA episode discovery cannot parse SKAI pages.
+  val skaiBleOres=kind=="SERIES" && sourceUrl=="https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/"
+  val primary=button(if(skaiBleOres)"BROWSE SKAI EPISODES" else if(kind=="SERIES")"BROWSE EPISODES" else "CHECK AVAILABILITY"){
+   if(skaiBleOres)showLibraryWeb(title,sourceUrl,"SERIES_WEB") else when(kind){
     "SERIES"->showSeriesEpisodes(title,meta,sourceUrl)
     "MOVIE"->{status.text="Checking ERTFLIX…";Thread{val r=try{resolveErtStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{val stream=r?.second;if(stream.isNullOrBlank()){status.text="UNAVAILABLE • ERTFLIX is not exposing a supported stream for this title."}else showVodPlayer(r?.first?.ifBlank{title}?:title,stream,sourceUrl){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}}}.start()}
     else->{
@@ -2977,6 +2981,9 @@ class MainActivity:Activity(){
    }
   }
   actions.addView(primary,LinearLayout.LayoutParams(270,58).apply{setMargins(0,0,12,0)})
+  if(skaiBleOres)actions.addView(button("▶  EPISODE 1"){
+   showLibraryWeb(title+" • Επεισόδιο 1","https://www.skai.gr/tv/episode/seires/mple-ores/2026-09-14-21/mple-ores-epeisodio-1-14092026","SERIES_WEB")
+  },LinearLayout.LayoutParams(220,58).apply{setMargins(0,0,12,0)})
   actions.addView(button("←  BACK"){when(kind){"MOVIE"->showPreloadedMovies();"SERIES"->showPreloadedSeries();else->showGreekCooking()}},LinearLayout.LayoutParams(180,58))
   panel.addView(actions);root.addView(panel,LinearLayout.LayoutParams(-1,0,1f).apply{setMargins(6,18,6,18)});setContentView(root);primary.requestFocus()
  }

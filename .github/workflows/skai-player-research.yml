@@ -4,7 +4,7 @@ on:
     paths:
       - '.github/workflows/skai-player-research.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -33,3 +33,16 @@ jobs:
                 for a in d['assets']:print('RELEASE_ASSET',a['name'],'updated',a['updated_at'],'size',a['size'],'download',a['browser_download_url'])
             except Exception as e:print('ERROR',name,type(e).__name__,str(e))
           PY
+
+      - name: Remove the unwanted secondary-test release (created for this task)
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 13 && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh release view greek-one-ble-ores-test-build67 >/dev/null 2>&1; then
+            gh release delete greek-one-ble-ores-test-build67 --cleanup-tag --yes
+            echo "Removed Greek One Test prerelease and tag"
+          else
+            echo "Secondary-test prerelease already absent"
+          fi

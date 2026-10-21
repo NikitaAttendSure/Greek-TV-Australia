@@ -51,7 +51,7 @@ jobs:
                 if found:
                   samples=[]
                   for m in found[:2]:
-                    sample=re.sub(r"(?i)(token|signature|auth|key)=([^&\\s\\"']+)","\\1=[REDACTED]",body[max(0,m.start()-130):m.end()+170])
+                    sample=re.sub(r'(?i)(token|signature|auth|key)=[^& ]+',r'\1=[REDACTED]',body[max(0,m.start()-130):m.end()+170])
                     samples.append(re.sub(r"\\s+"," ",sample)[:310])
                   print("MARKER",term,"count",len(found),"examples",samples)
             except Exception as e: print("PAGE ERROR",type(e).__name__,str(e)[:180])

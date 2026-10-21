@@ -3059,6 +3059,58 @@ class MainActivity:Activity(){
   bleOresWebView=null
   showBleOresEpisodes()
  }
+ private fun tuneBleOresCinemaView(web:WebView){
+  // Display SKAI's authorised player in a full-screen TV view. Never remove the
+  // broadcaster player, consent dialogs, DRM handling, advertisements or scripts.
+  val script="""
+   (function(){
+     try{
+       if(!document.getElementById('greek-one-skai-cinema')){
+         var style=document.createElement('style');
+         style.id='greek-one-skai-cinema';
+         style.textContent=[
+           'html,body {background:#000!important;overflow:hidden!important;margin:0!important;padding:0!important;}',
+           'body .livboxpar {position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;max-width:none!important;z-index:110!important;margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important;}',
+           'body .livboxpar .livebox {width:100%!important;height:100%!important;min-height:0!important;position:relative!important;margin:0!important;padding:0!important;background:#000!important;}',
+           'body #player-main {width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;}',
+           'body #player-main video,body #player-main iframe {width:100%!important;height:100%!important;max-width:none!important;object-fit:contain!important;}',
+           'body .livboxpar .iconpar23 {position:absolute!important;top:48%!important;left:48%!important;z-index:120!important;}',
+           '#onetrust-consent-sdk,#CybotCookiebotDialog,#sp_message_container,#qc-cmp2-container {z-index:2147483000!important;}'
+         ].join('');
+         document.head.appendChild(style);
+       }
+       var p=document.getElementById('player-main');
+       if(p){p.scrollIntoView({block:'center'});return 'player-layout-ready';}
+       return 'player-not-found';
+     }catch(e){return 'player-layout-error';}
+   })()
+  """.trimIndent()
+  web.evaluateJavascript(script,null)
+ }
+ private fun bleOresPlayerState(web:WebView,status:TextView,seconds:Int){
+  if(bleOresWebView!==web||screenMode!="SKAI_BLE_ORES_PLAYER")return
+  val js="""
+   (function(){
+    var p=document.getElementById('player-main');if(!p)return 'missing';
+    var v=p.querySelector('video');
+    if(v&&v.readyState>=2&&!v.paused&&!v.ended)return 'playing';
+    if(v)return 'waiting-video';
+    if(p.querySelector('iframe'))return 'waiting-iframe';
+    if(p.childElementCount>0)return 'initialising';
+    return 'poster';
+   })()
+  """.trimIndent()
+  web.evaluateJavascript(js){raw->
+   if(bleOresWebView!==web||screenMode!="SKAI_BLE_ORES_PLAYER")return@evaluateJavascript
+   val state=raw?.trim()?.trim('"')?:"unknown"
+   status.text=when{
+    state=="playing"->"SKAI video is playing • use the remote for playback controls."
+    seconds>=22->"SKAI is still loading. Press PLAY or RETRY. If it remains stuck, broadcaster or DRM restrictions may apply."
+    state=="missing"->"SKAI's player has not appeared yet. You can press RETRY."
+    else->"SKAI video is loading… Press PLAY on the remote if necessary."
+   }
+  }
+ }
  private fun showBleOresEpisode(episode:SkaiEpisode){
   if(isPappas){showHome();return}
   screenMode="SKAI_BLE_ORES_PLAYER"
@@ -3073,6 +3125,16 @@ class MainActivity:Activity(){
    text="SKAI OFFICIAL PLAYER  •  INSIDE GREEK ONE";textSize=10f;setTextColor(Color.rgb(114,204,249))
   })
   header.addView(titles,LinearLayout.LayoutParams(0,-2,1f))
+  header.addView(button("▶  PLAY"){
+   val w=bleOresWebView
+   if(w!=null){
+    w.evaluateJavascript(
+     "(function(){var p=document.getElementById('player-main');if(!p)return false;var v=p.querySelector('video');if(v){v.play().catch(function(){});return true;}p.click();return true;})()",null)
+   }
+  },LinearLayout.LayoutParams(150,54))
+  header.addView(button("⟳  RETRY"){
+   bleOresWebView?.let{v->v.stopLoading();v.reload()}
+  },LinearLayout.LayoutParams(150,54))
   header.addView(button("←  EPISODES"){closeBleOresPlayer()},LinearLayout.LayoutParams(195,54))
   content.addView(header,LinearLayout.LayoutParams(-1,78))
   val status=TextView(this).apply{
@@ -3086,6 +3148,9 @@ class MainActivity:Activity(){
    settings.mediaPlaybackRequiresUserGesture=false;settings.loadsImagesAutomatically=true
    settings.useWideViewPort=true;settings.loadWithOverviewMode=true
    settings.allowFileAccess=false;settings.cacheMode=WebSettings.LOAD_DEFAULT
+   // Allow SKAI's legitimate player/consent session cookies; never auto-consent.
+   android.webkit.CookieManager.getInstance().setAcceptCookie(true)
+   android.webkit.CookieManager.getInstance().setAcceptThirdPartyCookies(this,true)
    webViewClient=object:WebViewClient(){
     override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
      val scheme=request?.url?.scheme?:""
@@ -3093,17 +3158,25 @@ class MainActivity:Activity(){
     }
     override fun onPageFinished(view:WebView?,url:String?){
      if(screenMode!="SKAI_BLE_ORES_PLAYER")return
-     status.text="SKAI player ready • press OK to play if available in your region."
-     view?.postDelayed({
-      if(screenMode=="SKAI_BLE_ORES_PLAYER")view.evaluateJavascript(
-       "(function(){var p=document.getElementById('player-main');if(p){p.scrollIntoView({block:'start'});return true;}return false;})()",null)
-     },700)
+     status.text="SKAI webpage loaded • starting the official video player…"
+     if(view!=null){
+      tuneBleOresCinemaView(view)
+      view.postDelayed({if(bleOresWebView===view)bleOresPlayerState(view,status,4)},4000)
+      view.postDelayed({if(bleOresWebView===view)bleOresPlayerState(view,status,24)},24000)
+     }
     }
     override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){
      if(request?.isForMainFrame==true)status.text="SKAI player could not load. Try again later."
     }
    }
    webChromeClient=object:android.webkit.WebChromeClient(){
+    override fun onConsoleMessage(message:android.webkit.ConsoleMessage?):Boolean{
+     val text=message?.message()?.lowercase(Locale.ROOT)?:""
+     if(text.contains("missing license key")||text.contains("drm license error")){
+      status.text="SKAI reported a player licence error. Retry or check whether the broadcaster supports Android TV."
+     }
+     return false
+    }
     override fun onShowCustomView(view:View?,callback:CustomViewCallback?){
      if(view==null||bleOresFullView!=null){callback?.onCustomViewHidden();return}
      bleOresFullView=view;bleOresFullCallback=callback

@@ -3156,6 +3156,13 @@ class MainActivity:Activity(){
      val scheme=request?.url?.scheme?:""
      return scheme!="http"&&scheme!="https"
     }
+    // SKAI keeps asynchronous ad/player resources open; waiting for onPageFinished
+    // alone can leave the TV on the full website and spinner indefinitely.
+    override fun onPageCommitVisible(view:WebView?,url:String?){
+     if(view!=null&&screenMode=="SKAI_BLE_ORES_PLAYER"){
+      view.postDelayed({if(bleOresWebView===view)tuneBleOresCinemaView(view)},900)
+     }
+    }
     override fun onPageFinished(view:WebView?,url:String?){
      if(screenMode!="SKAI_BLE_ORES_PLAYER")return
      status.text="SKAI webpage loaded • starting the official video player…"
@@ -3190,6 +3197,8 @@ class MainActivity:Activity(){
   root.addView(content,FrameLayout.LayoutParams(-1,-1))
   setContentView(root)
   web.loadUrl(episode.url);web.requestFocus()
+  web.postDelayed({if(bleOresWebView===web&&screenMode=="SKAI_BLE_ORES_PLAYER")tuneBleOresCinemaView(web)},3500)
+  web.postDelayed({if(bleOresWebView===web&&screenMode=="SKAI_BLE_ORES_PLAYER")bleOresPlayerState(web,status,24)},24000)
  }
 
  private fun showNativeVodDetail(title:String,meta:String,kicker:String,sourceUrl:String,kind:String){

@@ -55,3 +55,35 @@ jobs:
             print('PRODUCTION RUNS',[(r.get('id'),r.get('status'),r.get('conclusion'),r.get('head_sha')) for r in runs.get('workflow_runs',[])])
           except Exception as e:print('RUNS ERROR',type(e).__name__,str(e)[:180])
           PY
+
+
+      - name: Find official SKAI series episode catalogue hooks
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re
+          from html.parser import HTMLParser
+          url='https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/'
+          req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+          with urllib.request.urlopen(req,timeout=15) as response:body=response.read(500000).decode('utf8','replace')
+          print('SHOW PAGE SIZE',len(body))
+          class Inspector(HTMLParser):
+            def __init__(self):super().__init__();self.script=[];self.dom=[]
+            def handle_starttag(self,tag,attrs):
+              a=dict(attrs)
+              if tag=='script' and a.get('src'):self.script.append(a['src'])
+              if tag in ('div','a','section','button','ul') and any(x in (' '.join([a.get('id',''),a.get('class','')])).lower() for x in ['episode','episod','series','more','load','show','season','video']):
+                self.dom.append((tag,a.get('id'),a.get('class'),a.get('href','')[:100]))
+          ins=Inspector();ins.feed(body)
+          print('SCRIPTS',ins.script[-40:])
+          print('CATALOGUE NODES',ins.dom[:70])
+          for term in ['epizodia','epeisodia','episode','showmore','loadmore','load-more','show-more','fetch(','jsonapi','/tv/api','season','episod']:
+            found=list(re.finditer(re.escape(term),body,re.I))
+            if found:
+              hits=[]
+              for m in found[-2:]:
+                snip=body[max(0,m.start()-110):m.end()+180]
+                snip=re.sub(r'(?i)https?://[^\s\"<>]+','[URL]',snip)
+                hits.append(re.sub(r'\s+',' ',snip)[:300])
+              print('TERM',term,'COUNT',len(found),'SAMPLES',hits)
+          PY

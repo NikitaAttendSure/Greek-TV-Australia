@@ -49,6 +49,7 @@ class MainActivity:Activity(){
  private var bleOresWebView:WebView?=null
  private var bleOresFullView:View?=null
  private var bleOresFullCallback:android.webkit.WebChromeClient.CustomViewCallback?=null
+ private var bleOresExitNativeFullscreen:(()->Unit)?=null
  private var remoteRefreshDone=false
  private var launchUpdateChecked=false
  private var screenMode="HOME"
@@ -2658,7 +2659,10 @@ class MainActivity:Activity(){
    }
   }
   if(k==KeyEvent.KEYCODE_BACK&&screenMode=="SKAI_BLE_ORES_PLAYER"){
-   if(!hideBleOresFullView())closeBleOresPlayer()
+   if(!hideBleOresFullView()){
+    val exit=bleOresExitNativeFullscreen
+    if(exit!=null)exit() else closeBleOresPlayer()
+   }
    return true
   }
   if(k==KeyEvent.KEYCODE_BACK&&screenMode=="SKAI_BLE_ORES_EPISODES"){showPreloadedSeries();return true}
@@ -3053,6 +3057,8 @@ class MainActivity:Activity(){
  }
  private fun closeBleOresPlayer(){
   hideBleOresFullView()
+  bleOresExitNativeFullscreen?.invoke()
+  bleOresExitNativeFullscreen=null
   bleOresWebView?.let{web->
    try{web.stopLoading();(web.parent as?ViewGroup)?.removeView(web);web.destroy()}catch(_:Exception){}
   }
@@ -3070,7 +3076,7 @@ class MainActivity:Activity(){
          style.id='greek-one-skai-cinema';
          style.textContent=[
            'html,body {background:#000!important;overflow:hidden!important;margin:0!important;padding:0!important;}',
-           'body .livboxpar {position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;max-width:none!important;z-index:110!important;margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important;}',
+           'body .livboxpar {position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;max-width:none!important;z-index:2000!important;margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important;}',
            'body .livboxpar .livebox {width:100%!important;height:100%!important;min-height:0!important;position:relative!important;margin:0!important;padding:0!important;background:#000!important;}',
            'body #player-main {width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;}',
            'body #player-main video,body #player-main iframe {width:100%!important;height:100%!important;max-width:none!important;object-fit:contain!important;}',
@@ -3105,10 +3111,58 @@ class MainActivity:Activity(){
    val state=raw?.trim()?.trim('"')?:"unknown"
    status.text=when{
     state=="playing"->"SKAI video is playing • use the remote for playback controls."
-    seconds>=22->"SKAI is still loading. Press PLAY or RETRY. If it remains stuck, broadcaster or DRM restrictions may apply."
+    seconds>=22->"If video is playing, use SOUND and FULLSCREEN above. If frozen, press retry."
     state=="missing"->"SKAI's player has not appeared yet. You can press RETRY."
     else->"SKAI video is loading… Press PLAY on the remote if necessary."
    }
+  }
+ }
+ private fun unmuteBleOresVideo(web:WebView?,status:TextView){
+  if(web==null||bleOresWebView!==web||screenMode!="SKAI_BLE_ORES_PLAYER")return
+  // This is a user-initiated button press. Don't bypass broadcaster DRM, ads or consent.
+  try{
+   val audio=getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
+   audio?.adjustStreamVolume(android.media.AudioManager.STREAM_MUSIC,android.media.AudioManager.ADJUST_UNMUTE,0)
+  }catch(_:Exception){}
+  status.text="Requesting sound from SKAI's official player…"
+  val js="""
+   (function(){
+    var videos=[],unmuted=0,api=0,ui=0;
+    try{
+     var root=document.getElementById('player-main')||document;
+     videos=Array.from(root.querySelectorAll('video'));
+     if(videos.length===0)videos=Array.from(document.querySelectorAll('video'));
+     videos.forEach(function(v){
+      try{v.muted=false;v.defaultMuted=false;v.removeAttribute('muted');v.volume=1;if(!v.muted)unmuted++}catch(e){}
+     });
+     [window.phPl,window.bitmovinPlayer,window.skaiPlayer].forEach(function(p){
+      if(!p)return;
+      try{
+       if(typeof p.unmute==='function'){p.unmute();api++}
+       else if(typeof p.setMuted==='function'){p.setMuted(false);api++}
+      }catch(e){}
+     });
+     // Only click explicitly labelled "unmute" controls; never accidentally toggle mute ON.
+     Array.from(document.querySelectorAll('button,[role=button]')).forEach(function(el){
+      var label=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')).toLowerCase();
+      if(label.indexOf('unmute')>=0||label.indexOf('αποσίγαση')>=0||label.indexOf('ενεργοποίηση ήχου')>=0){
+       try{el.click();ui++}catch(e){}
+      }
+     });
+     return 'videos='+videos.length+',unmuted='+unmuted+',api='+api+',ui='+ui;
+    }catch(e){return 'error'}
+   })()
+  """.trimIndent()
+  web.evaluateJavascript(js){raw->
+   if(bleOresWebView!==web||screenMode!="SKAI_BLE_ORES_PLAYER")return@evaluateJavascript
+   val result=raw?:""
+   val notAccessible=result.contains("unmuted=0,api=0,ui=0")||result.contains("error")
+   status.text=if(notAccessible){
+    "SKAI sound control was not accessible. Select the crossed-out speaker in the video and press OK."
+   }else{
+    "Sound requested. If still silent, press Sony Volume Up and check SKAI's speaker icon."
+   }
+   Toast.makeText(this,if(notAccessible)"Use the crossed-out speaker icon in SKAI's video" else "Unmute requested • check Sony TV sound",Toast.LENGTH_LONG).show()
   }
  }
  private fun showBleOresEpisode(episode:SkaiEpisode){
@@ -3116,31 +3170,30 @@ class MainActivity:Activity(){
   screenMode="SKAI_BLE_ORES_PLAYER"
   val root=FrameLayout(this).apply{setBackgroundColor(bg)}
   val content=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
-  val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(75,8,75,8)}
-  val titles=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-  titles.addView(TextView(this).apply{
-   text="ΜΠΛΕ ΩΡΕΣ • EPISODE "+episode.number;textSize=21f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
-  })
-  titles.addView(TextView(this).apply{
-   text="SKAI OFFICIAL PLAYER  •  INSIDE GREEK ONE";textSize=10f;setTextColor(Color.rgb(114,204,249))
-  })
-  header.addView(titles,LinearLayout.LayoutParams(0,-2,1f))
-  header.addView(button("▶  PLAY"){
-   val w=bleOresWebView
-   if(w!=null){
-    w.evaluateJavascript(
-     "(function(){var p=document.getElementById('player-main');if(!p)return false;var v=p.querySelector('video');if(v){v.play().catch(function(){});return true;}p.click();return true;})()",null)
-   }
-  },LinearLayout.LayoutParams(150,54))
-  header.addView(button("⟳  RETRY"){
-   bleOresWebView?.let{v->v.stopLoading();v.reload()}
-  },LinearLayout.LayoutParams(150,54))
-  header.addView(button("←  EPISODES"){closeBleOresPlayer()},LinearLayout.LayoutParams(195,54))
-  content.addView(header,LinearLayout.LayoutParams(-1,78))
   val status=TextView(this).apply{
    text="Loading SKAI video…  Press OK when ready."
    textSize=11.5f;setTextColor(Color.rgb(158,199,229));setPadding(75,3,50,7)
   }
+  val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(42,8,42,8)}
+  val titles=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  titles.addView(TextView(this).apply{
+   text="ΜΠΛΕ ΩΡΕΣ • EP "+episode.number;textSize=19f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
+  })
+  titles.addView(TextView(this).apply{
+   text="SKAI OFFICIAL PLAYER  •  INSIDE GREEK ONE";textSize=10f;setTextColor(Color.rgb(114,204,249))
+  })
+  header.addView(titles,LinearLayout.LayoutParams(0,-2,1f).apply{setMargins(0,0,12,0)})
+  var openFullscreen:(()->Unit)?=null
+  header.addView(button("▶"){
+   bleOresWebView?.evaluateJavascript(
+    "(function(){var p=document.getElementById('player-main');if(!p)return false;var v=p.querySelector('video');if(v){v.play().catch(function(){});return true;}p.click();return true;})()",null)
+  },LinearLayout.LayoutParams(75,54))
+  header.addView(button("🔊  UNMUTE"){unmuteBleOresVideo(bleOresWebView,status)},LinearLayout.LayoutParams(148,54))
+  header.addView(button("⛶  FULL"){openFullscreen?.invoke()},LinearLayout.LayoutParams(132,54))
+  header.addView(button("⟳"){bleOresWebView?.reload()},LinearLayout.LayoutParams(76,54))
+  header.addView(button("←  BACK"){closeBleOresPlayer()},LinearLayout.LayoutParams(136,54))
+  content.addView(header,LinearLayout.LayoutParams(-1,78))
+
   content.addView(status,LinearLayout.LayoutParams(-1,37))
   val web=WebView(this).apply{
    setBackgroundColor(Color.BLACK);isFocusable=true;isFocusableInTouchMode=true
@@ -3195,6 +3248,34 @@ class MainActivity:Activity(){
   bleOresWebView=web
   content.addView(web,LinearLayout.LayoutParams(-1,0,1f))
   root.addView(content,FrameLayout.LayoutParams(-1,-1))
+  val fullControls=LinearLayout(this).apply{
+   orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
+   setPadding(8,6,8,6)
+   background=panel(Color.rgb(5,19,32),12f)
+   visibility=View.GONE
+  }
+  fullControls.addView(button("🔊 SOUND"){unmuteBleOresVideo(web,status)},LinearLayout.LayoutParams(160,52))
+  fullControls.addView(button("⛶ EXIT"){bleOresExitNativeFullscreen?.invoke()},LinearLayout.LayoutParams(128,52).apply{setMargins(12,0,0,0)})
+  root.addView(fullControls,FrameLayout.LayoutParams(-2,-2,Gravity.TOP or Gravity.RIGHT).apply{setMargins(0,12,18,0)})
+  val beforeFullscreenUi=window.decorView.systemUiVisibility
+  openFullscreen={
+   if(bleOresExitNativeFullscreen==null&&bleOresWebView===web){
+    header.visibility=View.GONE
+    status.visibility=View.GONE
+    fullControls.visibility=View.VISIBLE
+    window.decorView.systemUiVisibility=beforeFullscreenUi or
+     View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+    bleOresExitNativeFullscreen={
+     header.visibility=View.VISIBLE
+     status.visibility=View.VISIBLE
+     fullControls.visibility=View.GONE
+     window.decorView.systemUiVisibility=beforeFullscreenUi
+     bleOresExitNativeFullscreen=null
+    }
+    web.postDelayed({if(bleOresWebView===web)tuneBleOresCinemaView(web)},250)
+    fullControls.getChildAt(0).requestFocus()
+   }
+  }
   setContentView(root)
   web.loadUrl(episode.url);web.requestFocus()
   web.postDelayed({if(bleOresWebView===web&&screenMode=="SKAI_BLE_ORES_PLAYER")tuneBleOresCinemaView(web)},3500)

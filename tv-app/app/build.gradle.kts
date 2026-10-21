@@ -36,6 +36,15 @@ android {
             resValue("string", "app_name", "GREEK ONE")
             signingConfig = signingConfigs.getByName("reskakisRelease")
         }
+        // Installable alongside production Greek One: same features, different package and TV launcher label.
+        create("bleorestest") {
+            dimension = "brand"
+            applicationId = "au.com.greektv.bleorestest"
+            versionCode = 67
+            versionName = "1.5.12-test"
+            resValue("string", "app_name", "GREEK ONE TEST")
+            signingConfig = signingConfigs.getByName("reskakisRelease")
+        }
         create("pappas") {
             dimension = "brand"
             applicationId = "au.com.pappastv"

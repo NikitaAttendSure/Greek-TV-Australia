@@ -66,6 +66,7 @@ jobs:
             tv-app/app/build/outputs/apk/reskakis/release/app-reskakis-release.apk
             tv-app/app/build/outputs/apk/pappas/release/app-pappas-release.apk
 
+
       - name: Publish permanent signed TV APKs
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && env.RESKAKIS_KEYSTORE_B64 != '' && env.PAPAS_KEYSTORE_B64 != ''
         working-directory: .

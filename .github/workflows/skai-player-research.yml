@@ -105,3 +105,35 @@ jobs:
               for m in found[:5]:
                 print('SNIPPET',re.sub(r'\s+',' ',body[max(0,m.start()-240):m.end()+290])[:540])
           PY
+
+
+      - name: Verify SKAI public episode catalogue pages
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re,html
+          from html.parser import HTMLParser
+          class Links(HTMLParser):
+            def __init__(self):super().__init__();self.href=[];self.img=[]
+            def handle_starttag(self,tag,attrs):
+              a=dict(attrs)
+              if a.get('href'):self.href.append(a['href'])
+              if tag=='img' and a.get('alt'):self.img.append(a['alt'])
+          base='https://www.skai.gr'
+          urls=[base+'/tv/show/seires/mple-ores/sezon-2026-2027/']+[base+'/tv/ajaxshowsepisode/68902/'+str(i) for i in range(1,5)]
+          for url in urls:
+            print('FETCH',url,flush=True)
+            try:
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','X-Requested-With':'XMLHttpRequest','Referer':base+'/tv/show/seires/mple-ores/sezon-2026-2027/'})
+              with urllib.request.urlopen(req,timeout=16) as r:
+                body=r.read(750000).decode('utf8','replace')
+                print('HTTP',r.status,'LEN',len(body),'TYPE',r.headers.get('Content-Type'),flush=True)
+              p=Links();p.feed(body)
+              print('EPISODE HREFS',list(dict.fromkeys(h for h in p.href if 'episode' in h or 'mple-ores' in h))[:30],flush=True)
+              print('IMG ALTS',p.img[:10],flush=True)
+              if 'ajaxshowsepisode' in url: print('SAMPLE HTML',re.sub(r'\s+',' ',body[:1200]),flush=True)
+              else:
+                match=re.search(r'<div[^>]*class="[^"]*more_episodes_show[^"]*"[^>]*>',body)
+                print('CATALOGUE PAGER',match.group(0) if match else '',flush=True)
+            except Exception as e:print('ERROR',type(e).__name__,str(e)[:200],flush=True)
+          PY

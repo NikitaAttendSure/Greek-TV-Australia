@@ -3111,7 +3111,7 @@ class MainActivity:Activity(){
    val state=raw?.trim()?.trim('"')?:"unknown"
    status.text=when{
     state=="playing"->"SKAI video is playing • use the remote for playback controls."
-    seconds>=22->"SKAI is still loading. Press PLAY or RETRY. If it remains stuck, broadcaster or DRM restrictions may apply."
+    seconds>=22->"If video is playing, use SOUND and FULLSCREEN above. If frozen, press retry."
     state=="missing"->"SKAI's player has not appeared yet. You can press RETRY."
     else->"SKAI video is loading… Press PLAY on the remote if necessary."
    }
@@ -3156,11 +3156,13 @@ class MainActivity:Activity(){
   web.evaluateJavascript(js){raw->
    if(bleOresWebView!==web||screenMode!="SKAI_BLE_ORES_PLAYER")return@evaluateJavascript
    val result=raw?:""
-   status.text=if(result.contains("unmuted=0,api=0,ui=0")||result.contains("error")){
+   val notAccessible=result.contains("unmuted=0,api=0,ui=0")||result.contains("error")
+   status.text=if(notAccessible){
     "SKAI sound control was not accessible. Select the crossed-out speaker in the video and press OK."
    }else{
-    "Sound requested. If still silent, press the Sony remote Volume Up and check SKAI's speaker icon."
+    "Sound requested. If still silent, press Sony Volume Up and check SKAI's speaker icon."
    }
+   Toast.makeText(this,if(notAccessible)"Use the crossed-out speaker icon in SKAI's video" else "Unmute requested • check Sony TV sound",Toast.LENGTH_LONG).show()
   }
  }
  private fun showBleOresEpisode(episode:SkaiEpisode){
@@ -3186,7 +3188,7 @@ class MainActivity:Activity(){
    bleOresWebView?.evaluateJavascript(
     "(function(){var p=document.getElementById('player-main');if(!p)return false;var v=p.querySelector('video');if(v){v.play().catch(function(){});return true;}p.click();return true;})()",null)
   },LinearLayout.LayoutParams(75,54))
-  header.addView(button("🔊  SOUND"){unmuteBleOresVideo(bleOresWebView,status)},LinearLayout.LayoutParams(148,54))
+  header.addView(button("🔊  UNMUTE"){unmuteBleOresVideo(bleOresWebView,status)},LinearLayout.LayoutParams(148,54))
   header.addView(button("⛶  FULL"){openFullscreen?.invoke()},LinearLayout.LayoutParams(132,54))
   header.addView(button("⟳"){bleOresWebView?.reload()},LinearLayout.LayoutParams(76,54))
   header.addView(button("←  BACK"){closeBleOresPlayer()},LinearLayout.LayoutParams(136,54))

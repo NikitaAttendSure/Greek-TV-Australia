@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Verify production Build 69 release
+      - name: Verify production Build 70 release
         shell: bash
         run: |
           python3 - <<'PY'

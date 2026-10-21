@@ -3076,7 +3076,7 @@ class MainActivity:Activity(){
          style.id='greek-one-skai-cinema';
          style.textContent=[
            'html,body {background:#000!important;overflow:hidden!important;margin:0!important;padding:0!important;}',
-           'body .livboxpar {position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;max-width:none!important;z-index:110!important;margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important;}',
+           'body .livboxpar {position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;max-width:none!important;z-index:2000!important;margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important;}',
            'body .livboxpar .livebox {width:100%!important;height:100%!important;min-height:0!important;position:relative!important;margin:0!important;padding:0!important;background:#000!important;}',
            'body #player-main {width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;}',
            'body #player-main video,body #player-main iframe {width:100%!important;height:100%!important;max-width:none!important;object-fit:contain!important;}',

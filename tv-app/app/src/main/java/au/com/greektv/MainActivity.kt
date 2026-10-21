@@ -34,6 +34,7 @@ import org.json.JSONObject
 import org.xmlpull.v1.XmlPullParser
 
 data class Channel(val name:String,val url:String,val group:String,val tvgId:String="")
+data class SkaiEpisode(val number:Int,val url:String,val artwork:String="")
 // Build 58 bootstrap: release must be produced from the final updater source.
 class MainActivity:Activity(){
  private val bg=Color.rgb(2,7,13);private val card=Color.rgb(12,25,40);private val focus=Color.rgb(27,105,190);private val muted=Color.rgb(158,180,201);private val accent=Color.rgb(64,151,255)
@@ -44,6 +45,10 @@ class MainActivity:Activity(){
  private val placeFilter get()=if(isPappas)"ΝΑΥΠΛΙΟ" else "ΧΙΟΣ"
  private var player:ExoPlayer?=null;private var previewPlayer:ExoPlayer?=null;private var channels=listOf<Channel>();private var current=0;private var overlay:TextView?=null;private var miniGuide:View?=null;private var currentSection="LIVE TV"
  private var remoteConfig=JSONObject()
+ private var bleOresEpisodeCache=listOf<SkaiEpisode>()
+ private var bleOresWebView:WebView?=null
+ private var bleOresFullView:View?=null
+ private var bleOresFullCallback:android.webkit.WebChromeClient.CustomViewCallback?=null
  private var remoteRefreshDone=false
  private var launchUpdateChecked=false
  private var screenMode="HOME"
@@ -541,7 +546,10 @@ class MainActivity:Activity(){
     val card=LinearLayout(this).apply{
      orientation=LinearLayout.VERTICAL;isFocusable=true;isClickable=true;clipToOutline=true;elevation=6f
      background=panel(Color.rgb(8,27,45),16f)
-     setOnClickListener{showNativeVodDetail(s.title,s.source+" • "+s.episodes,"Series",s.url,"SERIES")}
+     setOnClickListener{
+      if(s.title=="ΜΠΛΕ ΩΡΕΣ")showBleOresEpisodes()
+      else showNativeVodDetail(s.title,s.source+" • "+s.episodes,"Series",s.url,"SERIES")
+     }
      setOnFocusChangeListener{v,f->
       v.background=if(f)GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(Color.rgb(7,97,184),Color.rgb(24,141,232))).apply{cornerRadius=16f;setStroke(3,Color.WHITE)}else panel(Color.rgb(8,27,45),16f)
       v.animate().scaleX(if(f)1.025f else 1f).scaleY(if(f)1.025f else 1f).setDuration(120).start();v.elevation=if(f)20f else 6f
@@ -2649,6 +2657,11 @@ class MainActivity:Activity(){
     KeyEvent.KEYCODE_BACK->{player?.release();player=null;miniGuide=null;showList();return true}
    }
   }
+  if(k==KeyEvent.KEYCODE_BACK&&screenMode=="SKAI_BLE_ORES_PLAYER"){
+   if(!hideBleOresFullView())closeBleOresPlayer()
+   return true
+  }
+  if(k==KeyEvent.KEYCODE_BACK&&screenMode=="SKAI_BLE_ORES_EPISODES"){showPreloadedSeries();return true}
   if(k==KeyEvent.KEYCODE_BACK&&screenMode=="MOVIE_WEB"){showPreloadedMovies();return true}
   if(k==KeyEvent.KEYCODE_BACK&&screenMode=="COOKING_WEB"){showGreekCooking();return true}
   if(k==KeyEvent.KEYCODE_BACK&&screenMode=="SERIES_WEB"){showPreloadedSeries();return true}
@@ -2950,6 +2963,162 @@ class MainActivity:Activity(){
   list.addView(button("←  BACK TO GREEK KITCHEN"){showGreekCooking()},LinearLayout.LayoutParams(310,58).apply{setMargins(0,10,0,16)})
   root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f));setContentView(root);if(list.childCount>0)list.getChildAt(0).requestFocus()
  }
+
+ // SKAI supplies the public episode index. Leave broadcaster DRM, ads and player in place.
+ private fun getBleOresEpisodes():List<SkaiEpisode>{
+  val out=linkedMapOf<Int,SkaiEpisode>()
+  val links=Regex("""<a\s+href="([^"]+)"\s+class="resio">(.*?)</a>""",setOf(RegexOption.IGNORE_CASE,RegexOption.DOT_MATCHES_ALL))
+  val numbers=Regex("""Επεισόδιο\s+([0-9]+)""",RegexOption.IGNORE_CASE)
+  val images=Regex("""https://media\.skaitv\.gr/images/[^"'\s<]+""")
+  for(page in 0..4){
+   val html=try{
+    val c=URL("https://www.skai.gr/tv/ajaxshowsepisode/68902/"+page).openConnection() as java.net.HttpURLConnection
+    c.connectTimeout=7000;c.readTimeout=10000
+    c.setRequestProperty("User-Agent","Mozilla/5.0")
+    c.setRequestProperty("Referer","https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/")
+    c.setRequestProperty("X-Requested-With","XMLHttpRequest")
+    try{c.inputStream.bufferedReader().use{it.readText()}}finally{c.disconnect()}
+   }catch(_:Exception){continue}
+   if(html.isBlank()&&page>=2)break
+   for(m in links.findAll(html)){
+    val href=m.groupValues[1]
+    if(!href.startsWith("/tv/episode/seires/mple-ores/"))continue
+    val n=numbers.find(m.groupValues[2])?.groupValues?.getOrNull(1)?.toIntOrNull()?:continue
+    if(n !in 1..500)continue
+    out[n]=SkaiEpisode(n,"https://www.skai.gr"+href,images.find(m.groupValues[2])?.value?:"")
+   }
+  }
+  return out.values.sortedByDescending{it.number}
+ }
+ private fun showBleOresEpisodes(){
+  if(isPappas){showHome();return}
+  screenMode="SKAI_BLE_ORES_EPISODES";activeHomeNav="Series"
+  previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
+  player?.release();player=null;previewPlayer?.release();previewPlayer=null
+  val root=shell("ΜΠΛΕ ΩΡΕΣ")
+  root.addView(TextView(this).apply{
+   text="SKAI  •  SEASON 2026–2027  •  OFFICIAL EPISODES"
+   textSize=12f;setTextColor(Color.rgb(101,201,246));setPadding(3,0,0,10)
+  })
+  val status=TextView(this).apply{
+   text="Loading the official SKAI episode catalogue…"
+   textSize=13f;setTextColor(Color.rgb(173,207,230));setPadding(3,0,0,13)
+  }
+  root.addView(status)
+  val scroll=ScrollView(this).apply{overScrollMode=View.OVER_SCROLL_NEVER;isFillViewport=true}
+  val list=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(0,0,12,18)}
+  scroll.addView(list)
+  root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+  root.addView(button("←  BACK TO SERIES"){showPreloadedSeries()},LinearLayout.LayoutParams(265,58))
+  setContentView(root)
+  fun paint(items:List<SkaiEpisode>){
+   if(screenMode!="SKAI_BLE_ORES_EPISODES")return
+   list.removeAllViews()
+   status.text=if(items.isEmpty())"Episode list unavailable • showing Episode 1"
+    else items.size.toString()+" official SKAI episodes • choose an episode"
+   val selected=if(items.isEmpty())listOf(SkaiEpisode(1,"https://www.skai.gr/tv/episode/seires/mple-ores/2026-09-14-21/mple-ores-epeisodio-1-14092026")) else items
+   for(ep in selected){
+    val row=LinearLayout(this).apply{
+     orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
+     setPadding(12,8,12,8);background=panel(Color.rgb(7,29,47),15f)
+    }
+    val art=ImageView(this).apply{scaleType=ImageView.ScaleType.CENTER_CROP;setBackgroundColor(Color.rgb(9,44,70))}
+    row.addView(art,LinearLayout.LayoutParams(136,78).apply{setMargins(0,0,18,0)})
+    if(ep.artwork.isNotBlank())loadImageInto(art,ep.artwork)
+    val label=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_VERTICAL}
+    label.addView(TextView(this).apply{text="ΕΠΕΙΣΟΔΙΟ "+ep.number;textSize=17f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)})
+    label.addView(TextView(this).apply{text="Μπλε Ώρες • ΣΚΑΪ";textSize=11f;setTextColor(Color.rgb(156,202,232))})
+    row.addView(label,LinearLayout.LayoutParams(0,-1,1f))
+    row.addView(button("▶  WATCH"){showBleOresEpisode(ep)},LinearLayout.LayoutParams(170,64))
+    list.addView(row,LinearLayout.LayoutParams(-1,96).apply{setMargins(0,0,0,10)})
+   }
+   list.post{if(list.childCount>0){val x=list.getChildAt(0);if(x is LinearLayout&&x.childCount>2)x.getChildAt(2).requestFocus()}}
+  }
+  if(bleOresEpisodeCache.isNotEmpty()){paint(bleOresEpisodeCache);return}
+  Thread{
+   val episodes=getBleOresEpisodes()
+   runOnUiThread{
+    if(episodes.isNotEmpty())bleOresEpisodeCache=episodes
+    paint(episodes)
+   }
+  }.start()
+ }
+ private fun hideBleOresFullView():Boolean{
+  val view=bleOresFullView?:return false
+  (view.parent as?ViewGroup)?.removeView(view)
+  bleOresFullView=null
+  bleOresFullCallback?.onCustomViewHidden()
+  bleOresFullCallback=null
+  return true
+ }
+ private fun closeBleOresPlayer(){
+  hideBleOresFullView()
+  bleOresWebView?.let{web->
+   try{web.stopLoading();(web.parent as?ViewGroup)?.removeView(web);web.destroy()}catch(_:Exception){}
+  }
+  bleOresWebView=null
+  showBleOresEpisodes()
+ }
+ private fun showBleOresEpisode(episode:SkaiEpisode){
+  if(isPappas){showHome();return}
+  screenMode="SKAI_BLE_ORES_PLAYER"
+  val root=FrameLayout(this).apply{setBackgroundColor(bg)}
+  val content=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
+  val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(75,8,75,8)}
+  val titles=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
+  titles.addView(TextView(this).apply{
+   text="ΜΠΛΕ ΩΡΕΣ • EPISODE "+episode.number;textSize=21f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
+  })
+  titles.addView(TextView(this).apply{
+   text="SKAI OFFICIAL PLAYER  •  INSIDE GREEK ONE";textSize=10f;setTextColor(Color.rgb(114,204,249))
+  })
+  header.addView(titles,LinearLayout.LayoutParams(0,-2,1f))
+  header.addView(button("←  EPISODES"){closeBleOresPlayer()},LinearLayout.LayoutParams(195,54))
+  content.addView(header,LinearLayout.LayoutParams(-1,78))
+  val status=TextView(this).apply{
+   text="Loading SKAI video…  Press OK when ready."
+   textSize=11.5f;setTextColor(Color.rgb(158,199,229));setPadding(75,3,50,7)
+  }
+  content.addView(status,LinearLayout.LayoutParams(-1,37))
+  val web=WebView(this).apply{
+   setBackgroundColor(Color.BLACK);isFocusable=true;isFocusableInTouchMode=true
+   settings.javaScriptEnabled=true;settings.domStorageEnabled=true
+   settings.mediaPlaybackRequiresUserGesture=false;settings.loadsImagesAutomatically=true
+   settings.useWideViewPort=true;settings.loadWithOverviewMode=true
+   settings.allowFileAccess=false;settings.cacheMode=WebSettings.LOAD_DEFAULT
+   webViewClient=object:WebViewClient(){
+    override fun shouldOverrideUrlLoading(view:WebView?,request:WebResourceRequest?):Boolean{
+     val scheme=request?.url?.scheme?:""
+     return scheme!="http"&&scheme!="https"
+    }
+    override fun onPageFinished(view:WebView?,url:String?){
+     if(screenMode!="SKAI_BLE_ORES_PLAYER")return
+     status.text="SKAI player ready • press OK to play if available in your region."
+     view?.postDelayed({
+      if(screenMode=="SKAI_BLE_ORES_PLAYER")view.evaluateJavascript(
+       "(function(){var p=document.getElementById('player-main');if(p){p.scrollIntoView({block:'start'});return true;}return false;})()",null)
+     },700)
+    }
+    override fun onReceivedError(view:WebView?,request:WebResourceRequest?,error:WebResourceError?){
+     if(request?.isForMainFrame==true)status.text="SKAI player could not load. Try again later."
+    }
+   }
+   webChromeClient=object:android.webkit.WebChromeClient(){
+    override fun onShowCustomView(view:View?,callback:CustomViewCallback?){
+     if(view==null||bleOresFullView!=null){callback?.onCustomViewHidden();return}
+     bleOresFullView=view;bleOresFullCallback=callback
+     root.addView(view,FrameLayout.LayoutParams(-1,-1));view.requestFocus()
+    }
+    override fun onHideCustomView(){hideBleOresFullView()}
+   }
+  }
+  bleOresWebView=web
+  content.addView(web,LinearLayout.LayoutParams(-1,0,1f))
+  root.addView(content,FrameLayout.LayoutParams(-1,-1))
+  setContentView(root)
+  web.loadUrl(episode.url);web.requestFocus()
+ }
+
  private fun showNativeVodDetail(title:String,meta:String,kicker:String,sourceUrl:String,kind:String){
   screenMode="NATIVE_"+kind
   previewHandler.removeCallbacksAndMessages(null);headerHandler.removeCallbacksAndMessages(null)
@@ -2964,7 +3133,7 @@ class MainActivity:Activity(){
   // SKAI publishes its own episode archive; MEGA episode discovery cannot parse SKAI pages.
   val skaiBleOres=kind=="SERIES" && sourceUrl=="https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/"
   val primary=button(if(skaiBleOres)"BROWSE SKAI EPISODES" else if(kind=="SERIES")"BROWSE EPISODES" else "CHECK AVAILABILITY"){
-   if(skaiBleOres)showLibraryWeb(title,sourceUrl,"SERIES_WEB") else when(kind){
+   if(skaiBleOres)showBleOresEpisodes() else when(kind){
     "SERIES"->showSeriesEpisodes(title,meta,sourceUrl)
     "MOVIE"->{status.text="Checking ERTFLIX…";Thread{val r=try{resolveErtStream(sourceUrl)}catch(_:Exception){null};runOnUiThread{val stream=r?.second;if(stream.isNullOrBlank()){status.text="UNAVAILABLE • ERTFLIX is not exposing a supported stream for this title."}else showVodPlayer(r?.first?.ifBlank{title}?:title,stream,sourceUrl){showNativeVodDetail(title,meta,kicker,sourceUrl,kind)}}}.start()}
     else->{
@@ -2982,7 +3151,7 @@ class MainActivity:Activity(){
   }
   actions.addView(primary,LinearLayout.LayoutParams(270,58).apply{setMargins(0,0,12,0)})
   if(skaiBleOres)actions.addView(button("▶  EPISODE 1"){
-   showLibraryWeb(title+" • Επεισόδιο 1","https://www.skai.gr/tv/episode/seires/mple-ores/2026-09-14-21/mple-ores-epeisodio-1-14092026","SERIES_WEB")
+   showBleOresEpisode(SkaiEpisode(1,"https://www.skai.gr/tv/episode/seires/mple-ores/2026-09-14-21/mple-ores-epeisodio-1-14092026"))
   },LinearLayout.LayoutParams(220,58).apply{setMargins(0,0,12,0)})
   actions.addView(button("←  BACK"){when(kind){"MOVIE"->showPreloadedMovies();"SERIES"->showPreloadedSeries();else->showGreekCooking()}},LinearLayout.LayoutParams(180,58))
   panel.addView(actions);root.addView(panel,LinearLayout.LayoutParams(-1,0,1f).apply{setMargins(6,18,6,18)});setContentView(root);primary.requestFocus()

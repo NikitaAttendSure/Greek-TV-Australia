@@ -87,3 +87,21 @@ jobs:
                 hits.append(re.sub(r'\s+',' ',snip)[:300])
               print('TERM',term,'COUNT',len(found),'SAMPLES',hits)
           PY
+
+
+      - name: Inspect SKAI public episodes-loading script
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re
+          url='https://www.skai.gr/tv/dist/custom-files/js/show.js?90'
+          req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+          with urllib.request.urlopen(req,timeout=15) as res:body=res.read(150000).decode('utf8','replace')
+          print('SHOW JS LENGTH',len(body))
+          for term in ['more_episodes','jsonapi','ajax','$.post','$.get','fetch(','.more_episodes','showepisodes','getEpisodes','episode','limit','offset','page']:
+            found=list(re.finditer(re.escape(term),body,re.I))
+            if found:
+              print('TERM',term,'COUNT',len(found))
+              for m in found[:5]:
+                print('SNIPPET',re.sub(r'\s+',' ',body[max(0,m.start()-240):m.end()+290])[:540])
+          PY

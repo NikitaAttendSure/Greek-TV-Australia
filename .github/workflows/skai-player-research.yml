@@ -137,3 +137,17 @@ jobs:
                 print('CATALOGUE PAGER',match.group(0) if match else '',flush=True)
             except Exception as e:print('ERROR',type(e).__name__,str(e)[:200],flush=True)
           PY
+
+
+      - name: Check SKAI first episode catalogue page
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re
+          for n in ('0','1'):
+            u='https://www.skai.gr/tv/ajaxshowsepisode/68902/'+n
+            req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0','Referer':'https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/','X-Requested-With':'XMLHttpRequest'})
+            with urllib.request.urlopen(req,timeout=15) as r:body=r.read(800000).decode('utf8','replace')
+            pairs=re.findall(r'<a href="([^"]+)" class="resio">[\s\S]*?<img src="([^"]+)" alt="Μπλε Ώρες \| Επεισόδιο ([0-9]+)"',body)
+            print('PAGE',n,'LENGTH',len(body),'NUM',len(pairs),'FIRST',pairs[:4],'LAST',pairs[-3:])
+          PY

@@ -1,4 +1,4 @@
-name: Research SKAI public player availability
+name: Verify Greek One stable release
 on:
   pull_request:
     paths:
@@ -6,148 +6,30 @@ on:
 permissions:
   contents: read
 jobs:
-  inspect-public-page:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
     steps:
-      - name: Check official episode player structure and released APK timestamp
+      - name: Read main release and workflow deployment statuses
         shell: bash
         run: |
           python3 - <<'PY'
-          import urllib.request,urllib.parse,json,re
-          from html.parser import HTMLParser
-          class Tags(HTMLParser):
-            def __init__(self):
-              super().__init__();self.tags=[]
-            def handle_starttag(self,t,attrs):
-              a=dict(attrs);id=a.get('id','');cl=a.get('class','')
-              if any(z in (id+' '+cl).lower() for z in ['player','video','kkk','clip','episod']):
-                self.tags.append((t,id,cl[:160],sorted(k for k in a if k not in ('src','href','style','url','url1','url2'))))
-          ua={'User-Agent':'Mozilla/5.0'}
-          def get(url):
-            req=urllib.request.Request(url,headers=ua)
-            with urllib.request.urlopen(req,timeout=20) as r:return r.read(2200000).decode('utf-8','replace')
-          url='https://www.skai.gr/tv/episode/seires/mple-ores/2026-09-14-21/mple-ores-epeisodio-1-14092026'
-          try:
-            html=get(url)
-            print('PUBLIC SKAI HTML',len(html))
-            tags=Tags();tags.feed(html)
-            print('PLAYER RELATED DOM ELEMENTS',tags.tags[:32])
-            for word in ['id="kkk"',"id='kkk'",'id="player-main"',"id='player-main'",'player-main-p','class="video','class="episode','video_id','VideoObject','data-src','embedUrl']:
-              at=html.lower().find(word.lower())
-              if at>=0:
-                snippet=html[max(0,at-150):at+450]
-                snippet=re.sub(r'(?i)https?://[^\s\"<>]+', '[URL]',snippet)
-                print('CONTEXT',word,re.sub(r'\s+',' ',snippet)[:570])
-            for raw in re.findall(r'<script type="application/ld\+json">(.*?)</script>',html,re.S):
-              try:
-                obj=json.loads(raw)
-                if obj.get('@type')=='VideoObject': print('VIDEOOBJECT KEYS',sorted(obj.keys()), 'EMBED PROVIDED',bool(obj.get('embedUrl')),'CONTENT PROVIDED',bool(obj.get('contentUrl')))
-              except Exception: pass
-          except Exception as e:print('SKAI ERROR',type(e).__name__,str(e)[:180])
-          try:
-            release=json.loads(get('https://api.github.com/repos/NikitaAttendSure/Greek-TV-Australia/releases/tags/reskakis-tv-latest'))
-            print('RELEASE TAG',release.get('tag_name'),'published',release.get('published_at'))
-            print('APK ASSET TIMESTAMPS',[(a.get('name'),a.get('updated_at'),a.get('size')) for a in release.get('assets',[])])
-          except Exception as e:print('RELEASE ERROR',type(e).__name__,str(e)[:180])
-          try:
-            runs=json.loads(get('https://api.github.com/repos/NikitaAttendSure/Greek-TV-Australia/actions/workflows/greek-tv-android.yml/runs?branch=main&per_page=3'))
-            print('PRODUCTION RUNS',[(r.get('id'),r.get('status'),r.get('conclusion'),r.get('head_sha')) for r in runs.get('workflow_runs',[])])
-          except Exception as e:print('RUNS ERROR',type(e).__name__,str(e)[:180])
-          PY
-
-
-      - name: Find official SKAI series episode catalogue hooks
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import urllib.request,re
-          from html.parser import HTMLParser
-          url='https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/'
-          req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-          with urllib.request.urlopen(req,timeout=15) as response:body=response.read(500000).decode('utf8','replace')
-          print('SHOW PAGE SIZE',len(body))
-          class Inspector(HTMLParser):
-            def __init__(self):super().__init__();self.script=[];self.dom=[]
-            def handle_starttag(self,tag,attrs):
-              a=dict(attrs)
-              if tag=='script' and a.get('src'):self.script.append(a['src'])
-              if tag in ('div','a','section','button','ul') and any(x in (' '.join([a.get('id',''),a.get('class','')])).lower() for x in ['episode','episod','series','more','load','show','season','video']):
-                self.dom.append((tag,a.get('id'),a.get('class'),a.get('href','')[:100]))
-          ins=Inspector();ins.feed(body)
-          print('SCRIPTS',ins.script[-40:])
-          print('CATALOGUE NODES',ins.dom[:70])
-          for term in ['epizodia','epeisodia','episode','showmore','loadmore','load-more','show-more','fetch(','jsonapi','/tv/api','season','episod']:
-            found=list(re.finditer(re.escape(term),body,re.I))
-            if found:
-              hits=[]
-              for m in found[-2:]:
-                snip=body[max(0,m.start()-110):m.end()+180]
-                snip=re.sub(r'(?i)https?://[^\s\"<>]+','[URL]',snip)
-                hits.append(re.sub(r'\s+',' ',snip)[:300])
-              print('TERM',term,'COUNT',len(found),'SAMPLES',hits)
-          PY
-
-
-      - name: Inspect SKAI public episodes-loading script
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import urllib.request,re
-          url='https://www.skai.gr/tv/dist/custom-files/js/show.js?90'
-          req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-          with urllib.request.urlopen(req,timeout=15) as res:body=res.read(150000).decode('utf8','replace')
-          print('SHOW JS LENGTH',len(body))
-          for term in ['more_episodes','jsonapi','ajax','$.post','$.get','fetch(','.more_episodes','showepisodes','getEpisodes','episode','limit','offset','page']:
-            found=list(re.finditer(re.escape(term),body,re.I))
-            if found:
-              print('TERM',term,'COUNT',len(found))
-              for m in found[:5]:
-                print('SNIPPET',re.sub(r'\s+',' ',body[max(0,m.start()-240):m.end()+290])[:540])
-          PY
-
-
-      - name: Verify SKAI public episode catalogue pages
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import urllib.request,re,html
-          from html.parser import HTMLParser
-          class Links(HTMLParser):
-            def __init__(self):super().__init__();self.href=[];self.img=[]
-            def handle_starttag(self,tag,attrs):
-              a=dict(attrs)
-              if a.get('href'):self.href.append(a['href'])
-              if tag=='img' and a.get('alt'):self.img.append(a['alt'])
-          base='https://www.skai.gr'
-          urls=[base+'/tv/show/seires/mple-ores/sezon-2026-2027/']+[base+'/tv/ajaxshowsepisode/68902/'+str(i) for i in range(1,5)]
-          for url in urls:
-            print('FETCH',url,flush=True)
+          import urllib.request,json
+          base='https://api.github.com/repos/NikitaAttendSure/Greek-TV-Australia'
+          def get(path):
+            req=urllib.request.Request(base+path,headers={'Accept':'application/vnd.github+json','User-Agent':'GreekOneAudit/1.0'})
+            with urllib.request.urlopen(req,timeout=12) as r:return json.load(r)
+          for name,path in (
+            ('MAIN_BRANCH','/branches/main'),
+            ('LATEST_RUNS','/actions/runs?branch=main&per_page=5'),
+            ('RELEASE','/releases/tags/reskakis-tv-latest'),
+          ):
             try:
-              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','X-Requested-With':'XMLHttpRequest','Referer':base+'/tv/show/seires/mple-ores/sezon-2026-2027/'})
-              with urllib.request.urlopen(req,timeout=16) as r:
-                body=r.read(750000).decode('utf8','replace')
-                print('HTTP',r.status,'LEN',len(body),'TYPE',r.headers.get('Content-Type'),flush=True)
-              p=Links();p.feed(body)
-              print('EPISODE HREFS',list(dict.fromkeys(h for h in p.href if 'episode' in h or 'mple-ores' in h))[:30],flush=True)
-              print('IMG ALTS',p.img[:10],flush=True)
-              if 'ajaxshowsepisode' in url: print('SAMPLE HTML',re.sub(r'\s+',' ',body[:1200]),flush=True)
-              else:
-                match=re.search(r'<div[^>]*class="[^"]*more_episodes_show[^"]*"[^>]*>',body)
-                print('CATALOGUE PAGER',match.group(0) if match else '',flush=True)
-            except Exception as e:print('ERROR',type(e).__name__,str(e)[:200],flush=True)
-          PY
-
-
-      - name: Check SKAI first episode catalogue page
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import urllib.request,re
-          for n in ('0','1'):
-            u='https://www.skai.gr/tv/ajaxshowsepisode/68902/'+n
-            req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0','Referer':'https://www.skai.gr/tv/show/seires/mple-ores/sezon-2026-2027/','X-Requested-With':'XMLHttpRequest'})
-            with urllib.request.urlopen(req,timeout=15) as r:body=r.read(800000).decode('utf8','replace')
-            pairs=re.findall(r'<a href="([^"]+)" class="resio">[\s\S]*?<img src="([^"]+)" alt="Μπλε Ώρες \| Επεισόδιο ([0-9]+)"',body)
-            print('PAGE',n,'LENGTH',len(body),'NUM',len(pairs),'FIRST',pairs[:4],'LAST',pairs[-3:])
+              d=get(path)
+              if name=='MAIN_BRANCH':
+                print('MAIN_SHA',d['commit']['sha'])
+              elif name=='LATEST_RUNS':
+                for x in d['workflow_runs'][:5]:print('RUN',x['id'],x['name'],x['head_sha'],x['status'],x['conclusion'])
+              elif name=='RELEASE':
+                for a in d['assets']:print('RELEASE_ASSET',a['name'],'updated',a['updated_at'],'size',a['size'],'download',a['browser_download_url'])
+            except Exception as e:print('ERROR',name,type(e).__name__,str(e))
           PY

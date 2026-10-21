@@ -3174,25 +3174,47 @@ class MainActivity:Activity(){
    text="Loading SKAI video…  Press OK when ready."
    textSize=11.5f;setTextColor(Color.rgb(158,199,229));setPadding(75,3,50,7)
   }
-  val header=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(42,8,42,8)}
-  val titles=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
-  titles.addView(TextView(this).apply{
-   text="ΜΠΛΕ ΩΡΕΣ • EP "+episode.number;textSize=19f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE);maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
-  })
-  titles.addView(TextView(this).apply{
-   text="SKAI OFFICIAL PLAYER  •  INSIDE GREEK ONE";textSize=10f;setTextColor(Color.rgb(114,204,249))
-  })
-  header.addView(titles,LinearLayout.LayoutParams(0,-2,1f).apply{setMargins(0,0,12,0)})
+  // Two-row, TV-safe toolbar: title never competes for width with remote controls.
+  // Keep a generous edge inset for Sony/Android TV overscan and focus enlargement.
+  val header=LinearLayout(this).apply{
+   orientation=LinearLayout.VERTICAL
+   setPadding(64,10,64,8)
+   background=panel(Color.rgb(4,21,38),0f)
+  }
+  val titleRow=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  titleRow.addView(TextView(this).apply{
+   text="ΜΠΛΕ ΩΡΕΣ  •  EPISODE "+episode.number
+   textSize=19f;typeface=Typeface.DEFAULT_BOLD;setTextColor(Color.WHITE)
+   maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
+  },LinearLayout.LayoutParams(0,38,1f))
+  titleRow.addView(TextView(this).apply{
+   text="SKAI  •  GREEK ONE"
+   textSize=11f;typeface=Typeface.DEFAULT_BOLD;letterSpacing=.08f
+   setTextColor(Color.rgb(114,204,249));gravity=Gravity.CENTER_VERTICAL
+  },LinearLayout.LayoutParams(-2,38))
+  header.addView(titleRow,LinearLayout.LayoutParams(-1,38))
   var openFullscreen:(()->Unit)?=null
-  header.addView(button("▶"){
+  val controls=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setPadding(0,6,0,0)}
+  fun addSkaiControl(label:String,weight:Float,onClick:()->Unit){
+   val action=button(label,onClick).apply{
+    textSize=13.5f;maxLines=1
+    ellipsize=android.text.TextUtils.TruncateAt.END
+    setPadding(8,0,8,0)
+   }
+   controls.addView(action,LinearLayout.LayoutParams(0,56,weight).apply{setMargins(0,0,10,0)})
+  }
+  addSkaiControl("PLAY",.8f){
    bleOresWebView?.evaluateJavascript(
     "(function(){var p=document.getElementById('player-main');if(!p)return false;var v=p.querySelector('video');if(v){v.play().catch(function(){});return true;}p.click();return true;})()",null)
-  },LinearLayout.LayoutParams(75,54))
-  header.addView(button("🔊  UNMUTE"){unmuteBleOresVideo(bleOresWebView,status)},LinearLayout.LayoutParams(148,54))
-  header.addView(button("⛶  FULL"){openFullscreen?.invoke()},LinearLayout.LayoutParams(132,54))
-  header.addView(button("⟳"){bleOresWebView?.reload()},LinearLayout.LayoutParams(76,54))
-  header.addView(button("←  BACK"){closeBleOresPlayer()},LinearLayout.LayoutParams(136,54))
-  content.addView(header,LinearLayout.LayoutParams(-1,78))
+  }
+  addSkaiControl("UNMUTE",1.15f){unmuteBleOresVideo(bleOresWebView,status)}
+  addSkaiControl("FULL SCREEN",1.4f){openFullscreen?.invoke()}
+  addSkaiControl("RETRY",.85f){bleOresWebView?.reload()}
+  // Last button has no right gap, keeping all labels inside the TV's safe area.
+  val backAction=button("BACK"){closeBleOresPlayer()}.apply{textSize=13.5f;maxLines=1;setPadding(8,0,8,0)}
+  controls.addView(backAction,LinearLayout.LayoutParams(0,56,1f))
+  header.addView(controls,LinearLayout.LayoutParams(-1,68))
+  content.addView(header,LinearLayout.LayoutParams(-1,128))
 
   content.addView(status,LinearLayout.LayoutParams(-1,37))
   val web=WebView(this).apply{
@@ -3250,13 +3272,16 @@ class MainActivity:Activity(){
   root.addView(content,FrameLayout.LayoutParams(-1,-1))
   val fullControls=LinearLayout(this).apply{
    orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
-   setPadding(8,6,8,6)
+   setPadding(12,10,12,10)
    background=panel(Color.rgb(5,19,32),12f)
    visibility=View.GONE
   }
-  fullControls.addView(button("🔊 SOUND"){unmuteBleOresVideo(web,status)},LinearLayout.LayoutParams(160,52))
-  fullControls.addView(button("⛶ EXIT"){bleOresExitNativeFullscreen?.invoke()},LinearLayout.LayoutParams(128,52).apply{setMargins(12,0,0,0)})
-  root.addView(fullControls,FrameLayout.LayoutParams(-2,-2,Gravity.TOP or Gravity.RIGHT).apply{setMargins(0,12,18,0)})
+  val soundAction=button("UNMUTE"){unmuteBleOresVideo(web,status)}.apply{textSize=13f;setPadding(10,0,10,0)}
+  fullControls.addView(soundAction,LinearLayout.LayoutParams(144,54))
+  val exitAction=button("EXIT FULL SCREEN"){bleOresExitNativeFullscreen?.invoke()}.apply{textSize=13f;setPadding(10,0,10,0)}
+  fullControls.addView(exitAction,LinearLayout.LayoutParams(185,54).apply{setMargins(12,0,0,0)})
+  // Overscan-safe position; no controls clipped against the top/right of the TV.
+  root.addView(fullControls,FrameLayout.LayoutParams(-2,-2,Gravity.TOP or Gravity.RIGHT).apply{setMargins(0,28,64,0)})
   val beforeFullscreenUi=window.decorView.systemUiVisibility
   openFullscreen={
    if(bleOresExitNativeFullscreen==null&&bleOresWebView===web){

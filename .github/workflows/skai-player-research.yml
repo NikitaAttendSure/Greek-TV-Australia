@@ -1,4 +1,4 @@
-name: Verify Greek One production release
+name: Verify Greek One signed release
 on:
   pull_request:
     paths:
@@ -6,10 +6,11 @@ on:
 permissions:
   contents: read
 jobs:
-  audit:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
-      - name: Verify Build 68 merge and latest signed release publication
+      - name: Verify production Build 69 release
         shell: bash
         run: |
           python3 - <<'PY'
@@ -20,8 +21,8 @@ jobs:
             with urllib.request.urlopen(req,timeout=15) as r:return json.load(r)
           branch=get('/branches/main')
           print('MAIN_SHA',branch['commit']['sha'])
-          runs=get('/actions/runs?branch=main&per_page=4')
-          for x in runs['workflow_runs'][:4]:
+          runs=get('/actions/runs?branch=main&per_page=5')
+          for x in runs['workflow_runs'][:5]:
             print('RUN',x['id'],x['name'],x['head_sha'],x['status'],x['conclusion'])
           release=get('/releases/tags/reskakis-tv-latest')
           for a in release['assets']:

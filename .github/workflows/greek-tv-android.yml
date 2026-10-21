@@ -56,12 +56,6 @@ jobs:
           PAPAS_KEYSTORE_PATH: /tmp/papas-tv-release.jks
         run: gradle --no-daemon --stacktrace --info assembleReskakisRelease assemblePappasRelease
 
-      - name: Build separate signed Greek One test APK
-        if: github.event_name == 'pull_request' && github.head_ref == 'feature/greek-one-ble-ores-integrated-build67' && github.event.pull_request.head.repo.full_name == github.repository && env.RESKAKIS_KEYSTORE_B64 != ''
-        env:
-          RESKAKIS_KEYSTORE_PATH: /tmp/reskakis-tv-release.jks
-          PAPAS_KEYSTORE_PATH: /tmp/papas-tv-release.jks
-        run: gradle --no-daemon --stacktrace assembleBleorestestRelease
       - uses: actions/upload-artifact@v4
         with:
           name: TV-builds
@@ -71,20 +65,7 @@ jobs:
             tv-app/app/build/outputs/apk/pappas/debug/app-pappas-debug.apk
             tv-app/app/build/outputs/apk/reskakis/release/app-reskakis-release.apk
             tv-app/app/build/outputs/apk/pappas/release/app-pappas-release.apk
-            tv-app/app/build/outputs/apk/bleorestest/release/app-bleorestest-release.apk
 
-
-      - name: Publish isolated Greek One BLE ORES test package
-        if: github.event_name == 'pull_request' && github.head_ref == 'feature/greek-one-ble-ores-integrated-build67' && github.event.pull_request.head.repo.full_name == github.repository && env.RESKAKIS_KEYSTORE_B64 != ''
-        working-directory: .
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if ! gh release view greek-one-ble-ores-test-build67 >/dev/null 2>&1; then
-            gh release create greek-one-ble-ores-test-build67 --target "$GITHUB_HEAD_REF" --prerelease --title "Greek One Test: Μπλε Ώρες" --notes "Isolated TV test app. Separate package; does NOT update or replace regular Greek One. Playback on physical Sony remains unverified."
-          fi
-          cp tv-app/app/build/outputs/apk/bleorestest/release/app-bleorestest-release.apk GREEK-ONE-BLE-ORES-TEST.apk
-          gh release upload greek-one-ble-ores-test-build67 GREEK-ONE-BLE-ORES-TEST.apk --clobber
 
       - name: Publish permanent signed TV APKs
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && env.RESKAKIS_KEYSTORE_B64 != '' && env.PAPAS_KEYSTORE_B64 != ''

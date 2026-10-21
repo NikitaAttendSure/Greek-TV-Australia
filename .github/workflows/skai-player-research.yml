@@ -1,48 +1,29 @@
-name: Verify Greek One stable release
+name: Verify Greek One production release
 on:
   pull_request:
     paths:
       - '.github/workflows/skai-player-research.yml'
 permissions:
-  contents: write
+  contents: read
 jobs:
-  verify:
+  audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Read main release and workflow deployment statuses
+      - name: Verify Build 68 merge and latest signed release publication
         shell: bash
         run: |
           python3 - <<'PY'
           import urllib.request,json
           base='https://api.github.com/repos/NikitaAttendSure/Greek-TV-Australia'
           def get(path):
-            req=urllib.request.Request(base+path,headers={'Accept':'application/vnd.github+json','User-Agent':'GreekOneAudit/1.0'})
-            with urllib.request.urlopen(req,timeout=12) as r:return json.load(r)
-          for name,path in (
-            ('MAIN_BRANCH','/branches/main'),
-            ('LATEST_RUNS','/actions/runs?branch=main&per_page=5'),
-            ('RELEASE','/releases/tags/reskakis-tv-latest'),
-          ):
-            try:
-              d=get(path)
-              if name=='MAIN_BRANCH':
-                print('MAIN_SHA',d['commit']['sha'])
-              elif name=='LATEST_RUNS':
-                for x in d['workflow_runs'][:5]:print('RUN',x['id'],x['name'],x['head_sha'],x['status'],x['conclusion'])
-              elif name=='RELEASE':
-                for a in d['assets']:print('RELEASE_ASSET',a['name'],'updated',a['updated_at'],'size',a['size'],'download',a['browser_download_url'])
-            except Exception as e:print('ERROR',name,type(e).__name__,str(e))
+            req=urllib.request.Request(base+path,headers={'Accept':'application/vnd.github+json','User-Agent':'GreekOneReleaseAudit/1.0'})
+            with urllib.request.urlopen(req,timeout=15) as r:return json.load(r)
+          branch=get('/branches/main')
+          print('MAIN_SHA',branch['commit']['sha'])
+          runs=get('/actions/runs?branch=main&per_page=4')
+          for x in runs['workflow_runs'][:4]:
+            print('RUN',x['id'],x['name'],x['head_sha'],x['status'],x['conclusion'])
+          release=get('/releases/tags/reskakis-tv-latest')
+          for a in release['assets']:
+            print('RELEASE_ASSET',a['name'],'updated',a['updated_at'],'size',a['size'],'download',a['browser_download_url'])
           PY
-
-      - name: Remove the unwanted secondary-test release (created for this task)
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 13 && github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          if gh release view greek-one-ble-ores-test-build67 >/dev/null 2>&1; then
-            gh release delete greek-one-ble-ores-test-build67 --cleanup-tag --yes
-            echo "Removed Greek One Test prerelease and tag"
-          else
-            echo "Secondary-test prerelease already absent"
-          fi

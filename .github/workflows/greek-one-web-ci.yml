@@ -50,6 +50,17 @@ jobs:
           grep -q 'GREEK ONE' /tmp/greek-one-index.html
           curl -fsS --max-time 8 http://127.0.0.1:3999/app.js -o /tmp/greek-one-app.js
           grep -q 'showBleOresDetail' /tmp/greek-one-app.js
+      - name: Install headless browser test tools
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test Greek One desktop and mobile browsers
+        run: |
+          PORT=3999 node web/server.js &
+          serverpid=$!
+          trap 'kill "$serverpid" 2>/dev/null || true' EXIT
+          sleep 2
+          node web/tests/browser-smoke.js
       - name: Verify SKAI episode-page framing policy
         run: |
           python3 - <<'PY'

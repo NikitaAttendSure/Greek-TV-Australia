@@ -667,3 +667,31 @@ body{background:#020810}
  #hero.embedded-player{margin:0!important;border-radius:0!important;padding:10px!important}
  #hero.embedded-player .embedShell{width:100%;aspect-ratio:16/9;border-radius:10px!important}
 }
+
+
+/* Μπλε Ώρες: Greek One-managed episode list; broadcaster still owns playback. */
+.skai-episodes-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(315px,1fr));gap:14px;align-items:start;padding-bottom:28px}
+.skai-episode-note{grid-column:1/-1;color:#b5d3e7;font-size:13px;line-height:1.6;margin:12px 0 8px}
+.skai-episode-row{grid-template-columns:116px minmax(0,1fr) 26px!important;gap:14px!important;min-height:96px;padding:9px!important;cursor:pointer;background:linear-gradient(120deg,#0c263a,#06131f)!important;border:1px solid rgba(126,209,246,.16)!important}
+.skai-episode-row:focus-visible,.skai-episode-row:hover{border-color:#74d8ff!important;background:#123753!important;outline-offset:2px}
+.skai-episode-art{width:116px;height:74px;object-fit:cover;border-radius:9px;background:#08283d}
+.skai-episode-copy{min-width:0}
+.skai-episode-copy strong{display:block;color:#f1faff;font-size:14px;line-height:1.4}
+.skai-episode-copy small{display:block;font-size:11px!important;line-height:1.5;color:#91b6ce;margin-top:6px}
+.skai-web-player .skai-player-frame{margin-top:10px!important;width:100%;aspect-ratio:16/9;background:#02070d!important;border:1px solid rgba(128,206,240,.16)}
+.skai-web-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:13px;padding:9px 0;color:#a9c1d1}
+.skai-web-tools p{flex:1 1 280px;font-size:12px;line-height:1.5;margin:0}
+.skai-web-tools .fullscreen-btn,.skai-official-link{margin:0;border:1px solid rgba(124,211,250,.26);background:#0c3047;color:#edfbff;min-height:41px;padding:10px 14px;border-radius:10px;font-size:11px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.skai-official-link:hover{background:#154363}
+.skai-player-frame:fullscreen{background:#000;display:flex;align-items:center;justify-content:center;aspect-ratio:auto;max-width:100vw;max-height:100vh}
+.skai-player-frame:fullscreen iframe{position:relative!important;width:100vw!important;height:100vh!important;max-width:100%!important}
+@media(max-width:760px){
+ .skai-episodes-grid{grid-template-columns:1fr;gap:10px;margin:0 10px 90px}
+ .skai-episode-row{grid-template-columns:92px minmax(0,1fr) 20px!important;gap:10px!important;min-height:78px}
+ .skai-episode-art{width:92px;height:63px}
+ .skai-episode-copy strong{font-size:13px}
+ .skai-episode-copy small{font-size:10px!important}
+ .skai-web-tools{padding:10px 3px 16px}
+ .skai-web-tools p{flex-basis:100%}
+ .skai-web-tools .fullscreen-btn,.skai-official-link{flex:1 1 auto}
+}

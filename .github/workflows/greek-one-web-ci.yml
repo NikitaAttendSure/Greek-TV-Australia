@@ -1,0 +1,44 @@
+name: Greek One Web regressions
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - '.github/workflows/greek-one-web-ci.yml'
+  push:
+    branches: [greek-one-web]
+    paths:
+      - 'web/**'
+      - '.github/workflows/greek-one-web-ci.yml'
+permissions:
+  contents: read
+jobs:
+  web-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: |
+          node --check web/app.js
+          node --check web/server.js
+          node --check web/skai-series.js
+          node --check web/tests/check.js
+      - name: Test episode parser
+        run: node web/tests/check.js
+      - name: Verify SKAI episode-page framing policy
+        run: |
+          python3 - <<'PY'
+          import urllib.request
+          u='https://www.skai.gr/tv/episode/seires/mple-ores/2026-09-14-21/mple-ores-epeisodio-1-14092026'
+          try:
+            req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'})
+            with urllib.request.urlopen(req,timeout=13) as r:
+              print('SKAI episode HTTP',r.status)
+              print('X-Frame-Options:',r.headers.get('X-Frame-Options','(not advertised)'))
+              csp=r.headers.get('Content-Security-Policy','')
+              print('CSP frame-ancestors:',next((part.strip() for part in csp.split(';') if 'frame-ancestors' in part),'(not advertised)'))
+          except Exception as e:print('SKAI network verification unavailable:',str(e)[:150])
+          PY

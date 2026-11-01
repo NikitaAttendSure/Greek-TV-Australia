@@ -28,6 +28,28 @@ jobs:
           node --check web/tests/check.js
       - name: Test episode parser
         run: node web/tests/check.js
+      - name: Inspect live SKAI episode index (non-blocking external dependency)
+        continue-on-error: true
+        run: |
+          node - <<'JS'
+          const {listEpisodes}=require("./web/skai-series");
+          listEpisodes().then(episodes=>{
+            console.log("SKAI episodes discovered:",episodes.length);
+            console.log("Episode numbers:",episodes.map(x=>x.number).slice(0,40).join(", "));
+            if(!episodes.length)throw Error("No episodes returned");
+            if(!episodes.every(x=>x.url.startsWith("https://www.skai.gr/tv/episode/seires/mple-ores/")))throw Error("Episode source mismatch");
+          }).catch(e=>{console.error("SKAI source check:",e.message);process.exitCode=1;});
+          JS
+      - name: Exercise Greek One local web server
+        run: |
+          PORT=3999 node web/server.js &
+          serverpid=$!
+          trap 'kill "$serverpid" 2>/dev/null || true' EXIT
+          sleep 2
+          curl -fsS --max-time 8 http://127.0.0.1:3999/ -o /tmp/greek-one-index.html
+          grep -q 'GREEK ONE' /tmp/greek-one-index.html
+          curl -fsS --max-time 8 http://127.0.0.1:3999/app.js -o /tmp/greek-one-app.js
+          grep -q 'showBleOresDetail' /tmp/greek-one-app.js
       - name: Verify SKAI episode-page framing policy
         run: |
           python3 - <<'PY'

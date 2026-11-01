@@ -1,11 +1,21 @@
 const http=require("http"),https=require("https"),fs=require("fs"),path=require("path");
 const root=__dirname,port=process.env.PORT||3000;
+const {listEpisodes,FALLBACK_EPISODE,OFFICIAL_SHOW}=require("./skai-series");
 function send(res,status,body,type="application/json"){res.writeHead(status,{"content-type":type,"cache-control":"no-store","access-control-allow-origin":"*"});res.end(body)}
 function get(url){return new Promise((resolve,reject)=>{https.get(url,{headers:{"user-agent":"Mozilla/5.0 GreekOne/1.0","accept":"*/*"}},r=>{let b=[];r.on("data",d=>b.push(d));r.on("end",()=>resolve({status:r.statusCode,headers:r.headers,body:Buffer.concat(b)}))}).on("error",reject)})}
 function mime(f){return f.endsWith(".html")?"text/html; charset=utf-8":f.endsWith(".js")?"application/javascript; charset=utf-8":f.endsWith(".css")?"text/css; charset=utf-8":f.endsWith(".webmanifest")?"application/manifest+json; charset=utf-8":f.endsWith(".svg")?"image/svg+xml":"application/octet-stream"}
 http.createServer(async(req,res)=>{
  try{
   const u=new URL(req.url,"http://localhost");
+  if(u.pathname==="/api/skai/ble-ores"){
+   try{
+    const episodes=await listEpisodes();
+    return send(res,200,JSON.stringify({title:"ΜΠΛΕ ΩΡΕΣ",source:"SKAI",episodes:episodes.length?episodes:[FALLBACK_EPISODE],officialShow:OFFICIAL_SHOW}),"application/json; charset=utf-8");
+   }catch(_){
+    // Never invent newer episodes or serve scraped video; offer verified episode 1.
+    return send(res,200,JSON.stringify({title:"ΜΠΛΕ ΩΡΕΣ",source:"SKAI",episodes:[FALLBACK_EPISODE],officialShow:OFFICIAL_SHOW,partial:true}),"application/json; charset=utf-8");
+   }
+  }
   if(u.pathname==="/api/ert-details"){
    const id=u.searchParams.get("id");if(!id||!/^[A-Za-z0-9_-]+$/.test(id))return send(res,400,'{"error":"bad id"}');
    const r=await get("https://live.ertflix.gr/api/details?contentId="+encodeURIComponent(id)+"&lang=en_GB");return send(res,r.status,r.body,"application/json");
